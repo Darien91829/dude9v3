@@ -16,11 +16,6 @@
     .scroll-row::-webkit-scrollbar { height: 4px; }
     .scroll-row::-webkit-scrollbar-track { background: #050505; }
     .scroll-row::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 2px; }
-
-    select option {
-      background-color: #111111 !important;
-      color: #e5e7eb !important;
-    }
   </style>
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
@@ -79,87 +74,12 @@
         <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to <span class="text-emerald-400 drop-shadow-[0_0_10px_rgba(0,255,102,0.3)]">Thedude9</span></h1>
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
-        <!-- Search Bar and Integrated Filter Control Strip -->
-        <div class="relative space-y-3">
-          <div class="flex items-center gap-2">
-            <div class="flex-1 bg-dark-card p-2 rounded-xl border border-dark flex items-center shadow-2xl focus-within:border-emerald-500 transition-all">
-              <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
-              <input type="text" id="search-input" placeholder="Search titles or click filters..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
-              <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
-            </div>
-
-            <button onclick="toggleAdvancedFilterPanel()" id="filter-panel-toggle-btn" class="bg-dark-card border border-dark hover:border-emerald-500 text-gray-400 hover:text-white p-3 rounded-xl transition-all flex items-center justify-center shadow-xl">
-              <i class="fa-solid fa-sliders text-sm"></i>
-            </button>
-          </div>
-
-          <!-- Advanced Dropdown Filter Drawer Panel -->
-          <div id="advanced-filter-dropdown-panel" class="hidden absolute left-0 right-0 top-full mt-2 bg-dark-card border border-dark rounded-xl p-4 text-left space-y-4 shadow-2xl z-30">
-            <div class="flex items-center justify-between border-b border-dark/60 pb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                <i class="fa-solid fa-sliders"></i> Refine Index Results
-              </span>
-              <button onclick="resetAdvancedFilters()" class="text-[10px] bg-dark-input hover:text-white border border-dark text-gray-400 py-1 px-2.5 rounded transition-all">
-                <i class="fa-solid fa-rotate-left mr-1"></i> Reset
-              </button>
-            </div>
-
-            <!-- Genres Filter Grid -->
-            <div class="space-y-1.5">
-              <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider block">Genres and Themes</span>
-              <div id="genres-container" class="flex flex-wrap gap-2">
-                <button onclick="toggleGenreTag(this, 'Action')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Action</button>
-                <button onclick="toggleGenreTag(this, 'Adventure')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Adventure</button>
-                <button onclick="toggleGenreTag(this, 'Comedy')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Comedy</button>
-                <button onclick="toggleGenreTag(this, 'Drama')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Drama</button>
-                <button onclick="toggleGenreTag(this, 'Fantasy')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Fantasy</button>
-                <button onclick="toggleGenreTag(this, 'Mystery')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Mystery</button>
-                <button onclick="toggleGenreTag(this, 'Romance')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Romance</button>
-                <button onclick="toggleGenreTag(this, 'Sci-Fi')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Sci-Fi</button>
-                <button onclick="toggleGenreTag(this, 'Slice of Life')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Slice of Life</button>
-                <button onclick="toggleGenreTag(this, 'Supernatural')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Supernatural</button>
-              </div>
-            </div>
-
-            <!-- Parameters Selector Dropdowns -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Format</label>
-                <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500 cursor-pointer">
-                  <option value="">All Anime</option>
-                  <option value="TV">Series</option>
-                  <option value="MOVIE">Films</option>
-                  <option value="OVA">OVA</option>
-                  <option value="SPECIAL">Special</option>
-                </select>
-              </div>
-              
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Sort Order</label>
-                <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500 cursor-pointer">
-                  <option value="POPULARITY_DESC">Popular</option>
-                  <option value="TRENDING_DESC">Trending</option>
-                  <option value="SCORE_DESC">Top Rated</option>
-                  <option value="START_DATE_DESC">Newest</option>
-                </select>
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">From Year</label>
-                <input type="number" id="filter-year-from" min="1990" max="2026" placeholder="2000" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">To Year</label>
-                <input type="number" id="filter-year-to" min="1990" max="2026" placeholder="2026" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
-              </div>
-            </div>
-
-            <div class="pt-2">
-              <button onclick="commitAdvancedFilterSearch()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg">
-                Show results
-              </button>
-            </div>
+        <!-- Clean Search Bar without Dropdown Panel Hooks -->
+        <div class="relative">
+          <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl focus-within:border-emerald-500 transition-all">
+            <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
+            <input type="text" id="search-input" placeholder="Search titles..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
+            <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
           </div>
         </div>
 
@@ -319,7 +239,6 @@
     window.activeAnimeTitle = "";
     window.activeMaxEpisodes = 12;
 
-    let selectedGenres = [];
     let animeScraperInstance = null;
     try {
       if (typeof NineAnimeScraper !== 'undefined') {
@@ -339,20 +258,6 @@
       } else {
         drawer.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
-      }
-    }
-
-    function toggleAdvancedFilterPanel() {
-      const panel = document.getElementById('advanced-filter-dropdown-panel');
-      const toggleBtn = document.getElementById('filter-panel-toggle-btn');
-      if (!panel || !toggleBtn) return;
-      
-      if (panel.classList.contains('hidden')) {
-        panel.classList.remove('hidden');
-        toggleBtn.style.borderColor = '#10b981';
-      } else {
-        panel.classList.add('hidden');
-        toggleBtn.style.borderColor = '';
       }
     }
 
@@ -421,37 +326,6 @@
       
       if(document.getElementById('search-input')) document.getElementById('search-input').value = "";
       if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = "";
-      document.getElementById('advanced-filter-dropdown-panel')?.classList.add('hidden');
-      resetAdvancedFilters();
-    }
-
-    function toggleGenreTag(element, genreName) {
-      if (!element) return;
-      if (element.classList.contains('bg-emerald-500')) {
-        element.classList.remove('bg-emerald-500', 'text-black');
-        element.classList.add('bg-dark-input', 'text-gray-300');
-        selectedGenres = selectedGenres.filter(g => g !== genreName);
-      } else {
-        element.classList.remove('bg-dark-input', 'text-gray-300');
-        element.classList.add('bg-emerald-500', 'text-black');
-        selectedGenres.push(genreName);
-      }
-    }
-
-    function resetAdvancedFilters() {
-      selectedGenres = [];
-      document.querySelectorAll('#genres-container button').forEach(btn => {
-        btn.className = "bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all";
-      });
-      if(document.getElementById('filter-format')) document.getElementById('filter-format').value = "";
-      if(document.getElementById('filter-sort')) document.getElementById('filter-sort').value = "POPULARITY_DESC";
-      if(document.getElementById('filter-year-from')) document.getElementById('filter-year-from').value = "";
-      if(document.getElementById('filter-year-to')) document.getElementById('filter-year-to').value = "";
-    }
-
-    function commitAdvancedFilterSearch() {
-      toggleAdvancedFilterPanel(); 
-      triggerCatalogSearch(false); 
     }
 
     async function loadMainHubFeeds() {
@@ -498,7 +372,6 @@
       const queryInputEl = document.getElementById(queryFieldId);
       const query = queryInputEl ? queryInputEl.value.trim() : "";
       
-      // Keep search boxes synchronized
       if(document.getElementById('search-input')) document.getElementById('search-input').value = query;
       if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
 
@@ -507,7 +380,6 @@
       document.getElementById('main-exploration-hub')?.classList.remove('hidden');
       document.getElementById('header-search-engine')?.classList.remove('hidden');
       
-      // Hide the recent releases row if a user executes a specific text keyword search
       if (query !== "") {
         document.getElementById('recommendations-container-block')?.classList.add('hidden');
       } else {
@@ -515,53 +387,23 @@
       }
 
       const gridHeader = document.getElementById('grid-header-title');
-      if (gridHeader) gridHeader.innerText = query ? `Catalog Matches: "${query}"` : "Filtered Catalog Results";
+      if (gridHeader) gridHeader.innerText = query ? `Catalog Matches: "${query}"` : "Trending Global Media Items";
       
       const gridResults = document.getElementById('results-grid');
       if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
       
-      const formatEl = document.getElementById('filter-format');
-      const sortEl = document.getElementById('filter-sort');
-      const yearFromEl = document.getElementById('filter-year-from');
-      const yearToEl = document.getElementById('filter-year-to');
-
-      const selectedFormat = formatEl && formatEl.value ? formatEl.value : null;
-      let selectedSort = sortEl && sortEl.value ? sortEl.value : "POPULARITY_DESC";
-      
-      const yearFromVal = yearFromEl ? yearFromEl.value.trim() : "";
-      const yearToVal = yearToEl ? yearToEl.value.trim() : "";
-
-      // Assemble query parameter states clean
+      // Super clean payload assembly
       let variables = {};
-      
-      // FIX: Changed from 'variables.search' to 'variables.q' to map precisely to structural template definitions
       if (query !== "") {
         variables.q = query;
-      }
-      
-      if (selectedGenres && selectedGenres.length > 0) {
-        variables.genre_in = selectedGenres;
-      }
-      if (selectedFormat) {
-        variables.format = selectedFormat;
-      }
-      if (yearFromVal !== "") {
-        variables.startDate_greater = parseInt(yearFromVal + "0000");
-      }
-      if (yearToVal !== "") {
-        variables.endDate_less = parseInt(yearToVal + "1231");
+      } else {
+        variables.sort = ["TRENDING_DESC"];
       }
 
-      // Add sort order configuration only when an explicit text string is absent
-      if (query === "") {
-        variables.sort = [selectedSort];
-      }
-
-      // Core dynamically optimized structural multi-parameter design block
       const aniListSearchQuery = `
-        query ($q: String, $genre_in: [String], $format: MediaFormat, $sort: [MediaSort], $startDate_greater: FuzzyDateInt, $endDate_less: FuzzyDateInt) {
+        query ($q: String, $sort: [MediaSort]) {
           Page(page: 1, perPage: 24) {
-            media(search: $q, genre_in: $genre_in, format: $format, sort: $sort, startDate_greater: $startDate_greater, endDate_less: $endDate_less, type: ANIME) {
+            media(search: $q, sort: $sort, type: ANIME) {
               id
               idMal
               title { english romaji }
@@ -582,14 +424,14 @@
         
         if (gridResults) {
           if(results.length === 0) {
-            gridResults.innerHTML = "<p class='text-xs text-gray-500'>No anime matches found for your active filter selections.</p>";
+            gridResults.innerHTML = "<p class='text-xs text-gray-500'>No anime matches found.</p>";
           } else {
             displayGridFeed(results, 'results-grid');
           }
         }
       } catch (e) {
         console.error(e);
-        if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>API filter mapping processing error.</p>";
+        if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>API communications error.</p>";
       }
     }
 
@@ -843,7 +685,6 @@
       startSystemClock();
       if(typeof updateRgbMixer === 'function') updateRgbMixer();
       
-      // Auto-load trending feeds immediately upon load, matching your dashboard setup
       document.getElementById('landing-portal')?.classList.add('hidden');
       document.getElementById('main-exploration-hub')?.classList.remove('hidden');
       document.getElementById('header-search-engine')?.classList.remove('hidden');
