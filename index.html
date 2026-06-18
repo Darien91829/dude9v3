@@ -169,7 +169,6 @@
 
     function liveSearchUpdate(val) {
       clearTimeout(inputDebounceTimer);
-      // Wait for user to stop typing for 250ms before querying API
       inputDebounceTimer = setTimeout(() => {
         document.getElementById('nav-search').value = val;
         runCatalogQuery();
@@ -197,7 +196,6 @@
       resetAllFilters();
     }
 
-    // Handles request schema parameter matching arrays
     async function runCatalogQuery() {
       const grid = document.getElementById('anime-display-grid');
       const queryStr = document.getElementById('main-search-bar').value.trim();
@@ -208,7 +206,6 @@
 
       document.getElementById('catalog-section-title').innerText = queryStr ? `Results for "${queryStr}"` : "Filtered Results";
 
-      // Build out variables parameters safely
       let variables = { sort: [sortSelect] };
       if (queryStr) {
         variables.q = queryStr;
@@ -274,7 +271,6 @@
       }
     }
 
-    // Run core parameters check on load
     window.onload = function() {
       runCatalogQuery();
     };
