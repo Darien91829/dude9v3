@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
   <style>
     body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
     .bg-dark-card { transition: background-color 0.3s ease; }
@@ -18,170 +19,219 @@
     .scroll-row::-webkit-scrollbar-thumb { background: #3b3b4a; border-radius: 2px; }
   </style>
 </head>
-<body class="text-gray-200 min-h-screen relative overflow-x-hidden bg-[#0f0f12]">
+<body class="text-gray-200 min-h-screen relative overflow-x-hidden bg-[#0f0f12] flex">
 
-  <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#0f0f12] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
-    <div class="p-4 flex items-center justify-between border-b border-dark">
-      <div class="flex flex-col items-start leading-none font-black select-none">
+  <aside id="main-menu-drawer" class="sidebar fixed md:sticky top-0 left-0 h-full shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+    <div class="pb-4 flex items-center justify-between border-b border-dark mb-4">
+      <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer">
         <span class="text-lg tracking-wide text-white">TheDude<span class="dynamic-accent-text text-orange-500">9</span></span>
         <span class="text-[8px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-1.5 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
       </div>
-      <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
+      <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1 md:hidden">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
     </div>
-    <div class="p-4 space-y-6 text-sm">
-      <div class="space-y-3">
-        <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block">Navigation</span>
-        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 dynamic-hover-text py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
-        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 dynamic-hover-text py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
-      </div>
-    </div>
-  </div>
-  <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40"></div>
-
-  <nav class="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
-        <i class="fa-solid fa-bars"></i>
-      </button>
-      <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer transition-transform active:scale-95">
-        <span class="text-xl tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">TheDude<span class="dynamic-accent-text text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-1.5 py-0.5 rounded ml-5 mt-0.5 uppercase font-bold shadow-sm">A N I M E</span>
-      </div>
-    </div>
     
-    <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
-      <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-        <i class="fa-solid fa-magnifying-glass text-sm"></i>
-      </span>
-      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none text-gray-300 dynamic-focus-border" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
-      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-orange-500 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
-    </div>
+    <nav class="nav-menu text-sm">
+      <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-1">Navigation</span>
+      
+      <div id="side-nav-home" class="sidebar-item active" onclick="homeReturnReset(); toggleMainMenu();">
+        <span class="icon"><i class="fa-solid fa-house"></i></span> 
+        <span class="label">Home</span>
+      </div>
+      
+      <div id="side-nav-catalog" class="sidebar-item" onclick="openExplorationHub(); toggleMainMenu();">
+        <span class="icon"><i class="fa-solid fa-compass"></i></span> 
+        <span class="label">Catalog Portal</span>
+      </div>
 
-    <div class="flex items-center space-x-4">
-      <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-1">
-        <i class="fa-solid fa-palette text-lg"></i>
+      <div id="side-nav-releases" class="sidebar-item" onclick="switchToView('releases'); toggleMainMenu();">
+        <span class="icon"><i class="fa-solid fa-rocket"></i></span> 
+        <span class="label">Releases</span>
+      </div>
+
+      <div id="side-nav-calendar" class="sidebar-item" onclick="switchToView('calendar'); toggleMainMenu();">
+        <span class="icon"><i class="fa-solid fa-calendar-days"></i></span> 
+        <span class="label">Calendar</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="social-icons">
+        <a href="#" class="footer-icon"><i class="fa-brands fa-discord"></i></a>
+        <a href="#" class="footer-icon"><i class="fa-solid fa-flag"></i></a>
+      </div>
+      <button class="lang-selector" onclick="openBottomSheet()">
+        <span>🌐 EN</span>
       </button>
     </div>
-  </nav>
+  </aside>
 
-  <main class="max-w-7xl mx-auto px-4 py-6">
+  <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden"></div>
 
-    <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-orange-950/10 to-transparent">
-      <div class="max-w-xl w-full space-y-6">
-        <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
-          <span class="text-5xl md:text-6xl tracking-wide text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">TheDude<span class="dynamic-accent-text text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]">9</span></span>
-          <span class="text-xs tracking-[0.3em] dynamic-accent-bg bg-orange-500 text-black px-3 py-1 rounded-md mt-2 md:mt-3 transform translate-x-8 shadow-xl uppercase font-bold">A N I M E</span>
-        </div>
-        <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
-        <div class="relative">
-          <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl transition-all">
-            <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
-            <input type="text" id="search-input" placeholder="Search titles..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
-            <button onclick="triggerCatalogSearch(false)" class="dynamic-accent-bg bg-orange-500 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
-          </div>
-        </div>
-        <div class="pt-2">
-          <button onclick="openExplorationHub()" class="dynamic-accent-bg bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
-        </div>
+  <div class="flex-1 flex flex-col min-w-0">
+    <nav class="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1 md:hidden">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div id="view-indicator-title" class="text-xs font-bold uppercase tracking-widest text-gray-400 hidden md:block">Dashboard View Container</div>
       </div>
-    </section>
-
-    <section id="main-exploration-hub" class="hidden space-y-8">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div class="lg:col-span-2 space-y-8">
-          <div id="recommendations-container-block" class="space-y-3">
-            <div class="border-b border-dark pb-2">
-              <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Recently Updated Releases (Anikoto API)</h2>
-            </div>
-            <div id="recommendations-scroller" class="scroll-row flex gap-4 overflow-x-auto pb-3">
-              <p class="text-xs text-gray-500">Syncing index files...</p>
-            </div>
-          </div>
-          <div class="space-y-3">
-            <div class="border-b border-dark pb-2">
-              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider dynamic-accent-text text-orange-500">Trending Global Media Items</h2>
-            </div>
-            <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <p class="text-xs text-gray-500">Syncing trending files...</p>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-6">
-          <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
-            <div class="flex items-center justify-between border-b border-dark pb-2">
-              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
-              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-neutral-900/50 text-gray-400 px-2 py-0.5 rounded border border-dark/60">00:00:00 JST</div>
-            </div>
-            <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-md text-[10px] font-bold uppercase text-center">
-              <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded text-gray-500 hover:text-white">Yesterday</button>
-              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded dynamic-accent-bg bg-orange-500 text-black">Today</button>
-              <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded text-gray-500 hover:text-white">Tomorrow</button>
-            </div>
-            <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
-          </div>
-          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
-            <div class="border-b border-dark pb-2">
-              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Watched Globally</h3>
-            </div>
-            <div id="top10-box" class="space-y-2 text-xs"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
-      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-dark shadow-2xl">
-        <div id="player-box" class="w-full h-full relative">
-          <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
-            <p class="text-sm font-bold dynamic-accent-text text-orange-400">⚠️ Node Processing Standby</p>
-            <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
-            <button onclick="openExplorationHub()" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
-          </div>
-          <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
-        </div>
+      
+      <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+          <i class="fa-solid fa-magnifying-glass text-sm"></i>
+        </span>
+        <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none text-gray-300 dynamic-focus-border" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
+        <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-orange-500 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
       </div>
 
-      <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark p-3 rounded-xl gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
-          <button id="server-anikoto" onclick="setServerSource('anikoto')" class="dynamic-accent-bg bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold">Anikoto</button>
-          <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay MAL</button>
-          <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
-        </div>
-        <div class="flex items-center space-x-1">
-          <button id="sub-btn" onclick="setLanguage('sub')" class="dynamic-accent-bg bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md">SUB</button>
-          <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 rounded-r-md border border-dark hover:text-white">DUB</button>
-        </div>
+      <div class="flex items-center space-x-4">
+        <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-1">
+          <i class="fa-solid fa-palette text-lg"></i>
+        </button>
       </div>
+    </nav>
 
-      <div class="bg-dark-card border border-dark rounded-xl p-4 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-        <div class="w-32 aspect-[2/3] bg-neutral-900 border border-dark rounded-lg overflow-hidden shadow-md shrink-0">
-          <img id="detail-poster" src="" class="w-full h-full object-cover">
-        </div>
-        <div class="space-y-2 flex-1 w-full">
-          <h2 id="detail-title" class="text-base font-bold text-white">---</h2>
-          <p id="detail-synopsis" class="text-xs text-gray-400 leading-relaxed max-h-24 overflow-y-auto pr-1">...</p>
-          <div class="border-t border-dark/60 pt-2 grid grid-cols-3 gap-2 text-[10px] text-gray-400">
-            <div><span class="text-gray-500 block uppercase font-bold tracking-wider">Type</span><span id="detail-type" class="text-gray-300 font-medium">--</span></div>
-            <div><span class="text-gray-500 block uppercase font-bold tracking-wider">Episodes</span><span id="detail-episodes" class="text-gray-300 font-medium">--</span></div>
-            <div><span class="text-gray-500 block uppercase font-bold tracking-wider">Rating</span><span id="detail-rating" class="text-gray-300 font-medium">--</span></div>
+    <main class="max-w-7xl w-full mx-auto px-4 py-6">
+
+      <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-orange-950/10 to-transparent">
+        <div class="max-w-xl w-full space-y-6">
+          <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
+            <span class="text-5xl md:text-6xl tracking-wide text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">TheDude<span class="dynamic-accent-text text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]">9</span></span>
+            <span class="text-xs tracking-[0.3em] dynamic-accent-bg bg-orange-500 text-black px-3 py-1 rounded-md mt-2 md:mt-3 transform translate-x-8 shadow-xl uppercase font-bold">A N I M E</span>
+          </div>
+          <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
+          <div class="relative">
+            <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl transition-all">
+              <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
+              <input type="text" id="search-input" placeholder="Search titles..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
+              <button onclick="triggerCatalogSearch(false)" class="dynamic-accent-bg bg-orange-500 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
+            </div>
+          </div>
+          <div class="pt-2">
+            <button onclick="openExplorationHub()" class="dynamic-accent-bg bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="bg-dark-card border border-dark rounded-xl p-4">
-        <h2 id="ep-title" class="text-sm font-bold text-white">Streaming Catalog Suite</h2>
-        <p id="ep-synopsis-snippet" class="text-xs text-gray-500 mt-0.5">Automated episode smart switching updates natively enabled via message-channel handshakes.</p>
-      </div>
+      <section id="main-exploration-hub" class="hidden space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div class="lg:col-span-2 space-y-8">
+            <div id="recommendations-container-block" class="space-y-3">
+              <div class="border-b border-dark pb-2">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Recently Updated Releases (Anikoto API)</h2>
+              </div>
+              <div id="recommendations-scroller" class="scroll-row flex gap-4 overflow-x-auto pb-3">
+                <p class="text-xs text-gray-500">Syncing index files...</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="border-b border-dark pb-2">
+                <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider dynamic-accent-text text-orange-500">Trending Global Media Items</h2>
+              </div>
+              <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <p class="text-xs text-gray-500">Syncing trending files...</p>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-6">
+            <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
+              <div class="flex items-center justify-between border-b border-dark pb-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
+                <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-neutral-900/50 text-gray-400 px-2 py-0.5 rounded border border-dark/60">00:00:00 JST</div>
+              </div>
+              <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-md text-[10px] font-bold uppercase text-center">
+                <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded text-gray-500 hover:text-white">Yesterday</button>
+                <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded dynamic-accent-bg bg-orange-500 text-black">Today</button>
+                <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded text-gray-500 hover:text-white">Tomorrow</button>
+              </div>
+              <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
+            </div>
+            <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
+              <div class="border-b border-dark pb-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Watched Globally</h3>
+              </div>
+              <div id="top10-box" class="space-y-2 text-xs"></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div class="space-y-2">
-        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Available Episode Indices</span>
-        <div id="episode-buttons" class="flex flex-wrap gap-2"></div>
-      </div>
-    </section>
-  </main>
+      <section id="releases-focus-view" class="hidden space-y-4">
+        <div class="border-b border-dark pb-2">
+          <h2 class="text-base font-bold uppercase tracking-wider text-white">Full Releases Feed Dashboard</h2>
+          <p class="text-xs text-gray-500">Ready to accept chronological dynamic cards API data bindings.</p>
+        </div>
+        <div class="bg-dark-card border border-dark p-8 rounded-xl text-center text-gray-500 text-sm">
+          <i class="fa-solid fa-rocket text-2xl mb-2 text-orange-500 dynamic-accent-text block"></i>
+          Waiting for API binding structures...
+        </div>
+      </section>
+
+      <section id="calendar-focus-view" class="hidden space-y-4">
+        <div class="border-b border-dark pb-2">
+          <h2 class="text-base font-bold uppercase tracking-wider text-white">Weekly Airing Schedule Blueprint</h2>
+          <p class="text-xs text-gray-500">Ready to accept grouped multi-column matrix calendar data arrays.</p>
+        </div>
+        <div class="bg-dark-card border border-dark p-8 rounded-xl text-center text-gray-500 text-sm">
+          <i class="fa-solid fa-calendar-days text-2xl mb-2 text-orange-500 dynamic-accent-text block"></i>
+          Waiting for calendar logic mapping...
+        </div>
+      </section>
+
+      <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
+        <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-dark shadow-2xl">
+          <div id="player-box" class="w-full h-full relative">
+            <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
+              <p class="text-sm font-bold dynamic-accent-text text-orange-400">⚠️ Node Processing Standby</p>
+              <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
+              <button onclick="openExplorationHub()" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
+            </div>
+            <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark p-3 rounded-xl gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
+            <button id="server-anikoto" onclick="setServerSource('anikoto')" class="dynamic-accent-bg bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold">Anikoto</button>
+            <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay MAL</button>
+            <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
+          </div>
+          <div class="flex items-center space-x-1">
+            <button id="sub-btn" onclick="setLanguage('sub')" class="dynamic-accent-bg bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md">SUB</button>
+            <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 rounded-r-md border border-dark hover:text-white">DUB</button>
+          </div>
+        </div>
+
+        <div class="bg-dark-card border border-dark rounded-xl p-4 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
+          <div class="w-32 aspect-[2/3] bg-neutral-900 border border-dark rounded-lg overflow-hidden shadow-md shrink-0">
+            <img id="detail-poster" src="" class="w-full h-full object-cover">
+          </div>
+          <div class="space-y-2 flex-1 w-full">
+            <h2 id="detail-title" class="text-base font-bold text-white">---</h2>
+            <p id="detail-synopsis" class="text-xs text-gray-400 leading-relaxed max-h-24 overflow-y-auto pr-1">...</p>
+            <div class="border-t border-dark/60 pt-2 grid grid-cols-3 gap-2 text-[10px] text-gray-400">
+              <div><span class="text-gray-500 block uppercase font-bold tracking-wider">Type</span><span id="detail-type" class="text-gray-300 font-medium">--</span></div>
+              <div><span class="text-gray-500 block uppercase font-bold tracking-wider">Episodes</span><span id="detail-episodes" class="text-gray-300 font-medium">--</span></div>
+              <div><span class="text-gray-500 block uppercase font-bold tracking-wider">Rating</span><span id="detail-rating" class="text-gray-300 font-medium">--</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-dark-card border border-dark rounded-xl p-4">
+          <h2 id="ep-title" class="text-sm font-bold text-white">Streaming Catalog Suite</h2>
+          <p id="ep-synopsis-snippet" class="text-xs text-gray-500 mt-0.5">Automated episode smart switching updates natively enabled via message-channel handshakes.</p>
+        </div>
+
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Available Episode Indices</span>
+          <div id="episode-buttons" class="flex flex-wrap gap-2"></div>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#16161c] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
@@ -198,7 +248,6 @@
         <button onclick="applyCharacterPreset('ram')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Ram</span><span class="w-3 h-3 rounded-full bg-rose-400 shrink-0 ml-1"></span></button>
         <button onclick="applyCharacterPreset('beatrice')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Beatrice</span><span class="w-3 h-3 rounded-full bg-amber-400 shrink-0 ml-1"></span></button>
         <button onclick="applyCharacterPreset('felt')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Felt</span><span class="w-3 h-3 rounded-full bg-yellow-500 shrink-0 ml-1"></span></button>
-        
         <button onclick="applyCharacterPreset('reinhard')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Reinhard</span><span class="w-3 h-3 rounded-full bg-red-600 shrink-0 ml-1"></span></button>
         <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Crusch</span><span class="w-3 h-3 rounded-full bg-emerald-600 shrink-0 ml-1"></span></button>
         <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Felix (Ferris)</span><span class="w-3 h-3 rounded-full bg-amber-600 shrink-0 ml-1"></span></button>
@@ -207,7 +256,6 @@
         <button onclick="applyCharacterPreset('julius')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Julius</span><span class="w-3 h-3 rounded-full bg-indigo-400 shrink-0 ml-1"></span></button>
         <button onclick="applyCharacterPreset('wilhelm')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Wilhelm</span><span class="w-3 h-3 rounded-full bg-slate-400 shrink-0 ml-1"></span></button>
         <button onclick="applyCharacterPreset('roswaal')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Roswaal</span><span class="w-3 h-3 rounded-full bg-indigo-600 shrink-0 ml-1"></span></button>
-        
         <button onclick="applyCharacterPreset('satella')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Satella</span><span class="w-3 h-3 rounded-full bg-violet-700 shrink-0 ml-1"></span></button>
         <button onclick="applyCharacterPreset('echidna')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Echidna</span><span class="w-3 h-3 rounded-full bg-zinc-300 shrink-0 ml-1"></span></button>
       </div>
@@ -262,6 +310,7 @@
     function applyCharacterPreset(name) {
       const p = presets[name]; if (!p) return;
       document.body.style.backgroundColor = p.bg;
+      document.querySelectorAll('.sidebar').forEach(el => el.style.backgroundColor = p.bg);
       document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = p.card);
       document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = p.input);
       document.querySelectorAll('.border-dark').forEach(el => el.style.borderColor = p.input);
@@ -290,6 +339,41 @@
       }
     }
 
+    /* 🆕 Added Content View Routing Utility */
+    function switchToView(targetViewId) {
+      const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
+      views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
+      
+      const sideItems = ['home', 'catalog', 'releases', 'calendar'];
+      sideItems.forEach(item => document.getElementById(`side-nav-${item}`)?.classList.remove('active'));
+
+      const indicator = document.getElementById('view-indicator-title');
+      
+      if (targetViewId === 'home') {
+        document.getElementById('landing-portal')?.classList.remove('hidden');
+        document.getElementById('header-search-engine')?.classList.add('hidden');
+        document.getElementById('side-nav-home')?.classList.add('active');
+        if (indicator) indicator.innerText = "Welcome Portal";
+      } else if (targetViewId === 'catalog') {
+        document.getElementById('main-exploration-hub')?.classList.remove('hidden');
+        document.getElementById('header-search-engine')?.classList.remove('hidden');
+        document.getElementById('recommendations-container-block')?.classList.remove('hidden');
+        document.getElementById('side-nav-catalog')?.classList.add('active');
+        if (indicator) indicator.innerText = "Catalog Index Browser";
+        loadMainHubFeeds();
+      } else if (targetViewId === 'releases') {
+        document.getElementById('releases-focus-view')?.classList.remove('hidden');
+        document.getElementById('header-search-engine')?.classList.remove('hidden');
+        document.getElementById('side-nav-releases')?.classList.add('active');
+        if (indicator) indicator.innerText = "Recent Time Releases Feed";
+      } else if (targetViewId === 'calendar') {
+        document.getElementById('calendar-focus-view')?.classList.remove('hidden');
+        document.getElementById('header-search-engine')?.classList.remove('hidden');
+        document.getElementById('side-nav-calendar')?.classList.add('active');
+        if (indicator) indicator.innerText = "Broadcast Schedule Grid";
+      }
+    }
+
     function startSystemClock() {
       setInterval(() => {
         const now = new Date();
@@ -312,23 +396,11 @@
     }
 
     function openExplorationHub() {
-      document.getElementById('landing-portal')?.classList.add('hidden');
-      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
-      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
-      document.getElementById('header-search-engine')?.classList.remove('hidden');
-      document.getElementById('recommendations-container-block')?.classList.remove('hidden');
-      
-      const gridHeader = document.getElementById('grid-header-title');
-      if (gridHeader) gridHeader.innerText = "Trending Global Media Items";
-      loadMainHubFeeds();
+      switchToView('catalog');
     }
 
     function homeReturnReset() {
-      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
-      document.getElementById('main-exploration-hub')?.classList.add('hidden');
-      document.getElementById('header-search-engine')?.classList.add('hidden');
-      document.getElementById('landing-portal')?.classList.remove('hidden');
-      
+      switchToView('home');
       if(document.getElementById('search-input')) document.getElementById('search-input').value = "";
       if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = "";
     }
@@ -380,10 +452,7 @@
       if(document.getElementById('search-input')) document.getElementById('search-input').value = query;
       if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
 
-      document.getElementById('landing-portal')?.classList.add('hidden');
-      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
-      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
-      document.getElementById('header-search-engine')?.classList.remove('hidden');
+      switchToView('catalog');
       
       if (query !== "") {
         document.getElementById('recommendations-container-block')?.classList.add('hidden');
@@ -591,8 +660,8 @@
       window.activeAnimeTitle = titleName;
       window.activeMaxEpisodes = totalEpisodes || 12;
 
-      document.getElementById('landing-portal')?.classList.add('hidden');
-      document.getElementById('main-exploration-hub')?.classList.add('hidden');
+      const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
+      views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
       document.getElementById('stream-dashboard-box')?.classList.remove('hidden');
       document.getElementById('header-search-engine')?.classList.remove('hidden');
       
@@ -763,10 +832,7 @@
     window.onload = function() {
       startSystemClock();
       applyCharacterPreset('subaru');
-      document.getElementById('landing-portal')?.classList.add('hidden');
-      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
-      document.getElementById('header-search-engine')?.classList.remove('hidden');
-      loadMainHubFeeds();
+      switchToView('home');
     };
   </script>
 </body>
