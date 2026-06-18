@@ -20,7 +20,6 @@
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
-  <!-- Main Left Sidebar Drawer Menu -->
   <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#050505] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
     <div class="p-4 flex items-center justify-between border-b border-dark">
       <span class="text-emerald-400 text-lg font-bold tracking-wider">Thedude9 Menu</span>
@@ -38,7 +37,6 @@
   </div>
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40"></div>
 
-  <!-- Global Navigation Header Bar -->
   <nav class="sticky top-0 z-30 bg-[#050505]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
       <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
@@ -49,7 +47,6 @@
       </div>
     </div>
     
-    <!-- Top Nav Global Search -->
     <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
       <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -65,16 +62,13 @@
     </div>
   </nav>
 
-  <!-- Main View Workspace Container -->
   <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- Landing Home Search Component -->
     <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-24 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
       <div class="max-w-xl w-full space-y-6">
         <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to <span class="text-emerald-400 drop-shadow-[0_0_10px_rgba(0,255,102,0.3)]">Thedude9</span></h1>
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
-        <!-- Clean Search Bar without Dropdown Panel Hooks -->
         <div class="relative">
           <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl focus-within:border-emerald-500 transition-all">
             <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
@@ -89,7 +83,6 @@
       </div>
     </section>
 
-    <!-- Main Exploration Catalog Grid Portal View -->
     <section id="main-exploration-hub" class="hidden space-y-8">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
@@ -113,7 +106,6 @@
           </div>
         </div>
 
-        <!-- Sidebar Timeline Panels -->
         <div class="space-y-6">
           <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
             <div class="flex items-center justify-between border-b border-dark pb-2">
@@ -141,7 +133,6 @@
       </div>
     </section>
 
-    <!-- Video Architecture Dashboard Suite Component -->
     <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
       <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-emerald-500/20 shadow-2xl">
         <div id="player-box" class="w-full h-full relative">
@@ -181,7 +172,6 @@
 
   </main>
 
-  <!-- Accent Panel Theme Matrix Canvas Drawers -->
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#111111] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
     <div class="max-w-md mx-auto space-y-6">
@@ -225,7 +215,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/9anime-scraper@1.1.1/index.min.js"></script>
 
-  <!-- Main Application Logic Scripts Engine -->
   <script>
     const ANIKOTO_BASE = "https://anikotoapi.site";
     
@@ -392,7 +381,6 @@
       const gridResults = document.getElementById('results-grid');
       if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
       
-      // Super clean payload assembly
       let variables = {};
       if (query !== "") {
         variables.q = query;
@@ -592,7 +580,8 @@
         epBox.innerHTML = '';
         for (let i = 1; i <= window.activeMaxEpisodes; i++) {
           const btn = document.createElement('button');
-          btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all focus:bg-emerald-500 focus:text-black focus:border-emerald-500";
+          btn.id = `ep-btn-${i}`;
+          btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
           btn.innerText = i;
           btn.onclick = () => launchVideoPlayer(i);
           epBox.appendChild(btn);
@@ -609,6 +598,18 @@
 
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
+
+      // Update active state class styling for episode nodes dynamically
+      for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+        const btn = document.getElementById(`ep-btn-${i}`);
+        if (btn) {
+          if (i === epNum) {
+            btn.className = "bg-emerald-500 text-black border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-[0_0_10px_rgba(0,255,102,0.4)]";
+          } else {
+            btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
+          }
+        }
+      }
 
       if (activeSourceMode === 'anikoto' && currentAnikotoEmbedId) {
         iframe.src = `https://megaplay.buzz/stream/s-2/${currentAnikotoEmbedId}/${currentLanguage}`;
