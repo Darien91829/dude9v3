@@ -770,6 +770,74 @@
         loadMainHubFeeds();
       }, 150);
     };
-  </script>
+ <div id="filter-panel" class="hidden bg-dark-card border border-dark rounded-xl p-4 mt-4 space-y-4">
+  <div>
+    <label class="text-xs text-gray-500 font-bold uppercase">Genres and Themes</label>
+    <div class="flex flex-wrap gap-2 mt-2" id="genre-chips">
+      <button onclick="toggleFilter('Action')" class="text-xs bg-dark-input px-3 py-1 rounded border border-dark">Action</button>
+      <button onclick="toggleFilter('Comedy')" class="text-xs bg-dark-input px-3 py-1 rounded border border-dark">Comedy</button>
+      </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="text-xs text-gray-500 font-bold uppercase">Format</label>
+      <select id="filter-format" class="w-full bg-dark-input p-2 rounded text-sm mt-1">
+        <option value="ALL">All Anime</option>
+        <option value="TV">Series</option>
+        <option value="MOVIE">Films</option>
+      </select>
+    </div>
+    
+    <div>
+      <label class="text-xs text-gray-500 font-bold uppercase">Sort</label>
+      <select id="filter-sort" class="w-full bg-dark-input p-2 rounded text-sm mt-1">
+        <option value="POPULARITY_DESC">Popular</option>
+        <option value="TRENDING_DESC">Trending</option>
+        <option value="SCORE_DESC">Top Rated</option>
+      </select>
+    </div>
+  </div>
+
+  <button onclick="runAdvancedSearch()" class="w-full bg-emerald-600 py-2 rounded-lg font-bold text-sm">Show Results</button>
+</div>
+
+<script>
+// 1. Trigger "Popular" on load
+window.onload = () => {
+    runAdvancedSearch(); // Call with default "Popular" settings
+};
+
+// 2. Advanced Search Function
+async function runAdvancedSearch() {
+    const query = document.getElementById('search-input').value;
+    const format = document.getElementById('filter-format').value;
+    const sort = document.getElementById('filter-sort').value;
+
+    // GraphQL request logic
+    const variables = { 
+        search: query || null,
+        format: format === 'ALL' ? null : format,
+        sort: sort
+    };
+
+    const queryStr = `query ($search: String, $format: MediaFormat, $sort: [MediaSort]) {
+        Page(page: 1, perPage: 20) {
+            media(search: $search, format: $format, sort: $sort, type: ANIME) {
+                id title { romaji } coverImage { large }
+            }
+        }
+    }`;
+
+    // Execute fetch to AniList API
+    const response = await fetch('https://graphql.anilist.co', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ query: queryStr, variables: variables })
+    });
+    const data = await response.json();
+    renderGrid(data.data.Page.media);
+}
+</script>
 </body>
 </html>
