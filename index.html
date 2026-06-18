@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ANI.PM Clone UI</title>
-  <!-- Tailwind CSS CDN -->
+  <title>Thedude9 Anime</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts & FontAwesome for Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -14,307 +12,622 @@
     .bg-dark-card { background-color: #12131a; }
     .bg-dark-input { background-color: #181a21; }
     .border-dark { border-color: #222530; }
+    
+    /* Custom horizontal row scroll settings */
+    .scroll-row::-webkit-scrollbar { height: 4px; }
+    .scroll-row::-webkit-scrollbar-track { background: #0b0c0f; }
+    .scroll-row::-webkit-scrollbar-thumb { background: #222530; border-radius: 2px; }
   </style>
 </head>
-<body class="text-gray-200 min-h-screen">
+<body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
-  <!-- NAVIGATION BAR -->
-  <nav class="sticky top-0 z-50 bg-[#0b0c0f] border-b border-dark px-4 py-3 flex items-center justify-between">
+  <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#0b0c0f] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+    <div class="p-4 flex items-center justify-between border-b border-dark">
+      <span class="text-cyan-400 text-lg font-bold tracking-wider">Thedude9 Navigation</span>
+      <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="p-4 space-y-6 text-sm">
+      <div class="space-y-3">
+        <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block">Browse</span>
+        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-cyan-400 py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
+        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-cyan-400 py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
+        <a href="#" class="flex items-center space-x-3 text-gray-300 hover:text-cyan-400 py-1"><i class="fa-solid fa-calendar-days w-5"></i> <span>Calendar Schedule</span></a>
+      </div>
+      <div class="space-y-3">
+        <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block">Your Space</span>
+        <a href="#" class="flex items-center space-x-3 text-gray-300 hover:text-cyan-400 py-1"><i class="fa-solid fa-clock-rotate-left w-5"></i> <span>Continue Watching</span></a>
+        <a href="#" class="flex items-center space-x-3 text-gray-300 hover:text-cyan-400 py-1"><i class="fa-solid fa-heart w-5"></i> <span>Collections List</span></a>
+      </div>
+    </div>
+  </div>
+  <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/60 hidden z-40 transition-opacity"></div>
+
+  <nav class="sticky top-0 z-30 bg-[#0b0c0f] border-b border-dark px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
-      <button class="text-xl text-gray-400 hover:text-white p-1">
+      <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-bars"></i>
       </button>
-      <div class="flex items-center space-x-2">
-        <span class="text-cyan-400 text-xl font-bold tracking-wider">ANI.PM</span>
+      <div onclick="homeReturnReset()" class="flex items-center space-x-2 cursor-pointer">
+        <span class="text-cyan-400 text-xl font-bold tracking-wider">Thedude9</span>
       </div>
     </div>
     
-    <div class="flex-1 max-w-md mx-4 relative hidden sm:block">
+    <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
       <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
       </span>
-      <input type="text" placeholder="Search anime, genres, or a..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-4 py-1.5 text-sm focus:outline-none focus:border-cyan-500 text-gray-300">
+      <input type="text" id="header-search-input" placeholder="Search anime catalogs..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-cyan-500 text-gray-300">
+      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 bg-cyan-600 hover:bg-cyan-500 text-black font-bold px-2 py-0.5 rounded text-xs transition-colors">Search</button>
     </div>
 
     <div class="flex items-center space-x-4">
-      <button class="sm:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-magnifying-glass"></i></button>
-      <button class="w-8 h-8 rounded-full bg-dark-card border border-dark flex items-center justify-center text-gray-400 hover:text-white">
+      <button onclick="openProfileModal()" class="w-8 h-8 rounded-full bg-dark-card border border-dark flex items-center justify-center text-gray-400 hover:text-white">
         <i class="fa-solid fa-user text-sm"></i>
+      </button>
+      <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-gear"></i>
       </button>
     </div>
   </nav>
 
-  <!-- MAIN APP CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-10">
+  <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- VIEW 1: VIDEO PLAYER & EPISODE SYSTEM (Re:ZERO Example) -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between border-b border-dark pb-2">
-        <h2 class="text-sm font-semibold tracking-wide text-gray-400 uppercase">Now Streaming</h2>
-        <span class="text-xs text-cyan-400 font-medium bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">S4 Ep 1</span>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Video Player Frame -->
-        <div class="lg:col-span-2 space-y-4">
-          <div class="relative aspect-video w-full bg-black rounded-lg overflow-hidden border border-dark flex flex-col justify-between p-4 group">
-            <!-- Mock Video Canvas / Overlay Artwork Context -->
-            <div class="absolute inset-0 bg-cover bg-center opacity-40 blur-sm" style="background-image: url('https://images.alphacoders.com/715/715510.jpg');"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
-
-            <!-- Top Controls info -->
-            <div class="relative z-10 flex justify-between items-center w-full">
-              <span class="text-xs bg-black/60 px-2 py-1 rounded text-gray-300">Episode 1</span>
-              <button class="bg-black/60 px-3 py-1 rounded text-xs text-white border border-dark hover:bg-zinc-900">Open</button>
-            </div>
-
-            <!-- Center Play Button -->
-            <div class="relative z-10 self-center">
-              <button class="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm">
-                <i class="fa-solid fa-play text-2xl ml-1"></i>
-              </button>
-            </div>
-
-            <!-- Bottom Progress Track -->
-            <div class="relative z-10 w-full space-y-2">
-              <div class="w-full bg-gray-700 h-1 rounded-full overflow-hidden">
-                <div class="bg-cyan-500 h-1 w-1/3"></div>
-              </div>
-              <div class="flex justify-between items-center text-xs text-gray-400">
-                <span>0:00 / 50:01</span>
-                <div class="flex space-x-3 text-sm">
-                  <button class="hover:text-white"><i class="fa-solid fa-volume-high"></i></button>
-                  <button class="hover:text-white"><i class="fa-solid fa-closed-captioning"></i></button>
-                  <button class="hover:text-white"><i class="fa-solid fa-gear"></i></button>
-                  <button class="hover:text-white"><i class="fa-solid fa-expand"></i></button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Server Selector Elements -->
-          <div class="bg-dark-card border border-dark rounded-lg p-4 space-y-4">
-            <div>
-              <h3 class="text-base font-semibold">The Reason I'm Taking You With Me</h3>
-              <p class="text-xs text-gray-400 mt-1">Season 4 • Episode 1 • 25m • Local Source</p>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-              <button class="bg-zinc-800 text-xs px-3 py-1.5 rounded flex items-center space-x-1 border border-zinc-700 text-white"><i class="fa-solid fa-closed-captioning text-cyan-400 mr-1"></i> Sub</button>
-              <button class="bg-dark-input text-xs px-3 py-1.5 rounded flex items-center space-x-1 border border-dark text-gray-400 hover:text-white"><i class="fa-solid fa-microphone mr-1"></i> Dub</button>
-            </div>
-
-            <div class="border-t border-dark pt-3">
-              <span class="text-xs font-semibold text-gray-400 block mb-2 uppercase tracking-wider">Available Servers</span>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <button class="bg-dark-input border border-cyan-900/50 p-2 rounded text-left text-xs space-y-0.5">
-                  <div class="text-white font-medium flex items-center justify-between">Local <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span></div>
-                  <div class="text-[10px] text-gray-500">Direct • M3U8</div>
-                </button>
-                <button class="bg-dark-input border border-dark p-2 rounded text-left text-xs space-y-0.5 opacity-60 hover:opacity-100">
-                  <div class="text-gray-300 font-medium flex items-center justify-between">Holden <span class="w-1.5 h-1.5 rounded-full bg-zinc-600"></span></div>
-                  <div class="text-[10px] text-gray-500">Embed</div>
-                </button>
-                <button class="bg-dark-input border border-dark p-2 rounded text-left text-xs space-y-0.5 opacity-60 hover:opacity-100">
-                  <div class="text-gray-300 font-medium flex items-center justify-between">Atlas <span class="w-1.5 h-1.5 rounded-full bg-zinc-600"></span></div>
-                  <div class="text-[10px] text-gray-500">Embed</div>
-                </button>
-              </div>
-            </div>
-          </div>
+    <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-20 px-4 rounded-xl border border-dark/60 mb-10 bg-gradient-to-b from-cyan-950/10 to-transparent">
+      <div class="max-w-xl w-full space-y-6">
+        <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Explore Anime Catalogs on <span class="text-cyan-400">Thedude9</span></h1>
+        <p class="text-sm text-gray-400">Instantly stream database media files, track active broadcast cycles, and filter dynamic lists using the AniList framework tools.</p>
+        
+        <div class="bg-dark-card p-2 rounded-full border-2 border-dark flex items-center shadow-2xl focus-within:border-cyan-500 transition-all">
+          <input type="text" id="search-input" placeholder="Type anime titles directly..." class="w-full bg-transparent pl-4 pr-2 text-sm focus:outline-none text-white">
+          <button onclick="triggerCatalogSearch(false)" class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
         </div>
 
-        <!-- Interactive Dynamic Episode Queue -->
-        <div class="space-y-3">
-          <div class="bg-dark-card border border-dark rounded-lg p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Episodes</span>
-              <span class="text-xs text-gray-500">11 Available</span>
-            </div>
-            
-            <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-              <div class="bg-dark-input border border-cyan-500/30 p-2 rounded flex items-center space-x-3 cursor-pointer">
-                <div class="w-20 aspect-video bg-zinc-800 rounded relative overflow-hidden flex-shrink-0">
-                  <img src="https://images.alphacoders.com/715/715510.jpg" class="object-cover w-full h-full opacity-80" alt="Ep 1">
-                  <span class="absolute bottom-1 right-1 text-[9px] bg-black/80 px-1 rounded text-cyan-400">24m</span>
-                </div>
-                <div class="truncate">
-                  <h4 class="text-xs font-medium text-white truncate">1. The Keeper of the Watchtower</h4>
-                  <p class="text-[10px] text-gray-500 mt-0.5">Season 4 • Episode 1</p>
-                </div>
-              </div>
-
-              <!-- Extra Mock Queue Slots -->
-              <div class="bg-dark-input border border-dark p-2 rounded flex items-center space-x-3 opacity-60 hover:opacity-100 cursor-pointer transition-opacity">
-                <div class="w-20 aspect-video bg-zinc-800 rounded relative overflow-hidden flex-shrink-0">
-                  <div class="w-full h-full bg-zinc-900"></div>
-                  <span class="absolute bottom-1 right-1 text-[9px] bg-black/80 px-1 rounded">24m</span>
-                </div>
-                <div class="truncate">
-                  <h4 class="text-xs font-medium text-gray-300 truncate">2. A White Sky Asterism</h4>
-                  <p class="text-[10px] text-gray-500 mt-0.5">Season 4 • Episode 2</p>
-                </div>
-              </div>
-              
-              <div class="bg-dark-input border border-dark p-2 rounded flex items-center space-x-3 opacity-60 hover:opacity-100 cursor-pointer transition-opacity">
-                <div class="w-20 aspect-video bg-zinc-800 rounded relative overflow-hidden flex-shrink-0">
-                  <div class="w-full h-full bg-zinc-900"></div>
-                  <span class="absolute bottom-1 right-1 text-[9px] bg-black/80 px-1 rounded">25m</span>
-                </div>
-                <div class="truncate">
-                  <h4 class="text-xs font-medium text-gray-300 truncate">3. Stick Swinger</h4>
-                  <p class="text-[10px] text-gray-500 mt-0.5">Season 4 • Episode 3</p>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="pt-4">
+          <button onclick="openExplorationHub()" class="bg-transparent text-cyan-400 border border-cyan-500/30 hover:bg-cyan-950/20 px-8 py-3 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 2: ADVANCED SYSTEM SEARCH CATALOG FILTERS -->
-    <section class="bg-dark-card border border-dark rounded-xl p-5 space-y-6">
-      <div class="flex items-center justify-between border-b border-dark pb-3">
-        <div class="flex space-x-4 text-sm font-semibold">
-          <button class="text-white border-b-2 border-cyan-500 pb-3 px-1">Popular</button>
-          <button class="text-gray-400 hover:text-white pb-3 px-1">Trending</button>
-          <button class="text-gray-400 hover:text-white pb-3 px-1">Top Rated</button>
+    <section id="main-exploration-hub" class="hidden space-y-8">
+      
+      <div id="watchlist-wrapper-section" class="hidden space-y-3">
+        <div class="border-b border-dark pb-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">My Watch List</h2>
         </div>
-        <button class="text-xs text-gray-400 hover:text-white flex items-center space-x-1">
-          <i class="fa-solid fa-arrow-rotate-right text-[10px]"></i> <span>Reset Filters</span>
+        <div id="my-watchlist-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        <div class="lg:col-span-2 space-y-8">
+          <div id="recommendations-container-block" class="space-y-3">
+            <div class="border-b border-dark pb-2">
+              <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Editor Recommendations</h2>
+            </div>
+            <div id="recommendations-scroller" class="scroll-row flex gap-4 overflow-x-auto pb-3">
+              <p class="text-xs text-gray-500">Querying platform files...</p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="border-b border-dark pb-2">
+              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider text-cyan-400">Recently Added Broadcasting Catalogs</h2>
+            </div>
+            <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
+            <div class="flex items-center justify-between border-b border-dark pb-2">
+              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
+              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-cyan-950/50 text-cyan-400 px-2 py-0.5 rounded border border-cyan-800/30">00:00:00 JST</div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-md text-[10px] font-bold uppercase">
+              <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded text-center text-gray-500 hover:text-white">Prev</button>
+              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded text-center bg-cyan-500 text-black">Today</button>
+              <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded text-center text-gray-500 hover:text-white">Next</button>
+            </div>
+
+            <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs"></div>
+          </div>
+
+          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
+            <div class="border-b border-dark pb-2">
+              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top 10 Watched Globally</h3>
+            </div>
+            <div id="top10-box" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
+      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-cyan-500/20 shadow-2xl">
+        <div id="player-box" class="w-full h-full">
+          <iframe id="video-iframe" class="w-full h-full" src="" allowfullscreen scrolling="no"></iframe>
+        </div>
+      </div>
+
+      <div class="flex justify-center items-center space-x-2">
+        <button id="sub-btn" onclick="setLanguage('sub')" class="bg-cyan-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-cyan-500">SUB</button>
+        <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 rounded-r-md border border-dark hover:text-white">DUB</button>
+      </div>
+
+      <div class="bg-dark-card border border-dark rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 id="ep-title" class="text-sm font-bold text-white">Streaming Collection View</h2>
+          <p class="text-xs text-gray-500 mt-0.5">Select from the available media nodes populated index array targets below.</p>
+        </div>
+        <button id="watchlist-toggle-btn" onclick="toggleWatchlistEntry()" class="bg-dark-input hover:bg-zinc-800 text-xs font-bold py-2 px-4 rounded-lg border border-dark text-gray-300 flex items-center space-x-1 self-start sm:self-auto">
+          <span>+</span> <span>Add to Watch List</span>
         </button>
       </div>
 
-      <!-- Filters Form Container Matrix -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="space-y-1.5">
-          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Format</label>
-          <select class="w-full bg-dark-input border border-dark rounded-md px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-cyan-500">
-            <option>All Anime</option>
-            <option>TV Series</option>
-            <option>Movie</option>
-            <option>OVA</option>
-          </select>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sort By</label>
-          <select class="w-full bg-dark-input border border-dark rounded-md px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-cyan-500">
-            <option>Popularity</option>
-            <option>Latest Release</option>
-            <option>Highest Score</option>
-          </select>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Language</label>
-          <select class="w-full bg-dark-input border border-dark rounded-md px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-cyan-500">
-            <option>Any Language</option>
-            <option>Subbed</option>
-            <option>Dubbed</option>
-          </select>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Status</label>
-          <select class="w-full bg-dark-input border border-dark rounded-md px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-cyan-500">
-            <option>Any Status</option>
-            <option>Currently Airing</option>
-            <option>Finished Airing</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Genre Pills Selector -->
       <div class="space-y-2">
-        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Genres & Themes</span>
-        <div class="flex flex-wrap gap-1.5">
-          <span class="text-xs bg-dark-input px-3 py-1 rounded-md border border-dark cursor-pointer text-gray-300 hover:border-cyan-500 transition-colors">Action</span>
-          <span class="text-xs bg-dark-input px-3 py-1 rounded-md border border-dark cursor-pointer text-gray-300 hover:border-cyan-500 transition-colors">Adventure</span>
-          <span class="text-xs bg-cyan-950/40 text-cyan-400 px-3 py-1 rounded-md border border-cyan-800/60 cursor-pointer">Isekai</span>
-          <span class="text-xs bg-dark-input px-3 py-1 rounded-md border border-dark cursor-pointer text-gray-300 hover:border-cyan-500 transition-colors">Fantasy</span>
-          <span class="text-xs bg-dark-input px-3 py-1 rounded-md border border-dark cursor-pointer text-gray-300 hover:border-cyan-500 transition-colors">Sci-Fi</span>
-          <span class="text-xs bg-dark-input px-3 py-1 rounded-md border border-dark cursor-pointer text-gray-300 hover:border-cyan-500 transition-colors">Romance</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 3: LIVE CONTENT DISCOVERY TILES (The Core Content Delivery Grid) -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-semibold text-white tracking-tight">Top 10 Media Collections</h3>
-        <button class="text-xs text-cyan-400 font-medium hover:underline">Browse All <i class="fa-solid fa-angle-right text-[10px] ml-0.5"></i></button>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <!-- Anime Entry Card 1 -->
-        <div class="bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-zinc-700 transition-all flex flex-col justify-between">
-          <div class="relative aspect-[2/3] w-full bg-zinc-900">
-            <img src="https://images.alphacoders.com/715/715510.jpg" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" alt="Re:Zero">
-            <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded text-amber-400 border border-amber-500/20">
-              <i class="fa-solid fa-star mr-0.5"></i> 7.9
-            </div>
-            <div class="absolute bottom-2 right-2 bg-cyan-600 text-white font-bold text-[9px] px-1.5 py-0.5 rounded uppercase">
-              Series
-            </div>
-          </div>
-          <div class="p-3 space-y-1">
-            <h4 class="text-xs font-semibold text-white line-clamp-1 group-hover:text-cyan-400 transition-colors">Re:ZERO -Starting Life in Another World-</h4>
-            <p class="text-[10px] text-gray-500">Studio White Fox • 85 Episodes</p>
-          </div>
-        </div>
-
-        <!-- Anime Entry Card 2 -->
-        <div class="bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-zinc-700 transition-all flex flex-col justify-between">
-          <div class="relative aspect-[2/3] w-full bg-zinc-900">
-            <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-zinc-900"></div>
-            <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded text-amber-400 border border-amber-500/20">
-              <i class="fa-solid fa-star mr-0.5"></i> 8.4
-            </div>
-            <div class="absolute bottom-2 right-2 bg-purple-600 text-white font-bold text-[9px] px-1.5 py-0.5 rounded uppercase">
-              Movie
-            </div>
-          </div>
-          <div class="p-3 space-y-1">
-            <h4 class="text-xs font-semibold text-white line-clamp-1 group-hover:text-cyan-400 transition-colors">Demon Slayer: Kimetsu no Yaiba – Infinity Castle</h4>
-            <p class="text-[10px] text-gray-500">ufotable • Action / Fantasy</p>
-          </div>
-        </div>
-
-        <!-- Anime Entry Card 3 -->
-        <div class="bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-zinc-700 transition-all flex flex-col justify-between">
-          <div class="relative aspect-[2/3] w-full bg-zinc-900">
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-zinc-900"></div>
-            <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded text-amber-400 border border-amber-500/20">
-              <i class="fa-solid fa-star mr-0.5"></i> 9.2
-            </div>
-            <div class="absolute bottom-2 right-2 bg-cyan-600 text-white font-bold text-[9px] px-1.5 py-0.5 rounded uppercase">
-              Series
-            </div>
-          </div>
-          <div class="p-3 space-y-1">
-            <h4 class="text-xs font-semibold text-white line-clamp-1 group-hover:text-cyan-400 transition-colors">Go for it, Nakamura-kun!</h4>
-            <p class="text-[10px] text-gray-500">Comedy / Romance • Ep 13</p>
-          </div>
-        </div>
+        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Episode Index Slots</span>
+        <div id="episode-buttons" class="flex flex-wrap gap-2"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- REPLICATED BRAND FOOTER -->
-  <footer class="border-t border-dark bg-[#0b0c0f] mt-16 py-8 px-4 text-center text-xs text-gray-500 space-y-2">
-    <div class="flex justify-center items-center space-x-2 text-gray-400 font-medium">
-      <span class="text-cyan-400 font-bold">ANI.PM</span>
-      <span>•</span>
-      <a href="#" class="hover:text-white">Home</a>
-      <span>•</span>
-      <a href="#" class="hover:text-white">Catalog</a>
-      <span>•</span>
-      <a href="#" class="hover:text-white">Releases</a>
-    </div>
-    <p class="max-w-md mx-auto text-[11px] leading-relaxed">Track, discover, and organize your favorite collections effortlessly. Built with a minimal cyberpunk inspired viewport scheme.</p>
-  </footer>
+  <div id="auth-modal" onclick="if(event.target===this) closeProfileModal()" class="fixed inset-0 bg-black/80 hidden z-50 items-center justify-center p-4">
+    <div id="modal-content-box" class="bg-dark-card border border-dark rounded-xl p-6 w-full max-w-sm text-center space-y-4"></div>
+  </div>
 
+  <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
+  <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#12131a] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
+    <div class="max-w-md mx-auto space-y-6">
+      <div class="text-center">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">Theme Matrix Configuration</h3>
+      </div>
+      
+      <div class="space-y-3 bg-dark-input p-4 rounded-xl border border-dark">
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="w-4 text-red-500 font-bold">R</span>
+          <input type="range" id="range-r" min="0" max="255" value="0" oninput="updateRgbMixer()" class="w-full accent-cyan-500">
+          <span id="val-r" class="font-mono w-8 text-right text-gray-500">0</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="w-4 text-emerald-500 font-bold">G</span>
+          <input type="range" id="range-g" min="0" max="255" value="255" oninput="updateRgbMixer()" class="w-full accent-cyan-500">
+          <span id="val-g" class="font-mono w-8 text-right text-gray-500">255</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="w-4 text-cyan-500 font-bold">B</span>
+          <input type="range" id="range-b" min="0" max="255" value="102" oninput="updateRgbMixer()" class="w-full accent-cyan-500">
+          <span id="val-b" class="font-mono w-8 text-right text-gray-500">102</span>
+        </div>
+        <div id="rgb-preview" class="h-6 rounded-md border border-dark mt-2"></div>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
+          <input type="radio" id="radio-pitch-black" name="bg-selection" value="pitch-black" checked class="accent-cyan-500">
+          <span class="font-medium text-gray-300">Default Dark Palette</span>
+        </label>
+        <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
+          <input type="radio" id="radio-dark-gray" name="bg-selection" value="dark-gray" class="accent-cyan-500">
+          <span class="font-medium text-gray-300">Charcoal Slate Canvas</span>
+        </label>
+      </div>
+
+      <button onclick="saveThemeAndClose()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition-colors">Apply Matrix Configurations</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjMNzlM-TqGf5Q34rgmtzH9OG4jb40Jaw",
+      authDomain: "dude9anime.firebaseapp.com",
+      projectId: "dude9anime",
+      storageBucket: "dude9anime.firebasestorage.app",
+      messagingSenderId: "943197492354",
+      appId: "1:943197492354:web:8a9ad93a497aee3a6cd09b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.currentUser = null;
+    window.userWatchlist = [];
+    window.isLoginMode = true;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        window.currentUser = user;
+        await syncUserWatchlistData();
+      } else {
+        window.currentUser = null;
+        window.userWatchlist = [];
+        document.getElementById('watchlist-wrapper-section').classList.add('hidden');
+      }
+      updateWatchlistButtonUI();
+    });
+
+    async function syncUserWatchlistData() {
+      if (!window.currentUser) return;
+      const docRef = doc(db, "users", window.currentUser.uid);
+      try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          window.userWatchlist = docSnap.data().watchlist || [];
+        } else {
+          await setDoc(docRef, { watchlist: [] });
+          window.userWatchlist = [];
+        }
+        renderWatchlistGridRow();
+      } catch (e) { console.error("Cloud synchronizer ledger execution failure:", e); }
+    }
+
+    function renderWatchlistGridRow() {
+      const wrapper = document.getElementById('watchlist-wrapper-section');
+      const grid = document.getElementById('my-watchlist-grid');
+      if (!wrapper || !grid) return;
+      grid.innerHTML = "";
+
+      if (!window.currentUser || window.userWatchlist.length === 0) {
+        wrapper.classList.add('hidden');
+        return;
+      }
+
+      wrapper.classList.remove('hidden');
+      window.userWatchlist.forEach(anime => {
+        const card = document.createElement('div');
+        card.className = 'bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-cyan-500 transition-all flex flex-col justify-between text-xs';
+        card.innerHTML = `<div class="aspect-[2/3] bg-zinc-900"><img src="${anime.img}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${anime.title}</h4></div>`;
+        card.onclick = () => window.loadStreamingLayout(anime.id, anime.title, anime.eps, anime.img);
+        grid.appendChild(card);
+      });
+    }
+
+    window.toggleWatchlistEntry = async function() {
+      if (!window.currentUser) {
+        alert("Please authenticate via the account profile portal to back up personalized collections mapping.");
+        return;
+      }
+      const docRef = doc(db, "users", window.currentUser.uid);
+      const entryItem = { id: window.currentMalId, title: window.activeAnimeTitle, eps: window.activeMaxEpisodes, img: window.activeImgUrl };
+      const alreadySaved = window.userWatchlist.some(a => String(a.id) === String(window.currentMalId));
+
+      try {
+        if (alreadySaved) {
+          const matchItem = window.userWatchlist.find(a => String(a.id) === String(window.currentMalId));
+          window.userWatchlist = window.userWatchlist.filter(a => String(a.id) !== String(window.currentMalId));
+          await updateDoc(docRef, { watchlist: arrayRemove(matchItem || entryItem) });
+        } else {
+          window.userWatchlist.push(entryItem);
+          await updateDoc(docRef, { watchlist: arrayUnion(entryItem) });
+        }
+        updateWatchlistButtonUI();
+        renderWatchlistGridRow();
+      } catch(err) { alert("Error writing updates to database records."); }
+    };
+
+    function updateWatchlistButtonUI() {
+      const btn = document.getElementById('watchlist-toggle-btn');
+      if(!btn) return;
+      const alreadySaved = window.userWatchlist.some(a => String(a.id) === String(window.currentMalId));
+      if (alreadySaved) {
+        btn.innerHTML = `<span>✓</span> <span>Saved to List</span>`;
+        btn.classList.add('text-cyan-400', 'border-cyan-500/30', 'bg-cyan-950/20');
+      } else {
+        btn.innerHTML = `<span>+</span> <span>Add to Watch List</span>`;
+        btn.className = "bg-dark-input hover:bg-zinc-800 text-xs font-bold py-2 px-4 rounded-lg border border-dark text-gray-300 flex items-center space-x-1 self-start sm:self-auto";
+      }
+    }
+
+    window.openProfileModal = function() {
+      document.getElementById('auth-modal').style.display = 'flex';
+      renderModalContent();
+    };
+    window.closeProfileModal = function() {
+      document.getElementById('auth-modal').style.display = 'none';
+    };
+    window.toggleAuthMode = function() {
+      window.isLoginMode = !window.isLoginMode;
+      renderModalContent();
+    };
+
+    function renderModalContent() {
+      const container = document.getElementById('modal-content-box');
+      if (window.currentUser) {
+        container.innerHTML = `
+          <h3 class="text-sm font-bold uppercase tracking-wider text-cyan-400">Authenticated Profile</h3>
+          <p class="text-xs text-gray-400">Secure entry access mapped token reference:<br><b class="text-white">${window.currentUser.email}</b></p>
+          <button id="signout-submit-btn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg text-xs uppercase tracking-wider transition-colors mt-2">Sign Out Account</button>
+          <button onclick="closeProfileModal()" class="text-xs text-gray-500 hover:text-white underline block mx-auto mt-2">Dismiss</button>
+        `;
+        document.getElementById('signout-submit-btn').onclick = window.handleLogOut;
+      } else {
+        container.innerHTML = `
+          <h3 class="text-sm font-bold uppercase tracking-wider text-cyan-400">${window.isLoginMode ? 'Sign In Vault' : 'Create Access Token'}</h3>
+          <input type="email" id="auth-email" placeholder="Email Reference Address" class="w-full bg-dark-input border border-dark rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+          <input type="password" id="auth-pass" placeholder="Security Token Pass Phrase" class="w-full bg-dark-input border border-dark rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+          <button id="auth-submit-btn" class="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-2 rounded-lg text-xs uppercase tracking-wider transition-colors">${window.isLoginMode ? 'Authorize' : 'Register'}</button>
+          <p onclick="toggleAuthMode()" class="text-[11px] text-gray-500 hover:text-gray-300 cursor-pointer mt-2">${window.isLoginMode ? "Need user reference space? <span class='text-cyan-400 underline'>Register</span>" : "Possess secure account ledger? <span class='text-cyan-400 underline'>Login</span>"}</p>
+        `;
+        document.getElementById('auth-submit-btn').onclick = window.processAuthSubmission;
+      }
+    }
+
+    window.processAuthSubmission = async function() {
+      const email = document.getElementById('auth-email').value.trim();
+      const pass = document.getElementById('auth-pass').value.trim();
+      if(!email || !pass) return alert("All credentials parameter fields required.");
+      try {
+        if (window.isLoginMode) { await signInWithEmailAndPassword(auth, email, pass); }
+        else { await createUserWithEmailAndPassword(auth, email, pass); }
+        closeProfileModal();
+      } catch (err) { alert(err.message); }
+    };
+
+    window.handleLogOut = async function() {
+      await signOut(auth);
+      closeProfileModal();
+    };
+
+    // Binding procedural structural hooks
+    const rootNativeLoader = window.loadStreamingLayout;
+    window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, imgUrl = "") {
+      window.currentMalId = malId;
+      window.activeAnimeTitle = titleName;
+      window.activeMaxEpisodes = totalEpisodes;
+      window.activeImgUrl = imgUrl || "https://images.alphacoders.com/134/1344238.png";
+      updateWatchlistButtonUI();
+      if (rootNativeLoader) rootNativeLoader(malId, titleName, totalEpisodes, imgUrl);
+    };
+  </script>
+
+  <script>
+    const MAL_PLAYER_BASE = "https://megaplay.buzz/stream/mal";
+    let currentEpisodeIndex = 1;
+    let currentLanguage = 'sub';
+    let activeScheduleDay = 'today';
+
+    function toggleMainMenu() {
+      const drawer = document.getElementById('main-menu-drawer');
+      const overlay = document.getElementById('menu-overlay');
+      if (drawer.classList.contains('-translate-x-full')) {
+        drawer.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      } else {
+        drawer.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function startSystemClock() {
+      setInterval(() => {
+        const now = new Date();
+        const jstString = now.toLocaleTimeString("en-US", {
+          timeZone: "Asia/Tokyo", hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+        const clockEl = document.getElementById('live-24h-clock');
+        if (clockEl) clockEl.innerText = `${jstString} JST`;
+      }, 1000);
+    }
+
+    function openBottomSheet() {
+      document.getElementById('sheet-overlay').classList.remove('hidden');
+      document.getElementById('bottom-sheet-menu').classList.remove('translate-y-full');
+    }
+
+    function closeBottomSheet() {
+      document.getElementById('sheet-overlay').classList.add('hidden');
+      document.getElementById('bottom-sheet-menu').classList.add('translate-y-full');
+    }
+
+    function updateRgbMixer() {
+      const r = document.getElementById('range-r').value;
+      const g = document.getElementById('range-g').value;
+      const b = document.getElementById('range-b').value;
+      document.getElementById('val-r').innerText = r;
+      document.getElementById('val-g').innerText = g;
+      document.getElementById('val-b').innerText = b;
+      document.getElementById('rgb-preview').style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function saveThemeAndClose() {
+      const isCharcoal = document.getElementById('radio-dark-gray').checked;
+      let bg = "#0b0c0f", card = "#12131a", input = "#181a21";
+      if (isCharcoal) { bg = "#1a1a1e"; card = "#252529"; input = "#2c2c35"; }
+      
+      document.body.style.backgroundColor = bg;
+      document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = card);
+      document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = input);
+      closeBottomSheet();
+    }
+
+    function openExplorationHub() {
+      document.getElementById('landing-portal').classList.add('hidden');
+      document.getElementById('stream-dashboard-box').classList.add('hidden');
+      document.getElementById('main-exploration-hub').classList.remove('hidden');
+      document.getElementById('header-search-engine').classList.remove('hidden');
+      document.getElementById('recommendations-container-block').classList.remove('hidden');
+      document.getElementById('sidebar-container-block').classList.remove('hidden');
+      document.getElementById('grid-header-title').innerText = "Recently Added Broadcasting Catalogs";
+      loadMainHubFeeds();
+    }
+
+    function homeReturnReset() {
+      clearTimeout(window.streamLoadGuard);
+      document.getElementById('stream-dashboard-box').classList.add('hidden');
+      document.getElementById('main-exploration-hub').classList.add('hidden');
+      document.getElementById('header-search-engine').classList.add('hidden');
+      document.getElementById('landing-portal').classList.remove('hidden');
+      document.getElementById('search-input').value = "";
+      document.getElementById('header-search-input').value = "";
+    }
+
+    async function loadMainHubFeeds() {
+      fetchLiveReleasingSchedule(activeScheduleDay);
+      try {
+        const res = await fetch("https://api.jikan.moe/v4/top/anime?limit=22");
+        const json = await res.json();
+        const dataset = json.data || [];
+        if(dataset.length > 0) {
+          displayScrollFeed(dataset.slice(0, 10), 'recommendations-scroller');
+          displayGridFeed(dataset.slice(10, 22), 'results-grid');
+          displayTop10Sidebar(dataset.slice(0, 10));
+        }
+      } catch (err) {
+        document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Network engine directory matching faulted.</p>";
+      }
+    }
+
+    async function triggerCatalogSearch(fromHeader = false) {
+      const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
+      const query = document.getElementById(queryFieldId).value.trim();
+      if(!query) return alert("Enter selection filter keywords.");
+      
+      document.getElementById('search-input').value = query;
+      document.getElementById('header-search-input').value = query;
+      document.getElementById('landing-portal').classList.add('hidden');
+      document.getElementById('stream-dashboard-box').classList.add('hidden');
+      document.getElementById('main-exploration-hub').classList.remove('hidden');
+      document.getElementById('header-search-engine').classList.remove('hidden');
+      document.getElementById('recommendations-container-block').classList.add('hidden');
+      document.getElementById('grid-header-title').innerText = `Search Results matching: "${query}"`;
+      document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Parsing directory keys...</p>";
+      
+      try {
+        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=16`);
+        const json = await res.json();
+        if(!json.data || json.data.length === 0) document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No catalog rows returned valid parameter matches.</p>";
+        else displayGridFeed(json.data, 'results-grid');
+      } catch (e) { document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Server index matching timeout.</p>"; }
+    }
+
+    function changeScheduleDay(targetDay) {
+      activeScheduleDay = targetDay;
+      document.getElementById('tab-yesterday').className = "py-1.5 rounded text-center text-gray-500 hover:text-white";
+      document.getElementById('tab-today').className = "py-1.5 rounded text-center text-gray-500 hover:text-white";
+      document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-center text-gray-500 hover:text-white";
+      document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded text-center bg-cyan-500 text-black";
+      fetchLiveReleasingSchedule(targetDay);
+    }
+
+    async function fetchLiveReleasingSchedule(dayMode) {
+      const scheduleBox = document.getElementById('schedule-box');
+      scheduleBox.innerHTML = '<p class="text-gray-500 text-[11px]">Updating stream array map references...</p>';
+      const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      
+      let currentDayIndex = new Date().getDay();
+      if (dayMode === 'yesterday') currentDayIndex = (currentDayIndex - 1 + 7) % 7;
+      else if (dayMode === 'tomorrow') currentDayIndex = (currentDayIndex + 1) % 7;
+      
+      try {
+        const response = await fetch(`https://api.jikan.moe/v4/schedules?filter=${weekdays[currentDayIndex]}&limit=12`);
+        const json = await response.json();
+        const rawAnimeList = json.data || [];
+        if(rawAnimeList.length === 0) {
+          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No active broadcasting blocks flagged.</p>`;
+          return;
+        }
+        scheduleBox.innerHTML = '';
+        rawAnimeList.slice(0, 6).forEach(anime => {
+          const title = anime.title_english || anime.title;
+          const time = anime.broadcast?.time || "Airing";
+          const div = document.createElement('div');
+          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-cyan-500/30 cursor-pointer transition-all";
+          div.innerHTML = `<span class="truncate pr-2 font-medium text-gray-300">${title}</span><span class="font-mono text-[10px] text-cyan-400 shrink-0">${time}</span>`;
+          div.onclick = () => loadStreamingLayout(anime.mal_id, title, anime.episodes || 12, anime.images?.jpg?.image_url || "");
+          scheduleBox.appendChild(div);
+        });
+      } catch (error) { scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Sync reference exception mismatch occurred.</p>`; }
+    }
+
+    function displayScrollFeed(animeArray, elementId) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      animeArray.forEach(anime => {
+        const title = anime.title_english || anime.title;
+        const imgUrl = anime.images?.jpg?.image_url || '';
+        const div = document.createElement('div');
+        div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-cyan-500 transition-all text-[11px]";
+        div.innerHTML = `<div class="aspect-[2/3] bg-zinc-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.onclick = () => loadStreamingLayout(anime.mal_id, title, anime.episodes || 12, imgUrl);
+        container.appendChild(div);
+      });
+    }
+
+    function displayGridFeed(animeArray, elementId) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      animeArray.forEach(anime => {
+        const title = anime.title_english || anime.title;
+        const imgUrl = anime.images?.jpg?.image_url || '';
+        const div = document.createElement('div');
+        div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-cyan-500 transition-all flex flex-col justify-between text-xs";
+        div.innerHTML = `<div class="aspect-[2/3] bg-zinc-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.onclick = () => loadStreamingLayout(anime.mal_id, title, anime.episodes || 12, imgUrl);
+        container.appendChild(div);
+      });
+    }
+
+    function displayTop10Sidebar(animeArray) {
+      const container = document.getElementById('top10-box');
+      container.innerHTML = '';
+      animeArray.forEach((anime, idx) => {
+        const title = anime.title_english || anime.title;
+        const div = document.createElement('div');
+        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-cyan-500/30 cursor-pointer transition-all";
+        div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium">${title}</span>`;
+        div.onclick = () => loadStreamingLayout(anime.mal_id, title, anime.episodes || 12, anime.images?.jpg?.image_url || "");
+        container.appendChild(div);
+      });
+    }
+
+    window.loadStreamingLayout = function(malId, titleName, totalEpisodes, imgUrl = "") {
+      window.currentMalId = malId;
+      window.activeAnimeTitle = titleName;
+      window.activeMaxEpisodes = totalEpisodes;
+      window.activeImgUrl = imgUrl;
+
+      document.getElementById('main-exploration-hub').classList.add('hidden');
+      document.getElementById('stream-dashboard-box').classList.remove('hidden');
+      document.getElementById('ep-title').innerText = `Watching: ${titleName}`;
+      
+      const epBox = document.getElementById('episode-buttons');
+      epBox.innerHTML = '';
+      for (let i = 1; i <= totalEpisodes; i++) {
+        const btn = document.createElement('button');
+        btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-cyan-500 text-xs font-bold w-10 h-10 rounded-lg transition-all focus:bg-cyan-500 focus:text-black focus:border-cyan-500";
+        btn.innerText = i;
+        btn.onclick = () => launchVideoPlayer(i);
+        epBox.appendChild(btn);
+      }
+      launchVideoPlayer(1);
+    };
+
+    function launchVideoPlayer(epNum) {
+      currentEpisodeIndex = epNum;
+      const iframe = document.getElementById('video-iframe');
+      if (iframe) iframe.src = `${MAL_PLAYER_BASE}/${window.currentMalId}/${epNum}/${currentLanguage}`;
+    }
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      document.getElementById('sub-btn').className = lang === 'sub' ? "bg-cyan-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-cyan-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      document.getElementById('dub-btn').className = lang === 'dub' ? "bg-cyan-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-cyan-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      launchVideoPlayer(currentEpisodeIndex);
+    }
+
+    window.onload = function() {
+      startSystemClock();
+      updateRgbMixer();
+    };
+  </script>
 </body>
 </html>
