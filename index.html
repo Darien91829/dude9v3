@@ -16,10 +16,16 @@
     .scroll-row::-webkit-scrollbar { height: 4px; }
     .scroll-row::-webkit-scrollbar-track { background: #050505; }
     .scroll-row::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 2px; }
+
+    select option {
+      background-color: #111111 !important;
+      color: #e5e7eb !important;
+    }
   </style>
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
+  <!-- Main Left Sidebar Drawer Menu -->
   <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#050505] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
     <div class="p-4 flex items-center justify-between border-b border-dark">
       <span class="text-emerald-400 text-lg font-bold tracking-wider">Thedude9 Menu</span>
@@ -37,6 +43,7 @@
   </div>
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40"></div>
 
+  <!-- Global Navigation Header Bar -->
   <nav class="sticky top-0 z-30 bg-[#050505]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
       <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
@@ -47,11 +54,12 @@
       </div>
     </div>
     
+    <!-- Top Nav Global Search -->
     <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
       <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
       </span>
-      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-emerald-500 text-gray-300">
+      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-emerald-500 text-gray-300" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
       <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
     </div>
 
@@ -62,16 +70,97 @@
     </div>
   </nav>
 
+  <!-- Main View Workspace Container -->
   <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <!-- Landing Home Search Component -->
     <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-24 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
       <div class="max-w-xl w-full space-y-6">
         <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to <span class="text-emerald-400 drop-shadow-[0_0_10px_rgba(0,255,102,0.3)]">Thedude9</span></h1>
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
-        <div class="bg-dark-card p-2 rounded-full border border-dark flex items-center shadow-2xl focus-within:border-emerald-500 transition-all">
-          <input type="text" id="search-input" placeholder="Search titles directly..." class="w-full bg-transparent pl-4 pr-2 text-sm focus:outline-none text-white">
-          <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
+        <!-- Search Bar and Integrated Filter Control Strip -->
+        <div class="relative space-y-3">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 bg-dark-card p-2 rounded-xl border border-dark flex items-center shadow-2xl focus-within:border-emerald-500 transition-all">
+              <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
+              <input type="text" id="search-input" placeholder="Search titles or click filters..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
+              <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
+            </div>
+
+            <button onclick="toggleAdvancedFilterPanel()" id="filter-panel-toggle-btn" class="bg-dark-card border border-dark hover:border-emerald-500 text-gray-400 hover:text-white p-3 rounded-xl transition-all flex items-center justify-center shadow-xl">
+              <i class="fa-solid fa-sliders text-sm"></i>
+            </button>
+          </div>
+
+          <!-- Advanced Dropdown Filter Drawer Panel -->
+          <div id="advanced-filter-dropdown-panel" class="hidden absolute left-0 right-0 top-full mt-2 bg-dark-card border border-dark rounded-xl p-4 text-left space-y-4 shadow-2xl z-30">
+            <div class="flex items-center justify-between border-b border-dark/60 pb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                <i class="fa-solid fa-sliders"></i> Refine Index Results
+              </span>
+              <button onclick="resetAdvancedFilters()" class="text-[10px] bg-dark-input hover:text-white border border-dark text-gray-400 py-1 px-2.5 rounded transition-all">
+                <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+              </button>
+            </div>
+
+            <!-- Genres Filter Grid -->
+            <div class="space-y-1.5">
+              <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider block">Genres and Themes</span>
+              <div id="genres-container" class="flex flex-wrap gap-2">
+                <button onclick="toggleGenreTag(this, 'Action')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Action</button>
+                <button onclick="toggleGenreTag(this, 'Adventure')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Adventure</button>
+                <button onclick="toggleGenreTag(this, 'Comedy')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Comedy</button>
+                <button onclick="toggleGenreTag(this, 'Drama')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Drama</button>
+                <button onclick="toggleGenreTag(this, 'Fantasy')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Fantasy</button>
+                <button onclick="toggleGenreTag(this, 'Mystery')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Mystery</button>
+                <button onclick="toggleGenreTag(this, 'Romance')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Romance</button>
+                <button onclick="toggleGenreTag(this, 'Sci-Fi')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Sci-Fi</button>
+                <button onclick="toggleGenreTag(this, 'Slice of Life')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Slice of Life</button>
+                <button onclick="toggleGenreTag(this, 'Supernatural')" class="bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all">Supernatural</button>
+              </div>
+            </div>
+
+            <!-- Parameters Selector Dropdowns -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Format</label>
+                <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                  <option value="">All Anime</option>
+                  <option value="TV">Series</option>
+                  <option value="MOVIE">Films</option>
+                  <option value="OVA">OVA</option>
+                  <option value="SPECIAL">Special</option>
+                </select>
+              </div>
+              
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Sort Order</label>
+                <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                  <option value="POPULARITY_DESC">Popular</option>
+                  <option value="TRENDING_DESC">Trending</option>
+                  <option value="SCORE_DESC">Top Rated</option>
+                  <option value="START_DATE_DESC">Newest</option>
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">From Year</label>
+                <input type="number" id="filter-year-from" min="1990" max="2026" placeholder="2000" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">To Year</label>
+                <input type="number" id="filter-year-to" min="1990" max="2026" placeholder="2026" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button onclick="commitAdvancedFilterSearch()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg">
+                Show results
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="pt-4">
@@ -80,8 +169,8 @@
       </div>
     </section>
 
+    <!-- Main Exploration Catalog Grid Portal View -->
     <section id="main-exploration-hub" class="hidden space-y-8">
-      
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         <div class="lg:col-span-2 space-y-8">
@@ -104,6 +193,7 @@
           </div>
         </div>
 
+        <!-- Sidebar Timeline Panels -->
         <div class="space-y-6">
           <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
             <div class="flex items-center justify-between border-b border-dark pb-2">
@@ -131,6 +221,7 @@
       </div>
     </section>
 
+    <!-- Video Architecture Dashboard Suite Component -->
     <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
       <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-emerald-500/20 shadow-2xl">
         <div id="player-box" class="w-full h-full relative">
@@ -170,6 +261,7 @@
 
   </main>
 
+  <!-- Accent Panel Theme Matrix Canvas Drawers -->
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#111111] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
     <div class="max-w-md mx-auto space-y-6">
@@ -213,6 +305,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/9anime-scraper@1.1.1/index.min.js"></script>
 
+  <!-- Main Application Logic Scripts Engine -->
   <script>
     const ANIKOTO_BASE = "https://anikotoapi.site";
     
@@ -226,6 +319,7 @@
     window.activeAnimeTitle = "";
     window.activeMaxEpisodes = 12;
 
+    let selectedGenres = [];
     let animeScraperInstance = null;
     try {
       if (typeof NineAnimeScraper !== 'undefined') {
@@ -238,12 +332,27 @@
     function toggleMainMenu() {
       const drawer = document.getElementById('main-menu-drawer');
       const overlay = document.getElementById('menu-overlay');
+      if (!drawer || !overlay) return;
       if (drawer.classList.contains('-translate-x-full')) {
         drawer.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
       } else {
         drawer.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
+      }
+    }
+
+    function toggleAdvancedFilterPanel() {
+      const panel = document.getElementById('advanced-filter-dropdown-panel');
+      const toggleBtn = document.getElementById('filter-panel-toggle-btn');
+      if (!panel || !toggleBtn) return;
+      
+      if (panel.classList.contains('hidden')) {
+        panel.classList.remove('hidden');
+        toggleBtn.style.borderColor = '#10b981';
+      } else {
+        panel.classList.add('hidden');
+        toggleBtn.style.borderColor = '';
       }
     }
 
@@ -259,27 +368,30 @@
     }
 
     function openBottomSheet() {
-      document.getElementById('sheet-overlay').classList.remove('hidden');
-      document.getElementById('bottom-sheet-menu').classList.remove('translate-y-full');
+      document.getElementById('sheet-overlay')?.classList.remove('hidden');
+      document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
     }
 
     function closeBottomSheet() {
-      document.getElementById('sheet-overlay').classList.add('hidden');
-      document.getElementById('bottom-sheet-menu').classList.add('translate-y-full');
+      document.getElementById('sheet-overlay')?.classList.add('hidden');
+      document.getElementById('bottom-sheet-menu')?.classList.add('translate-y-full');
     }
 
     function updateRgbMixer() {
-      const r = document.getElementById('range-r').value;
-      const g = document.getElementById('range-g').value;
-      const b = document.getElementById('range-b').value;
-      document.getElementById('val-r').innerText = r;
-      document.getElementById('val-g').innerText = g;
-      document.getElementById('val-b').innerText = b;
-      document.getElementById('rgb-preview').style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      const r = document.getElementById('range-r')?.value || 0;
+      const g = document.getElementById('range-g')?.value || 255;
+      const b = document.getElementById('range-b')?.value || 102;
+      
+      if(document.getElementById('val-r')) document.getElementById('val-r').innerText = r;
+      if(document.getElementById('val-g')) document.getElementById('val-g').innerText = g;
+      if(document.getElementById('val-b')) document.getElementById('val-b').innerText = b;
+      
+      const preview = document.getElementById('rgb-preview');
+      if (preview) preview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
     }
 
     function saveThemeAndClose() {
-      const isCharcoal = document.getElementById('radio-dark-gray').checked;
+      const isCharcoal = document.getElementById('radio-dark-gray')?.checked;
       let bg = "#050505", card = "#111111", input = "#1c1c1e";
       if (isCharcoal) { bg = "#1a1a1e"; card = "#252529"; input = "#2c2c35"; }
       
@@ -290,22 +402,56 @@
     }
 
     function openExplorationHub() {
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('stream-dashboard-box').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.remove('hidden');
-      document.getElementById('header-search-engine').classList.remove('hidden');
-      document.getElementById('recommendations-container-block').classList.remove('hidden');
-      document.getElementById('grid-header-title').innerText = "Trending Global Media Items";
+      document.getElementById('landing-portal')?.classList.add('hidden');
+      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
+      document.getElementById('header-search-engine')?.classList.remove('hidden');
+      document.getElementById('recommendations-container-block')?.classList.remove('hidden');
+      
+      const gridHeader = document.getElementById('grid-header-title');
+      if (gridHeader) gridHeader.innerText = "Trending Global Media Items";
       loadMainHubFeeds();
     }
 
     function homeReturnReset() {
-      document.getElementById('stream-dashboard-box').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.add('hidden');
-      document.getElementById('header-search-engine').classList.add('hidden');
-      document.getElementById('landing-portal').classList.remove('hidden');
-      document.getElementById('search-input').value = "";
-      document.getElementById('header-search-input').value = "";
+      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.add('hidden');
+      document.getElementById('header-search-engine')?.classList.add('hidden');
+      document.getElementById('landing-portal')?.classList.remove('hidden');
+      
+      if(document.getElementById('search-input')) document.getElementById('search-input').value = "";
+      if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = "";
+      document.getElementById('advanced-filter-dropdown-panel')?.classList.add('hidden');
+      resetAdvancedFilters();
+    }
+
+    function toggleGenreTag(element, genreName) {
+      if (!element) return;
+      if (element.classList.contains('bg-emerald-500')) {
+        element.classList.remove('bg-emerald-500', 'text-black');
+        element.classList.add('bg-dark-input', 'text-gray-300');
+        selectedGenres = selectedGenres.filter(g => g !== genreName);
+      } else {
+        element.classList.remove('bg-dark-input', 'text-gray-300');
+        element.classList.add('bg-emerald-500', 'text-black');
+        selectedGenres.push(genreName);
+      }
+    }
+
+    function resetAdvancedFilters() {
+      selectedGenres = [];
+      document.querySelectorAll('#genres-container button').forEach(btn => {
+        btn.className = "bg-dark-input border border-dark text-xs px-3 py-1 rounded-full text-gray-300 hover:border-emerald-500 transition-all";
+      });
+      if(document.getElementById('filter-format')) document.getElementById('filter-format').value = "";
+      if(document.getElementById('filter-sort')) document.getElementById('filter-sort').value = "POPULARITY_DESC";
+      if(document.getElementById('filter-year-from')) document.getElementById('filter-year-from').value = "";
+      if(document.getElementById('filter-year-to')) document.getElementById('filter-year-to').value = "";
+    }
+
+    function commitAdvancedFilterSearch() {
+      toggleAdvancedFilterPanel(); 
+      triggerCatalogSearch(false); 
     }
 
     async function loadMainHubFeeds() {
@@ -343,73 +489,143 @@
     }
 
     function handleAnikotoScrollerEmpty() {
-      document.getElementById('recommendations-scroller').innerHTML = "<p class='text-xs text-gray-600 italic'>Anikoto scroller engine offline. Use core catalog below.</p>";
+      const scroller = document.getElementById('recommendations-scroller');
+      if (scroller) scroller.innerHTML = "<p class='text-xs text-gray-600 italic'>Anikoto scroller engine offline. Use core catalog below.</p>";
     }
 
     async function triggerCatalogSearch(fromHeader = false) {
       const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
-      const query = document.getElementById(queryFieldId).value.trim();
-      if(!query) return alert("Please enter a title to query.");
+      const queryInputEl = document.getElementById(queryFieldId);
+      const query = queryInputEl ? queryInputEl.value.trim() : "";
       
-      document.getElementById('search-input').value = query;
-      document.getElementById('header-search-input').value = query;
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('stream-dashboard-box').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.remove('hidden');
-      document.getElementById('header-search-engine').classList.remove('hidden');
-      document.getElementById('recommendations-container-block').classList.add('hidden');
-      document.getElementById('grid-header-title').innerText = `Catalog Matches: "${query}"`;
-      document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
+      // Keep search boxes synchronized
+      if(document.getElementById('search-input')) document.getElementById('search-input').value = query;
+      if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
+
+      document.getElementById('landing-portal')?.classList.add('hidden');
+      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
+      document.getElementById('header-search-engine')?.classList.remove('hidden');
       
+      // Hide the recent releases row if a user executes a specific text keyword search
+      if (query !== "") {
+        document.getElementById('recommendations-container-block')?.classList.add('hidden');
+      } else {
+        document.getElementById('recommendations-container-block')?.classList.remove('hidden');
+      }
+
+      const gridHeader = document.getElementById('grid-header-title');
+      if (gridHeader) gridHeader.innerText = query ? `Catalog Matches: "${query}"` : "Filtered Catalog Results";
+      
+      const gridResults = document.getElementById('results-grid');
+      if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
+      
+      const formatEl = document.getElementById('filter-format');
+      const sortEl = document.getElementById('filter-sort');
+      const yearFromEl = document.getElementById('filter-year-from');
+      const yearToEl = document.getElementById('filter-year-to');
+
+      const selectedFormat = formatEl && formatEl.value ? formatEl.value : null;
+      let selectedSort = sortEl && sortEl.value ? sortEl.value : "POPULARITY_DESC";
+      
+      const yearFromVal = yearFromEl ? yearFromEl.value.trim() : "";
+      const yearToVal = yearToEl ? yearToEl.value.trim() : "";
+
+      // Assemble query parameter states clean
+      let variables = {};
+      
+      // FIX: Changed from 'variables.search' to 'variables.q' to map precisely to structural template definitions
+      if (query !== "") {
+        variables.q = query;
+      }
+      
+      if (selectedGenres && selectedGenres.length > 0) {
+        variables.genre_in = selectedGenres;
+      }
+      if (selectedFormat) {
+        variables.format = selectedFormat;
+      }
+      if (yearFromVal !== "") {
+        variables.startDate_greater = parseInt(yearFromVal + "0000");
+      }
+      if (yearToVal !== "") {
+        variables.endDate_less = parseInt(yearToVal + "1231");
+      }
+
+      // Add sort order configuration only when an explicit text string is absent
+      if (query === "") {
+        variables.sort = [selectedSort];
+      }
+
+      // Core dynamically optimized structural multi-parameter design block
+      const aniListSearchQuery = `
+        query ($q: String, $genre_in: [String], $format: MediaFormat, $sort: [MediaSort], $startDate_greater: FuzzyDateInt, $endDate_less: FuzzyDateInt) {
+          Page(page: 1, perPage: 24) {
+            media(search: $q, genre_in: $genre_in, format: $format, sort: $sort, startDate_greater: $startDate_greater, endDate_less: $endDate_less, type: ANIME) {
+              id
+              idMal
+              title { english romaji }
+              coverImage { large }
+              episodes
+            }
+          }
+        }`;
+
       try {
-        const aniListSearchQuery = `query ($q: String) { Page(page: 1, perPage: 16) { media(search: $q, type: ANIME) { id idMal title { english romaji } coverImage { large } episodes } } }`;
         const graphRes = await fetch('https://graphql.anilist.co', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: aniListSearchQuery, variables: { q: query } })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: aniListSearchQuery, variables: variables })
         });
         const json = await graphRes.json();
         const results = json.data?.Page?.media || [];
-        if(results.length === 0) document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No valid endpoints found.</p>";
-        else displayGridFeed(results, 'results-grid');
-      } catch (e) { document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>API processing error.</p>"; }
+        
+        if (gridResults) {
+          if(results.length === 0) {
+            gridResults.innerHTML = "<p class='text-xs text-gray-500'>No anime matches found for your active filter selections.</p>";
+          } else {
+            displayGridFeed(results, 'results-grid');
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>API filter mapping processing error.</p>";
+      }
     }
 
     function changeScheduleDay(targetDay) {
       activeScheduleDay = targetDay;
-      document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-emerald-500 text-black";
+      if(document.getElementById('tab-yesterday')) document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      if(document.getElementById('tab-today')) document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      if(document.getElementById('tab-tomorrow')) document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      if(document.getElementById(`tab-${targetDay}`)) document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-emerald-500 text-black";
       fetchLiveReleasingSchedule(targetDay);
     }
 
     async function fetchLiveReleasingSchedule(dayMode) {
       const scheduleBox = document.getElementById('schedule-box');
+      if(!scheduleBox) return;
       scheduleBox.innerHTML = '<p class="text-gray-500 text-[11px]">Querying timelines...</p>';
       
+      const nowJst = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
       const dayOffsetMap = { 'yesterday': -1, 'today': 0, 'tomorrow': 1 };
-      const currentDay = new Date();
-      currentDay.setDate(currentDay.getDate() + dayOffsetMap[dayMode]);
-      currentDay.setHours(0,0,0,0);
+      nowJst.setDate(nowJst.getDate() + dayOffsetMap[dayMode]);
+      nowJst.setHours(0,0,0,0);
       
-      const startTimestamp = Math.floor(currentDay.getTime() / 1000);
+      const startTimestamp = Math.floor(nowJst.getTime() / 1000);
       const endTimestamp = startTimestamp + 86400;
 
       const scheduleQuery = `
         query ($start: Int, $end: Int) { 
           Page(page: 1, perPage: 25) { 
-            airingSchedules(airingAt_greater: $start, airingAt_less: $end, sort: TIME_DESC) { 
+            airingSchedules(airingAt_greater: $start, airingAt_less: $end, sort: TIME_ASC) { 
               episode
               airingAt
               media { 
                 id 
                 idMal 
-                title { 
-                  english 
-                  romaji 
-                } 
-                coverImage { 
-                  large 
-                } 
+                title { english romaji } 
+                coverImage { large } 
                 episodes 
               } 
             } 
@@ -431,10 +647,8 @@
         }
         
         scheduleBox.innerHTML = '';
-        
         schedules.forEach(item => {
           if (!item.media) return;
-          
           const title = item.media.title.english || item.media.title.romaji;
           const airDate = new Date(item.airingAt * 1000);
           const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -459,13 +673,14 @@
 
     function displayScrollFeed(animeArray, elementId) {
       const container = document.getElementById(elementId);
+      if(!container) return;
       container.innerHTML = '';
       animeArray.forEach(anime => {
         const title = anime.title || anime.name || "Anime Series";
         const imgUrl = anime.image || anime.poster || 'https://images.alphacoders.com/134/1344238.png';
         const div = document.createElement('div');
         div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all text-[11px]";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='https://images.alphacoders.com/134/1344238.png'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.mal_id || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -473,13 +688,15 @@
 
     function displayGridFeed(animeArray, elementId) {
       const container = document.getElementById(elementId);
+      if(!container) return;
       container.innerHTML = '';
       animeArray.forEach(anime => {
+        if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
-        const imgUrl = anime.coverImage.large;
+        const imgUrl = anime.coverImage?.large || 'https://images.alphacoders.com/134/1344238.png';
         const div = document.createElement('div');
         div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all flex flex-col justify-between text-xs";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='https://images.alphacoders.com/134/1344238.png'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -487,8 +704,10 @@
 
     function displayTop10Sidebar(animeArray) {
       const container = document.getElementById('top10-box');
+      if(!container) return;
       container.innerHTML = '';
       animeArray.slice(0, 6).forEach((anime, idx) => {
+        if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
         const div = document.createElement('div');
         div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-emerald-500/30 cursor-pointer transition-all";
@@ -503,11 +722,13 @@
       window.activeAnimeTitle = titleName;
       window.activeMaxEpisodes = totalEpisodes || 12;
 
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.add('hidden');
-      document.getElementById('stream-dashboard-box').classList.remove('hidden');
-      document.getElementById('header-search-engine').classList.remove('hidden');
-      document.getElementById('ep-title').innerText = `Watching: ${titleName}`;
+      document.getElementById('landing-portal')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.add('hidden');
+      document.getElementById('stream-dashboard-box')?.classList.remove('hidden');
+      document.getElementById('header-search-engine')?.classList.remove('hidden');
+      
+      const epTitle = document.getElementById('ep-title');
+      if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
       
       activeSourceMode = 'anikoto';
       currentAnikotoEmbedId = null;
@@ -520,19 +741,20 @@
           currentAnikotoEmbedId = data.episodes[0].episode_embed_id || data.episodes[0].id;
         }
       } catch(e) {
-        console.log("Anikoto unmapped, switching default mode to MAL.");
         activeSourceMode = 'mal';
         updateServerButtonsUI();
       }
 
       const epBox = document.getElementById('episode-buttons');
-      epBox.innerHTML = '';
-      for (let i = 1; i <= window.activeMaxEpisodes; i++) {
-        const btn = document.createElement('button');
-        btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all focus:bg-emerald-500 focus:text-black focus:border-emerald-500";
-        btn.innerText = i;
-        btn.onclick = () => launchVideoPlayer(i);
-        epBox.appendChild(btn);
+      if(epBox) {
+        epBox.innerHTML = '';
+        for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+          const btn = document.createElement('button');
+          btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all focus:bg-emerald-500 focus:text-black focus:border-emerald-500";
+          btn.innerText = i;
+          btn.onclick = () => launchVideoPlayer(i);
+          epBox.appendChild(btn);
+        }
       }
       launchVideoPlayer(1);
     };
@@ -543,7 +765,7 @@
       const noticeOverlay = document.getElementById('notice-overlay');
       if (!iframe) return;
 
-      noticeOverlay.classList.add('hidden');
+      if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
 
       if (activeSourceMode === 'anikoto' && currentAnikotoEmbedId) {
@@ -597,15 +819,14 @@
     function handleStreamMissingNotice() {
       const iframe = document.getElementById('video-iframe');
       const noticeOverlay = document.getElementById('notice-overlay');
-      
       if (iframe) iframe.classList.add('hidden');
       if (noticeOverlay) noticeOverlay.classList.remove('hidden');
     }
 
     function setLanguage(lang) {
       currentLanguage = lang;
-      document.getElementById('sub-btn').className = lang === 'sub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
-      document.getElementById('dub-btn').className = lang === 'dub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      if(document.getElementById('sub-btn')) document.getElementById('sub-btn').className = lang === 'sub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      if(document.getElementById('dub-btn')) document.getElementById('dub-btn').className = lang === 'dub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
       launchVideoPlayer(currentEpisodeIndex);
     }
 
@@ -620,10 +841,13 @@
 
     window.onload = function() {
       startSystemClock();
-      updateRgbMixer();
-      setTimeout(() => {
-        loadMainHubFeeds();
-      }, 150);
+      if(typeof updateRgbMixer === 'function') updateRgbMixer();
+      
+      // Auto-load trending feeds immediately upon load, matching your dashboard setup
+      document.getElementById('landing-portal')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
+      document.getElementById('header-search-engine')?.classList.remove('hidden');
+      loadMainHubFeeds();
     };
   </script>
 </body>
