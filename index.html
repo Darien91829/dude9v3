@@ -21,50 +21,40 @@
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden bg-[#0f0f12] flex">
 
-  <aside id="main-menu-drawer" class="sidebar fixed md:sticky top-0 left-0 h-full shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-    <div class="pb-4 flex items-center justify-between border-b border-dark mb-4">
+  <aside id="main-menu-drawer" class="sidebar fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5">
+    <div class="pb-5 flex items-center justify-between border-b border-dark mb-6">
       <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer">
-        <span class="text-lg tracking-wide text-white">TheDude<span class="dynamic-accent-text text-orange-500">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-1.5 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
+        <span class="text-xl tracking-wide text-white">TheDude<span class="dynamic-accent-text text-orange-500">9</span></span>
+        <span class="text-[9px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-2 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
       </div>
-      <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1 md:hidden">
-        <i class="fa-solid fa-xmark text-lg"></i>
+      <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-xl"></i>
       </button>
     </div>
     
-    <nav class="nav-menu text-sm">
-      <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-1">Navigation</span>
+    <nav class="nav-menu text-base space-y-2">
+      <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block mb-2 px-2">Navigation</span>
       
-      <div id="side-nav-home" class="sidebar-item active" onclick="homeReturnReset(); toggleMainMenu();">
-        <span class="icon"><i class="fa-solid fa-house"></i></span> 
-        <span class="label">Home</span>
+      <div id="side-nav-home" class="sidebar-item active py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="homeReturnReset(); toggleMainMenu();">
+        <span class="icon text-lg"><i class="fa-solid fa-house"></i></span> 
+        <span class="label font-medium">Home</span>
       </div>
       
-      <div id="side-nav-catalog" class="sidebar-item" onclick="openExplorationHub(); toggleMainMenu();">
-        <span class="icon"><i class="fa-solid fa-compass"></i></span> 
-        <span class="label">Catalog Portal</span>
+      <div id="side-nav-catalog" class="sidebar-item py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="openExplorationHub(); toggleMainMenu();">
+        <span class="icon text-lg"><i class="fa-solid fa-compass"></i></span> 
+        <span class="label font-medium">Catalog Portal</span>
       </div>
 
-      <div id="side-nav-releases" class="sidebar-item" onclick="switchToView('releases'); toggleMainMenu();">
-        <span class="icon"><i class="fa-solid fa-rocket"></i></span> 
-        <span class="label">Releases</span>
+      <div id="side-nav-releases" class="sidebar-item py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="switchToView('releases'); toggleMainMenu();">
+        <span class="icon text-lg"><i class="fa-solid fa-rocket"></i></span> 
+        <span class="label font-medium">Releases</span>
       </div>
 
-      <div id="side-nav-calendar" class="sidebar-item" onclick="switchToView('calendar'); toggleMainMenu();">
-        <span class="icon"><i class="fa-solid fa-calendar-days"></i></span> 
-        <span class="label">Calendar</span>
+      <div id="side-nav-calendar" class="sidebar-item py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="switchToView('calendar'); toggleMainMenu();">
+        <span class="icon text-lg"><i class="fa-solid fa-calendar-days"></i></span> 
+        <span class="label font-medium">Calendar</span>
       </div>
     </nav>
-
-    <div class="sidebar-footer">
-      <div class="social-icons">
-        <a href="#" class="footer-icon"><i class="fa-brands fa-discord"></i></a>
-        <a href="#" class="footer-icon"><i class="fa-solid fa-flag"></i></a>
-      </div>
-      <button class="lang-selector" onclick="openBottomSheet()">
-        <span>🌐 EN</span>
-      </button>
-    </div>
   </aside>
 
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden"></div>
@@ -72,7 +62,7 @@
   <div class="flex-1 flex flex-col min-w-0">
     <nav class="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1 md:hidden">
+        <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center">
           <i class="fa-solid fa-bars"></i>
         </button>
         <div id="view-indicator-title" class="text-xs font-bold uppercase tracking-widest text-gray-400 hidden md:block">Dashboard View Container</div>
@@ -87,7 +77,7 @@
       </div>
 
       <div class="flex items-center space-x-4">
-        <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-1">
+        <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
           <i class="fa-solid fa-palette text-lg"></i>
         </button>
       </div>
@@ -339,7 +329,6 @@
       }
     }
 
-    /* 🆕 Added Content View Routing Utility */
     function switchToView(targetViewId) {
       const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
       views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
@@ -767,6 +756,7 @@
       launchVideoPlayer(currentEpisodeIndex);
     }
 
+    UX-focused update: items like padding (`py-3.5 px-4`), wider panel widths (`w-72`), and icon alignment styles ensure buttons easily adapt to standard tap-target requirements.
     function updateServerButtonsUI() {
       const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
       const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
