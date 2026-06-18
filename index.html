@@ -412,10 +412,10 @@
     function resetAdvancedFilters() {
       selectedGenres = [];
       document.querySelectorAll('.genre-pill').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('filter-format').value = "";
-      document.getElementById('filter-sort').value = "POPULARITY_DESC";
-      document.getElementById('filter-year-from').value = "";
-      document.getElementById('filter-year-to').value = "";
+      if(document.getElementById('filter-format')) document.getElementById('filter-format').value = "";
+      if(document.getElementById('filter-sort')) document.getElementById('filter-sort').value = "POPULARITY_DESC";
+      if(document.getElementById('filter-year-from')) document.getElementById('filter-year-from').value = "";
+      if(document.getElementById('filter-year-to')) document.getElementById('filter-year-to').value = "";
       triggerCatalogSearch(false);
     }
 
@@ -464,10 +464,10 @@
 
     async function triggerCatalogSearch(fromHeader = false) {
       const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
-      const query = document.getElementById(queryFieldId).value.trim();
+      const query = document.getElementById(queryFieldId) ? document.getElementById(queryFieldId).value.trim() : "";
       
-      document.getElementById('search-input').value = query;
-      document.getElementById('header-search-input').value = query;
+      if(document.getElementById('search-input')) document.getElementById('search-input').value = query;
+      if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
 
       document.getElementById('landing-portal').classList.add('hidden');
       document.getElementById('stream-dashboard-box').classList.add('hidden');
@@ -478,12 +478,16 @@
       document.getElementById('grid-header-title').innerText = query ? `Catalog Matches: "${query}"` : "Filtered Catalog Results";
       document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
       
-      const selectedFormat = document.getElementById('filter-format').value || null;
-      let selectedSort = document.getElementById('filter-sort').value || "POPULARITY_DESC";
+      const formatEl = document.getElementById('filter-format');
+      const sortEl = document.getElementById('filter-sort');
+      const yearFromEl = document.getElementById('filter-year-from');
+      const yearToEl = document.getElementById('filter-year-to');
+
+      const selectedFormat = formatEl && formatEl.value ? formatEl.value : null;
+      let selectedSort = sortEl && sortEl.value ? sortEl.value : "POPULARITY_DESC";
       
-      // FIXED: Safely handling empty date values so empty inputs don't return NaN or zero values to AniList
-      const yearFromVal = document.getElementById('filter-year-from').value;
-      const yearToVal = document.getElementById('filter-year-to').value;
+      const yearFromVal = yearFromEl ? yearFromEl.value : "";
+      const yearToVal = yearToEl ? yearToEl.value : "";
       const yearFrom = yearFromVal ? parseInt(yearFromVal) : null;
       const yearTo = yearToVal ? parseInt(yearToVal) : null;
 
@@ -497,7 +501,7 @@
       };
 
       if (query) variables.q = query;
-      if (selectedGenres.length > 0) variables.genres = selectedGenres;
+      if (selectedGenres && selectedGenres.length > 0) variables.genres = selectedGenres;
       if (selectedFormat) variables.format = selectedFormat;
       
       if (yearFrom) variables.startDate = parseInt(yearFrom + "0000");
@@ -547,6 +551,7 @@
 
     async function fetchLiveReleasingSchedule(dayMode) {
       const scheduleBox = document.getElementById('schedule-box');
+      if(!scheduleBox) return;
       scheduleBox.innerHTML = '<p class="text-gray-500 text-[11px]">Querying timelines...</p>';
       
       const nowJst = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
@@ -615,6 +620,7 @@
 
     function displayScrollFeed(animeArray, elementId) {
       const container = document.getElementById(elementId);
+      if(!container) return;
       container.innerHTML = '';
       animeArray.forEach(anime => {
         const title = anime.title || anime.name || "Anime Series";
@@ -629,6 +635,7 @@
 
     function displayGridFeed(animeArray, elementId) {
       const container = document.getElementById(elementId);
+      if(!container) return;
       container.innerHTML = '';
       animeArray.forEach(anime => {
         const title = anime.title.english || anime.title.romaji;
@@ -643,6 +650,7 @@
 
     function displayTop10Sidebar(animeArray) {
       const container = document.getElementById('top10-box');
+      if(!container) return;
       container.innerHTML = '';
       animeArray.slice(0, 6).forEach((anime, idx) => {
         const title = anime.title.english || anime.title.romaji;
@@ -682,13 +690,15 @@
       }
 
       const epBox = document.getElementById('episode-buttons');
-      epBox.innerHTML = '';
-      for (let i = 1; i <= window.activeMaxEpisodes; i++) {
-        const btn = document.createElement('button');
-        btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all focus:bg-emerald-500 focus:text-black focus:border-emerald-500";
-        btn.innerText = i;
-        btn.onclick = () => launchVideoPlayer(i);
-        epBox.appendChild(btn);
+      if(epBox) {
+        epBox.innerHTML = '';
+        for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+          const btn = document.createElement('button');
+          btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all focus:bg-emerald-500 focus:text-black focus:border-emerald-500";
+          btn.innerText = i;
+          btn.onclick = () => launchVideoPlayer(i);
+          epBox.appendChild(btn);
+        }
       }
       launchVideoPlayer(1);
     };
@@ -699,7 +709,7 @@
       const noticeOverlay = document.getElementById('notice-overlay');
       if (!iframe) return;
 
-      noticeOverlay.classList.add('hidden');
+      if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
 
       if (activeSourceMode === 'anikoto' && currentAnikotoEmbedId) {
@@ -759,8 +769,8 @@
 
     function setLanguage(lang) {
       currentLanguage = lang;
-      document.getElementById('sub-btn').className = lang === 'sub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
-      document.getElementById('dub-btn').className = lang === 'dub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      if(document.getElementById('sub-btn')) document.getElementById('sub-btn').className = lang === 'sub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      if(document.getElementById('dub-btn')) document.getElementById('dub-btn').className = lang === 'dub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
       launchVideoPlayer(currentEpisodeIndex);
     }
 
@@ -775,7 +785,7 @@
 
     window.onload = function() {
       startSystemClock();
-      updateRgbMixer();
+      if(typeof updateRgbMixer === 'function') updateRgbMixer();
       
       setTimeout(() => {
         loadMainHubFeeds();
