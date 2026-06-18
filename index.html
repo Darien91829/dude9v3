@@ -8,23 +8,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f0f12; }
-    .bg-dark-card { background-color: #16161c; }
-    .bg-dark-input { background-color: #22222a; }
-    .border-dark { border-color: #22222a; }
+    body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+    .bg-dark-card { transition: background-color 0.3s ease; }
+    .bg-dark-input { transition: background-color 0.3s ease; }
+    .border-dark { transition: border-color 0.3s ease; }
     
     .scroll-row::-webkit-scrollbar { height: 4px; }
     .scroll-row::-webkit-scrollbar-track { background: #0f0f12; }
     .scroll-row::-webkit-scrollbar-thumb { background: #3b3b4a; border-radius: 2px; }
   </style>
 </head>
-<body class="text-gray-200 min-h-screen relative overflow-x-hidden">
+<body class="text-gray-200 min-h-screen relative overflow-x-hidden bg-[#0f0f12]">
 
   <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#0f0f12] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
     <div class="p-4 flex items-center justify-between border-b border-dark">
       <div class="flex flex-col items-start leading-none font-black select-none">
-        <span class="text-lg tracking-wide text-white">TheDude<span class="text-orange-500">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] bg-orange-500 text-black px-1.5 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
+        <span class="text-lg tracking-wide text-white">TheDude<span class="dynamic-accent-text text-orange-500">9</span></span>
+        <span class="text-[8px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-1.5 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
       </div>
       <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-xmark text-lg"></i>
@@ -33,8 +33,8 @@
     <div class="p-4 space-y-6 text-sm">
       <div class="space-y-3">
         <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block">Navigation</span>
-        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
-        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
+        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 dynamic-hover-text py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
+        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 dynamic-hover-text py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
       </div>
     </div>
   </div>
@@ -46,8 +46,8 @@
         <i class="fa-solid fa-bars"></i>
       </button>
       <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer transition-transform active:scale-95">
-        <span class="text-xl tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">TheDude<span class="text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] bg-orange-500 text-black px-1.5 py-0.5 rounded ml-5 mt-0.5 uppercase font-bold shadow-sm">A N I M E</span>
+        <span class="text-xl tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">TheDude<span class="dynamic-accent-text text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]">9</span></span>
+        <span class="text-[8px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-1.5 py-0.5 rounded ml-5 mt-0.5 uppercase font-bold shadow-sm">A N I M E</span>
       </div>
     </div>
     
@@ -55,13 +55,13 @@
       <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
       </span>
-      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-orange-500 text-gray-300" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
-      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 bg-orange-500 hover:bg-orange-400 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
+      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none text-gray-300 dynamic-focus-border" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
+      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-orange-500 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
     </div>
 
     <div class="flex items-center space-x-4">
       <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-1">
-        <i class="fa-solid fa-palette"></i>
+        <i class="fa-solid fa-palette text-lg"></i>
       </button>
     </div>
   </nav>
@@ -70,31 +70,26 @@
 
     <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-orange-950/10 to-transparent">
       <div class="max-w-xl w-full space-y-6">
-        
         <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
-          <span class="text-5xl md:text-6xl tracking-wide text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">TheDude<span class="text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]">9</span></span>
-          <span class="text-xs tracking-[0.3em] bg-orange-500 text-black px-3 py-1 rounded-md mt-2 md:mt-3 transform translate-x-8 shadow-xl uppercase font-bold">A N I M E</span>
+          <span class="text-5xl md:text-6xl tracking-wide text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">TheDude<span class="dynamic-accent-text text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]">9</span></span>
+          <span class="text-xs tracking-[0.3em] dynamic-accent-bg bg-orange-500 text-black px-3 py-1 rounded-md mt-2 md:mt-3 transform translate-x-8 shadow-xl uppercase font-bold">A N I M E</span>
         </div>
-
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
-        
         <div class="relative">
-          <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl focus-within:border-orange-500 transition-all">
+          <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl transition-all">
             <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
             <input type="text" id="search-input" placeholder="Search titles..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
-            <button onclick="triggerCatalogSearch(false)" class="bg-orange-500 hover:bg-orange-400 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
+            <button onclick="triggerCatalogSearch(false)" class="dynamic-accent-bg bg-orange-500 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
           </div>
         </div>
-
         <div class="pt-2">
-          <button onclick="openExplorationHub()" class="bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] hover:bg-orange-400 px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
+          <button onclick="openExplorationHub()" class="dynamic-accent-bg bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
         </div>
       </div>
     </section>
 
     <section id="main-exploration-hub" class="hidden space-y-8">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
         <div class="lg:col-span-2 space-y-8">
           <div id="recommendations-container-block" class="space-y-3">
             <div class="border-b border-dark pb-2">
@@ -104,33 +99,28 @@
               <p class="text-xs text-gray-500">Syncing index files...</p>
             </div>
           </div>
-
           <div class="space-y-3">
             <div class="border-b border-dark pb-2">
-              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider text-orange-500">Trending Global Media Items</h2>
+              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider dynamic-accent-text text-orange-500">Trending Global Media Items</h2>
             </div>
             <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               <p class="text-xs text-gray-500">Syncing trending files...</p>
             </div>
           </div>
         </div>
-
         <div class="space-y-6">
           <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
             <div class="flex items-center justify-between border-b border-dark pb-2">
               <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
-              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-orange-950/50 text-orange-400 px-2 py-0.5 rounded border border-orange-800/30">00:00:00 JST</div>
+              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-neutral-900/50 text-gray-400 px-2 py-0.5 rounded border border-dark/60">00:00:00 JST</div>
             </div>
-            
             <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-md text-[10px] font-bold uppercase text-center">
               <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded text-gray-500 hover:text-white">Yesterday</button>
-              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded bg-orange-500 text-black">Today</button>
+              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded dynamic-accent-bg bg-orange-500 text-black">Today</button>
               <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded text-gray-500 hover:text-white">Tomorrow</button>
             </div>
-
             <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
           </div>
-
           <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
             <div class="border-b border-dark pb-2">
               <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Watched Globally</h3>
@@ -138,17 +128,16 @@
             <div id="top10-box" class="space-y-2 text-xs"></div>
           </div>
         </div>
-
       </div>
     </section>
 
     <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
-      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-orange-500/20 shadow-2xl">
+      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-dark shadow-2xl">
         <div id="player-box" class="w-full h-full relative">
           <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
-            <p class="text-sm font-bold text-orange-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]">⚠️ Node Processing Standby</p>
+            <p class="text-sm font-bold dynamic-accent-text text-orange-400">⚠️ Node Processing Standby</p>
             <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
-            <button onclick="openExplorationHub()" class="mt-4 bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
+            <button onclick="openExplorationHub()" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
           </div>
           <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
         </div>
@@ -157,13 +146,12 @@
       <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark p-3 rounded-xl gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
-          <button id="server-anikoto" onclick="setServerSource('anikoto')" class="bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-orange-500">Anikoto</button>
+          <button id="server-anikoto" onclick="setServerSource('anikoto')" class="dynamic-accent-bg bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold">Anikoto</button>
           <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay MAL</button>
           <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
         </div>
-        
         <div class="flex items-center space-x-1">
-          <button id="sub-btn" onclick="setLanguage('sub')" class="bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-orange-500">SUB</button>
+          <button id="sub-btn" onclick="setLanguage('sub')" class="dynamic-accent-bg bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md">SUB</button>
           <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 rounded-r-md border border-dark hover:text-white">DUB</button>
         </div>
       </div>
@@ -178,47 +166,38 @@
         <div id="episode-buttons" class="flex flex-wrap gap-2"></div>
       </div>
     </section>
-
   </main>
 
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#16161c] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
-    <div class="max-w-md mx-auto space-y-6">
-      <div class="text-center">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">RGB Theme Accent Mixer</h3>
+    <div class="max-w-xl mx-auto space-y-6">
+      <div class="text-center space-y-1">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">Re:Zero Character Universe Layouts</h3>
+        <p class="text-[11px] text-gray-500">Choose from 16 different character color configurations</p>
       </div>
       
-      <div class="space-y-3 bg-dark-input p-4 rounded-xl border border-dark">
-        <div class="flex items-center space-x-3 text-xs">
-          <span class="w-4 text-red-500 font-bold">R</span>
-          <input type="range" id="range-r" min="0" max="255" value="249" oninput="updateRgbMixer()" class="w-full accent-orange-500">
-          <span id="val-r" class="font-mono w-8 text-right text-gray-500">249</span>
-        </div>
-        <div class="flex items-center space-x-3 text-xs">
-          <span class="w-4 text-emerald-500 font-bold">G</span>
-          <input type="range" id="range-g" min="0" max="255" value="115" oninput="updateRgbMixer()" class="w-full accent-orange-500">
-          <span id="val-g" class="font-mono w-8 text-right text-gray-500">115</span>
-        </div>
-        <div class="flex items-center space-x-3 text-xs">
-          <span class="w-4 text-cyan-500 font-bold">B</span>
-          <input type="range" id="range-b" min="0" max="255" value="22" oninput="updateRgbMixer()" class="w-full accent-orange-500">
-          <span id="val-b" class="font-mono w-8 text-right text-gray-500">22</span>
-        </div>
-        <div id="rgb-preview" class="h-6 rounded-md border border-dark mt-2"></div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+        <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Subaru</span><span class="w-3 h-3 rounded-full bg-orange-500 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Emilia</span><span class="w-3 h-3 rounded-full bg-purple-400 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('rem')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Rem</span><span class="w-3 h-3 rounded-full bg-sky-400 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('ram')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Ram</span><span class="w-3 h-3 rounded-full bg-rose-400 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('beatrice')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Beatrice</span><span class="w-3 h-3 rounded-full bg-amber-400 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('felt')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Felt</span><span class="w-3 h-3 rounded-full bg-yellow-500 shrink-0 ml-1"></span></button>
+        
+        <button onclick="applyCharacterPreset('reinhard')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Reinhard</span><span class="w-3 h-3 rounded-full bg-red-600 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Crusch</span><span class="w-3 h-3 rounded-full bg-emerald-600 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Felix (Ferris)</span><span class="w-3 h-3 rounded-full bg-amber-600 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('priscilla')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Priscilla</span><span class="w-3 h-3 rounded-full bg-red-500 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('anastasia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Anastasia</span><span class="w-3 h-3 rounded-full bg-pink-300 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('julius')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Julius</span><span class="w-3 h-3 rounded-full bg-indigo-400 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('wilhelm')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Wilhelm</span><span class="w-3 h-3 rounded-full bg-slate-400 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('roswaal')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Roswaal</span><span class="w-3 h-3 rounded-full bg-indigo-600 shrink-0 ml-1"></span></button>
+        
+        <button onclick="applyCharacterPreset('satella')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Satella</span><span class="w-3 h-3 rounded-full bg-violet-700 shrink-0 ml-1"></span></button>
+        <button onclick="applyCharacterPreset('echidna')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Echidna</span><span class="w-3 h-3 rounded-full bg-zinc-300 shrink-0 ml-1"></span></button>
       </div>
 
-      <div class="space-y-2 text-xs">
-        <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
-          <input type="radio" id="radio-pitch-black" name="bg-selection" value="pitch-black" checked class="accent-orange-500">
-          <span class="font-medium text-gray-300">Pitch Dark Canvas</span>
-        </label>
-        <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
-          <input type="radio" id="radio-dark-gray" name="bg-selection" value="dark-gray" class="accent-orange-500">
-          <span class="font-medium text-gray-300">Dark Charcoal Mix</span>
-        </label>
-      </div>
-
-      <button onclick="saveThemeAndClose()" class="w-full bg-orange-500 hover:bg-orange-400 text-black font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition-colors">Apply Visual Matrix</button>
+      <button onclick="closeBottomSheet()" class="w-full bg-dark-input text-gray-300 font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider border border-dark">Close Menu</button>
     </div>
   </div>
 
@@ -237,6 +216,25 @@
     window.activeAnimeTitle = "";
     window.activeMaxEpisodes = 12;
 
+    const presets = {
+      subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
+      emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true },
+      rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false },
+      ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false },
+      beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', textLight: false },
+      felt: { hex: '#eab308', bg: '#12110a', card: '#1c1a10', input: '#2a2718', textLight: false },
+      reinhard: { hex: '#dc2626', bg: '#140b0b', card: '#201111', input: '#2e1919', textLight: true },
+      crusch: { hex: '#059669', bg: '#0a120e', card: '#101c16', input: '#182b22', textLight: true },
+      felix: { hex: '#d97706', bg: '#14100b', card: '#201911', input: '#2e2419', textLight: false },
+      priscilla: { hex: '#ef4444', bg: '#120a0a', card: '#1c1010', input: '#2a1818', textLight: true },
+      anastasia: { hex: '#f472b6', bg: '#140d11', card: '#20141b', input: '#2e1d27', textLight: false },
+      julius: { hex: '#818cf8', bg: '#0d0d14', card: '#141420', input: '#1e1e2e', textLight: true },
+      wilhelm: { hex: '#94a3b8', bg: '#0f1115', card: '#171a21', input: '#222630', textLight: false },
+      roswaal: { hex: '#4f46e5', bg: '#0b0a14', card: '#111020', input: '#19182e', textLight: true },
+      satella: { hex: '#6d28d9', bg: '#0a0812', card: '#100c1c', input: '#18122b', textLight: true },
+      echidna: { hex: '#e4e4e7', bg: '#101012', card: '#18181c', input: '#24242a', textLight: false }
+    };
+
     let animeScraperInstance = null;
     try {
       if (typeof NineAnimeScraper !== 'undefined') {
@@ -244,6 +242,23 @@
       }
     } catch(e) {
       console.log("CDN Scraper config standby.");
+    }
+
+    function applyCharacterPreset(name) {
+      const p = presets[name]; if (!p) return;
+      document.body.style.backgroundColor = p.bg;
+      document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = p.card);
+      document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = p.input);
+      document.querySelectorAll('.border-dark').forEach(el => el.style.borderColor = p.input);
+      document.querySelectorAll('.dynamic-accent-text').forEach(el => el.style.color = p.hex);
+      document.querySelectorAll('.dynamic-accent-bg').forEach(el => {
+        el.style.backgroundColor = p.hex; el.style.color = p.textLight ? '#ffffff' : '#000000';
+      });
+      updateServerButtonsUI();
+      
+      // Keep selected state color match for current schedule tabs matching active theme layout
+      const tabAct = document.getElementById(`tab-${activeScheduleDay}`);
+      if(tabAct) { tabAct.style.backgroundColor = p.hex; tabAct.style.color = p.textLight ? '#ffffff' : '#000000'; }
     }
 
     function toggleMainMenu() {
@@ -278,30 +293,6 @@
     function closeBottomSheet() {
       document.getElementById('sheet-overlay')?.classList.add('hidden');
       document.getElementById('bottom-sheet-menu')?.classList.add('translate-y-full');
-    }
-
-    function updateRgbMixer() {
-      const r = document.getElementById('range-r')?.value || 249;
-      const g = document.getElementById('range-g')?.value || 115;
-      const b = document.getElementById('range-b')?.value || 22;
-      
-      if(document.getElementById('val-r')) document.getElementById('val-r').innerText = r;
-      if(document.getElementById('val-g')) document.getElementById('val-g').innerText = g;
-      if(document.getElementById('val-b')) document.getElementById('val-b').innerText = b;
-      
-      const preview = document.getElementById('rgb-preview');
-      if (preview) preview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-    }
-
-    function saveThemeAndClose() {
-      const isCharcoal = document.getElementById('radio-dark-gray')?.checked;
-      let bg = "#0f0f12", card = "#16161c", input = "#22222a";
-      if (isCharcoal) { bg = "#1a1a24"; card = "#252530"; input = "#2c2c3c"; }
-      
-      document.body.style.backgroundColor = bg;
-      document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = card);
-      document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = input);
-      closeBottomSheet();
     }
 
     function openExplorationHub() {
@@ -434,10 +425,12 @@
 
     function changeScheduleDay(targetDay) {
       activeScheduleDay = targetDay;
-      if(document.getElementById('tab-yesterday')) document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      if(document.getElementById('tab-today')) document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      if(document.getElementById('tab-tomorrow')) document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      if(document.getElementById(`tab-${targetDay}`)) document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-orange-500 text-black";
+      ['yesterday', 'today', 'tomorrow'].forEach(day => {
+        const b = document.getElementById(`tab-${day}`); if(b) { b.style.backgroundColor = 'transparent'; b.style.color = '#6b7280'; }
+      });
+      const currentPreset = Object.values(presets).find(x => x.bg === document.body.style.backgroundColor) || presets.subaru;
+      const act = document.getElementById(`tab-${targetDay}`);
+      if(act) { act.style.backgroundColor = currentPreset.hex; act.style.color = currentPreset.textLight ? '#ffffff' : '#000000'; }
       fetchLiveReleasingSchedule(targetDay);
     }
 
@@ -493,17 +486,19 @@
           const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
           
           const div = document.createElement('div');
-          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-orange-500/30 cursor-pointer transition-all";
+          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 dynamic-hover-border cursor-pointer transition-all";
           div.innerHTML = `
             <div class="flex flex-col truncate pr-2">
               <span class="truncate font-medium text-gray-300">${title}</span>
               <span class="text-[9px] text-gray-500">Episode ${item.episode}</span>
             </div>
-            <span class="font-mono text-[10px] text-orange-400 shrink-0 align-middle">${timeString}</span>
+            <span class="font-mono text-[10px] text-orange-400 dynamic-accent-text shrink-0 align-middle">${timeString}</span>
           `;
           div.onclick = () => loadStreamingLayout(item.media.idMal || item.media.id, title, item.media.episodes || 12);
           scheduleBox.appendChild(div);
         });
+        const curPresetName = Object.keys(presets).find(k => presets[k].bg === document.body.style.backgroundColor) || 'subaru';
+        applyCharacterPreset(curPresetName);
       } catch (error) { 
         console.error(error);
         scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>`; 
@@ -518,7 +513,7 @@
         const title = anime.title || anime.name || "Anime Series";
         const imgUrl = anime.image || anime.poster;
         const div = document.createElement('div');
-        div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-orange-500 transition-all text-[11px]";
+        div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer transition-all text-[11px]";
         div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.mal_id || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
@@ -534,7 +529,7 @@
         const title = anime.title.english || anime.title.romaji;
         const imgUrl = anime.coverImage?.large;
         const div = document.createElement('div');
-        div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-orange-500 transition-all flex flex-col justify-between text-xs";
+        div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer transition-all flex flex-col justify-between text-xs";
         div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
@@ -549,7 +544,7 @@
         if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
         const div = document.createElement('div');
-        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-orange-500/30 cursor-pointer transition-all";
+        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 transition-all";
         div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium">${title}</span>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
@@ -590,7 +585,7 @@
         for (let i = 1; i <= window.activeMaxEpisodes; i++) {
           const btn = document.createElement('button');
           btn.id = `ep-btn-${i}`;
-          btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-orange-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
+          btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all";
           btn.innerText = i;
           btn.onclick = () => launchVideoPlayer(i);
           epBox.appendChild(btn);
@@ -608,13 +603,22 @@
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
 
+      const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+      const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
+
       for (let i = 1; i <= window.activeMaxEpisodes; i++) {
         const btn = document.getElementById(`ep-btn-${i}`);
         if (btn) {
           if (i === epNum) {
-            btn.className = "bg-orange-500 text-black border-orange-500 text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-[0_0_10px_rgba(249,115,22,0.4)]";
+            btn.style.backgroundColor = currentActiveHex;
+            btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+            btn.style.borderColor = currentActiveHex;
+            btn.classList.add('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
           } else {
-            btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-orange-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+            btn.classList.remove('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
           }
         }
       }
@@ -656,12 +660,21 @@
     }
 
     function updateServerButtonsUI() {
+      const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+      const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
+      
       ['anikoto', 'mal', 'cdn-9anime'].forEach(src => {
         const btn = document.getElementById(`server-${src}`);
         if (!btn) return;
         if (activeSourceMode === src) {
-          btn.className = "bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.3)] transition-all";
+          btn.style.backgroundColor = currentActiveHex;
+          btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+          btn.style.borderColor = currentActiveHex;
+          btn.className = "text-[11px] font-mono py-1 px-3 rounded font-bold border transition-all";
         } else {
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+          btn.style.borderColor = '';
           btn.className = "bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white transition-all";
         }
       });
@@ -676,8 +689,22 @@
 
     function setLanguage(lang) {
       currentLanguage = lang;
-      if(document.getElementById('sub-btn')) document.getElementById('sub-btn').className = lang === 'sub' ? "bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-orange-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
-      if(document.getElementById('dub-btn')) document.getElementById('dub-btn').className = lang === 'dub' ? "bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-orange-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+      const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
+
+      ['sub', 'dub'].forEach(l => {
+        const btn = document.getElementById(`${l}-btn`);
+        if(!btn) return;
+        if (currentLanguage === l) {
+          btn.style.backgroundColor = currentActiveHex;
+          btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+          btn.style.borderColor = currentActiveHex;
+        } else {
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        }
+      });
       launchVideoPlayer(currentEpisodeIndex);
     }
 
@@ -692,8 +719,7 @@
 
     window.onload = function() {
       startSystemClock();
-      if(typeof updateRgbMixer === 'function') updateRgbMixer();
-      
+      applyCharacterPreset('subaru');
       document.getElementById('landing-portal')?.classList.add('hidden');
       document.getElementById('main-exploration-hub')?.classList.remove('hidden');
       document.getElementById('header-search-engine')?.classList.remove('hidden');
