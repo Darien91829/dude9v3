@@ -98,7 +98,9 @@
             <div class="border-b border-dark pb-2">
               <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Trending Global Media Items</h2>
             </div>
-            <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+            <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <p class="text-xs text-gray-500">Syncing trending files...</p>
+            </div>
           </div>
         </div>
 
@@ -304,14 +306,23 @@
 
     async function loadMainHubFeeds() {
       fetchLiveReleasingSchedule(activeScheduleDay);
+      
+      // DECOUPLED BLOCK 1: Try gathering recent scroller content from Anikoto
       try {
         const res = await fetch(`${ANIKOTO_BASE}/recent-anime?page=1&per_page=12`);
         const json = await res.json();
         const dataset = json.data || json;
         if(Array.isArray(dataset) && dataset.length > 0) {
           displayScrollFeed(dataset, 'recommendations-scroller');
+        } else {
+          handleAnikotoScrollerEmpty();
         }
+      } catch (err) {
+        handleAnikotoScrollerEmpty();
+      }
         
+      // DECOUPLED BLOCK 2: Fetch stable trending lists and sidebars from AniList GraphQL independently
+      try {
         const aniListQuery = `query { Page(page: 1, perPage: 12) { media(sort: TRENDING_DESC, type: ANIME) { id idMal title { english romaji } coverImage { large } episodes } } }`;
         const graphRes = await fetch('https://graphql.anilist.co', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: aniListQuery })
@@ -321,10 +332,16 @@
         if(trendingItems.length > 0) {
           displayGridFeed(trendingItems, 'results-grid');
           displayTop10Sidebar(trendingItems);
+        } else {
+          document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No trending items returned from server.</p>";
         }
       } catch (err) {
-        document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Error reading layout index maps.</p>";
+        document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Error loading layout catalog channels.</p>";
       }
+    }
+
+    function handleAnikotoScrollerEmpty() {
+      document.getElementById('recommendations-scroller').innerHTML = "<p class='text-xs text-gray-600 italic'>Anikoto scroller engine offline. Use core catalog below.</p>";
     }
 
     async function triggerCatalogSearch(fromHeader = false) {
@@ -357,7 +374,7 @@
     function changeScheduleDay(targetDay) {
       activeScheduleDay = targetDay;
       document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      document.getElementById('tab-today').className = "py-1.5 rounded bg-emerald-500 text-black";
+      document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
       document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
       document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-emerald-500 text-black";
       fetchLiveReleasingSchedule(targetDay);
@@ -527,7 +544,6 @@
       launchVideoPlayer(currentEpisodeIndex);
     }
 
-    // Fixed UI styling assignment strings to ensure layout classes aren't overridden on click events
     function updateServerButtonsUI() {
       ['anikoto', 'mal', 'anilist', 'cdn-9anime'].forEach(src => {
         const btn = document.getElementById(`server-${src}`);
@@ -568,7 +584,6 @@
     window.onload = function() {
       startSystemClock();
       updateRgbMixer();
-      // FIXED: Added a slight timeout wrapper so layout rendering operations resolve safely before executing heavy API calls
       setTimeout(() => {
         loadMainHubFeeds();
       }, 150);
