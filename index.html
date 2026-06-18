@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
   <style>
     body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
     .bg-dark-card { transition: background-color 0.3s ease; }
@@ -21,7 +20,7 @@
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden bg-[#0f0f12] flex">
 
-  <aside id="main-menu-drawer" class="sidebar fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5">
+  <aside id="main-menu-drawer" class="sidebar fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5 bg-[#0f0f12]">
     <div class="pb-5 flex items-center justify-between border-b border-dark mb-6">
       <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer">
         <span class="text-xl tracking-wide text-white">TheDude<span class="dynamic-accent-text text-orange-500">9</span></span>
@@ -35,12 +34,12 @@
     <nav class="nav-menu text-base space-y-2">
       <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block mb-2 px-2">Navigation</span>
       
-      <div id="side-nav-home" class="sidebar-item active py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="homeReturnReset(); toggleMainMenu();">
+      <div id="side-nav-home" class="sidebar-item active py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="switchToView('home'); toggleMainMenu();">
         <span class="icon text-lg"><i class="fa-solid fa-house"></i></span> 
         <span class="label font-medium">Home</span>
       </div>
       
-      <div id="side-nav-catalog" class="sidebar-item py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="openExplorationHub(); toggleMainMenu();">
+      <div id="side-nav-catalog" class="sidebar-item py-3.5 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px]" onclick="switchToView('catalog'); toggleMainMenu();">
         <span class="icon text-lg"><i class="fa-solid fa-compass"></i></span> 
         <span class="label font-medium">Catalog Portal</span>
       </div>
@@ -60,12 +59,13 @@
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden"></div>
 
   <div class="flex-1 flex flex-col min-w-0">
+    
     <nav class="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-4">
         <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center">
           <i class="fa-solid fa-bars"></i>
         </button>
-        <div id="view-indicator-title" class="text-xs font-bold uppercase tracking-widest text-gray-400 hidden md:block">Dashboard View Container</div>
+        <div id="view-indicator-title" class="text-xs font-bold uppercase tracking-widest text-gray-400 hidden md:block">Welcome Portal</div>
       </div>
       
       <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
@@ -100,7 +100,7 @@
             </div>
           </div>
           <div class="pt-2">
-            <button onclick="openExplorationHub()" class="dynamic-accent-bg bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
+            <button onclick="switchToView('catalog')" class="dynamic-accent-bg bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
           </div>
         </div>
       </section>
@@ -207,7 +207,7 @@
             <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
               <p class="text-sm font-bold dynamic-accent-text text-orange-400">⚠️ Node Processing Standby</p>
               <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
-              <button onclick="openExplorationHub()" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
+              <button onclick="switchToView('catalog')" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
             </div>
             <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
           </div>
@@ -348,9 +348,6 @@
         card.addEventListener('mouseenter', () => card.style.borderColor = `${p.hex}4d`);
         card.addEventListener('mouseleave', () => card.style.borderColor = 'transparent');
       });
-      document.querySelectorAll('.consumet-card-title').forEach(title => {
-        title.setAttribute('data-preset-color', p.hex);
-      });
       renderCalendarGridStructure();
     }
 
@@ -383,7 +380,7 @@
       if (!matrixContainer) return;
       matrixContainer.innerHTML = '';
 
-      const todayDayIndex = new Date().getDay(); // 0 = Sun, 1 = Mon...
+      const todayDayIndex = new Date().getDay(); 
       const daysShort = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
       
       for (let i = 0; i < 7; i++) {
@@ -397,7 +394,6 @@
           dayBox.style.color = '#ffffff';
           dayBox.className += " shadow-[0_0_8px_rgba(249,115,22,0.2)]";
         }
-        
         matrixContainer.appendChild(dayBox);
       }
     }
@@ -426,7 +422,6 @@
 
         const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const todayName = daysOfWeek[new Date().getDay()];
-
         listContainer.innerHTML = '';
 
         schedules.forEach(dayGroup => {
@@ -523,15 +518,10 @@
           cardFrame.className = "consumet-card-item relative group aspect-[2/3] w-full rounded-2xl overflow-hidden bg-zinc-900 border border-transparent shadow-xl cursor-pointer transition-all duration-300 hover:scale-[1.02]";
           
           cardFrame.innerHTML = `
-            <img 
-              src="${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url}" 
-              alt="${anime.title}" 
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
+            <img src="${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url}" alt="${anime.title}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
             <div class="absolute inset-x-0 bottom-0 p-3 sm:p-4 flex flex-col gap-1.5 justify-end h-1/2">
-              <h3 style="--hover-color: ${activeHexColor}" class="consumet-card-title text-white font-medium text-xs sm:text-sm line-clamp-2 leading-tight drop-shadow-md transition-colors duration-200">
+              <h3 class="consumet-card-title text-white font-medium text-xs sm:text-sm line-clamp-2 leading-tight drop-shadow-md transition-colors duration-200">
                 ${anime.title_english || anime.title}
               </h3>
               <div class="flex items-center gap-2 text-[10px] font-medium mt-0.5">
@@ -542,12 +532,6 @@
                   ${anime.type || 'TV'}
                 </span>
               </div>
-              ${anime.score ? `
-                <p class="text-[9px] text-zinc-400 font-normal flex items-center gap-1 mt-0.5">
-                  <span class="w-1 h-1 rounded-full bg-amber-400 inline-block"></span>
-                  Rating: ${anime.score}/10
-                </p>
-              ` : ''}
             </div>
           `;
 
@@ -570,20 +554,22 @@
 
       } catch (error) {
         console.error("Jikan payload error:", error);
-        targetGrid.innerHTML = `
-          <div class="col-span-full py-8 text-center text-xs">
-            <p class="text-rose-400 font-medium">Failed to synchronize active database handshakes with Jikan network arrays.</p>
-            <span class="text-gray-600 block mt-1">Check client network parameters or try again later.</span>
-          </div>`;
+        targetGrid.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-rose-400">Failed to synchronize active database handshakes with Jikan network arrays.</div>`;
       }
     }
 
     function switchToView(targetViewId) {
       const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
-      views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
+      views.forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.classList.add('hidden');
+      });
       
       const sideItems = ['home', 'catalog', 'releases', 'calendar'];
-      sideItems.forEach(item => document.getElementById(`side-nav-${item}`)?.classList.remove('active'));
+      sideItems.forEach(item => {
+        const el = document.getElementById(`side-nav-${item}`);
+        if (el) el.classList.remove('active');
+      });
 
       const indicator = document.getElementById('view-indicator-title');
       
@@ -595,7 +581,6 @@
       } else if (targetViewId === 'catalog') {
         document.getElementById('main-exploration-hub')?.classList.remove('hidden');
         document.getElementById('header-search-engine')?.classList.remove('hidden');
-        document.getElementById('recommendations-container-block')?.classList.remove('hidden');
         document.getElementById('side-nav-catalog')?.classList.add('active');
         if (indicator) indicator.innerText = "Catalog Index Browser";
         loadMainHubFeeds();
@@ -610,7 +595,6 @@
         document.getElementById('header-search-engine')?.classList.add('hidden'); 
         document.getElementById('side-nav-calendar')?.classList.add('active');
         if (indicator) indicator.innerText = "Airing Schedule";
-        
         initCalendarUI(); 
       }
     }
@@ -634,10 +618,6 @@
     function closeBottomSheet() {
       document.getElementById('sheet-overlay')?.classList.add('hidden');
       document.getElementById('bottom-sheet-menu')?.classList.add('translate-y-full');
-    }
-
-    function openExplorationHub() {
-      switchToView('catalog');
     }
 
     function homeReturnReset() {
@@ -694,12 +674,6 @@
       if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
 
       switchToView('catalog');
-      
-      if (query !== "") {
-        document.getElementById('recommendations-container-block')?.classList.add('hidden');
-      } else {
-        document.getElementById('recommendations-container-block')?.classList.remove('hidden');
-      }
 
       const gridHeader = document.getElementById('grid-header-title');
       if (gridHeader) gridHeader.innerText = query ? `Catalog Matches: "${query}"` : "Trending Global Media Items";
@@ -800,7 +774,7 @@
         const schedules = json.data?.Page?.airingSchedules || [];
         
         if(schedules.length === 0) {
-          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No calendar items found for this window.</p>';
+          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No items found for this window.</p>`;
           return;
         }
         
@@ -812,13 +786,13 @@
           const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
           
           const div = document.createElement('div');
-          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 dynamic-hover-border cursor-pointer transition-all";
+          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 cursor-pointer transition-all";
           div.innerHTML = `
             <div class="flex flex-col truncate pr-2">
               <span class="truncate font-medium text-gray-300">${title}</span>
               <span class="text-[9px] text-gray-500">Episode ${item.episode}</span>
             </div>
-            <span class="font-mono text-[10px] text-orange-400 dynamic-accent-text shrink-0 align-middle">${timeString}</span>
+            <span class="font-mono text-[10px] text-orange-400 dynamic-accent-text shrink-0">${timeString}</span>
           `;
           div.onclick = () => loadStreamingLayout(item.media.idMal || item.media.id, title, item.media.episodes || 12);
           scheduleBox.appendChild(div);
@@ -967,12 +941,10 @@
             btn.style.backgroundColor = currentActiveHex;
             btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
             btn.style.borderColor = currentActiveHex;
-            btn.classList.add('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
           } else {
             btn.style.backgroundColor = '';
             btn.style.color = '';
             btn.style.borderColor = '';
-            btn.classList.remove('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
           }
         }
       }
@@ -1003,12 +975,10 @@
           btn.style.backgroundColor = currentActiveHex;
           btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
           btn.style.borderColor = currentActiveHex;
-          btn.className = "text-[11px] font-mono py-1 px-3 rounded font-bold border transition-all";
         } else {
           btn.style.backgroundColor = '';
           btn.style.color = '';
           btn.style.borderColor = '';
-          btn.className = "bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white transition-all";
         }
       });
     }
