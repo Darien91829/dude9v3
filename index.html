@@ -8,23 +8,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #050505; }
-    .bg-dark-card { background-color: #111111; }
-    .bg-dark-input { background-color: #1c1c1e; }
-    .border-dark { border-color: #1c1c1e; }
+    body { font-family: 'Inter', sans-serif; background-color: #0f0f12; }
+    .bg-dark-card { background-color: #16161c; }
+    .bg-dark-input { background-color: #22222a; }
+    .border-dark { border-color: #22222a; }
     
     .scroll-row::-webkit-scrollbar { height: 4px; }
-    .scroll-row::-webkit-scrollbar-track { background: #050505; }
-    .scroll-row::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 2px; }
+    .scroll-row::-webkit-scrollbar-track { background: #0f0f12; }
+    .scroll-row::-webkit-scrollbar-thumb { background: #3b3b4a; border-radius: 2px; }
   </style>
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
-  <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#050505] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+  <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#0f0f12] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
     <div class="p-4 flex items-center justify-between border-b border-dark">
       <div class="flex flex-col items-start leading-none font-black select-none">
-        <span class="text-lg tracking-wide text-white">TheDude<span class="text-emerald-400">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] bg-indigo-600 text-white px-1.5 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
+        <span class="text-lg tracking-wide text-white">TheDude<span class="text-orange-500">9</span></span>
+        <span class="text-[8px] tracking-[0.2em] bg-orange-500 text-black px-1.5 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
       </div>
       <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-xmark text-lg"></i>
@@ -33,21 +33,21 @@
     <div class="p-4 space-y-6 text-sm">
       <div class="space-y-3">
         <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block">Navigation</span>
-        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-emerald-400 py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
-        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-emerald-400 py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
+        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
+        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
       </div>
     </div>
   </div>
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40"></div>
 
-  <nav class="sticky top-0 z-30 bg-[#050505]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
+  <nav class="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-4">
       <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-bars"></i>
       </button>
       <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer transition-transform active:scale-95">
-        <span class="text-xl tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">TheDude<span class="text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] bg-indigo-600 text-white px-1.5 py-0.5 rounded ml-5 mt-0.5 uppercase font-bold shadow-sm">A N I M E</span>
+        <span class="text-xl tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">TheDude<span class="text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]">9</span></span>
+        <span class="text-[8px] tracking-[0.2em] bg-orange-500 text-black px-1.5 py-0.5 rounded ml-5 mt-0.5 uppercase font-bold shadow-sm">A N I M E</span>
       </div>
     </div>
     
@@ -55,8 +55,8 @@
       <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
       </span>
-      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-emerald-500 text-gray-300" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
-      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
+      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-orange-500 text-gray-300" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
+      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 bg-orange-500 hover:bg-orange-400 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
     </div>
 
     <div class="flex items-center space-x-4">
@@ -68,26 +68,26 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
+    <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-orange-950/10 to-transparent">
       <div class="max-w-xl w-full space-y-6">
         
         <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
-          <span class="text-5xl md:text-6xl tracking-wide text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">TheDude<span class="text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)]">9</span></span>
-          <span class="text-xs tracking-[0.3em] bg-indigo-600 text-white px-3 py-1 rounded-md mt-2 md:mt-3 transform translate-x-8 shadow-xl uppercase font-bold">A N I M E</span>
+          <span class="text-5xl md:text-6xl tracking-wide text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">TheDude<span class="text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]">9</span></span>
+          <span class="text-xs tracking-[0.3em] bg-orange-500 text-black px-3 py-1 rounded-md mt-2 md:mt-3 transform translate-x-8 shadow-xl uppercase font-bold">A N I M E</span>
         </div>
 
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
         <div class="relative">
-          <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl focus-within:border-emerald-500 transition-all">
+          <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl focus-within:border-orange-500 transition-all">
             <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
             <input type="text" id="search-input" placeholder="Search titles..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
-            <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
+            <button onclick="triggerCatalogSearch(false)" class="bg-orange-500 hover:bg-orange-400 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
           </div>
         </div>
 
         <div class="pt-2">
-          <button onclick="openExplorationHub()" class="bg-emerald-500 text-black shadow-[0_4px_20px_rgba(0,255,102,0.2)] hover:bg-emerald-400 px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
+          <button onclick="openExplorationHub()" class="bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] hover:bg-orange-400 px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
         </div>
       </div>
     </section>
@@ -107,7 +107,7 @@
 
           <div class="space-y-3">
             <div class="border-b border-dark pb-2">
-              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Trending Global Media Items</h2>
+              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider text-orange-500">Trending Global Media Items</h2>
             </div>
             <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               <p class="text-xs text-gray-500">Syncing trending files...</p>
@@ -119,12 +119,12 @@
           <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
             <div class="flex items-center justify-between border-b border-dark pb-2">
               <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
-              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-emerald-950/50 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800/30">00:00:00 JST</div>
+              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-orange-950/50 text-orange-400 px-2 py-0.5 rounded border border-orange-800/30">00:00:00 JST</div>
             </div>
             
             <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-md text-[10px] font-bold uppercase text-center">
               <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded text-gray-500 hover:text-white">Yesterday</button>
-              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded bg-emerald-500 text-black">Today</button>
+              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded bg-orange-500 text-black">Today</button>
               <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded text-gray-500 hover:text-white">Tomorrow</button>
             </div>
 
@@ -143,12 +143,12 @@
     </section>
 
     <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
-      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-emerald-500/20 shadow-2xl">
+      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-orange-500/20 shadow-2xl">
         <div id="player-box" class="w-full h-full relative">
           <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
-            <p class="text-sm font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">⚠️ Node Processing Standby</p>
+            <p class="text-sm font-bold text-orange-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]">⚠️ Node Processing Standby</p>
             <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
-            <button onclick="openExplorationHub()" class="mt-4 bg-emerald-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
+            <button onclick="openExplorationHub()" class="mt-4 bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
           </div>
           <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
         </div>
@@ -157,13 +157,13 @@
       <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark p-3 rounded-xl gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
-          <button id="server-anikoto" onclick="setServerSource('anikoto')" class="bg-emerald-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-emerald-500">Anikoto</button>
+          <button id="server-anikoto" onclick="setServerSource('anikoto')" class="bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-orange-500">Anikoto</button>
           <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay MAL</button>
           <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
         </div>
         
         <div class="flex items-center space-x-1">
-          <button id="sub-btn" onclick="setLanguage('sub')" class="bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500">SUB</button>
+          <button id="sub-btn" onclick="setLanguage('sub')" class="bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-orange-500">SUB</button>
           <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 rounded-r-md border border-dark hover:text-white">DUB</button>
         </div>
       </div>
@@ -182,7 +182,7 @@
   </main>
 
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
-  <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#111111] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
+  <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#16161c] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
     <div class="max-w-md mx-auto space-y-6">
       <div class="text-center">
         <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">RGB Theme Accent Mixer</h3>
@@ -191,34 +191,34 @@
       <div class="space-y-3 bg-dark-input p-4 rounded-xl border border-dark">
         <div class="flex items-center space-x-3 text-xs">
           <span class="w-4 text-red-500 font-bold">R</span>
-          <input type="range" id="range-r" min="0" max="255" value="0" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
-          <span id="val-r" class="font-mono w-8 text-right text-gray-500">0</span>
+          <input type="range" id="range-r" min="0" max="255" value="249" oninput="updateRgbMixer()" class="w-full accent-orange-500">
+          <span id="val-r" class="font-mono w-8 text-right text-gray-500">249</span>
         </div>
         <div class="flex items-center space-x-3 text-xs">
           <span class="w-4 text-emerald-500 font-bold">G</span>
-          <input type="range" id="range-g" min="0" max="255" value="255" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
-          <span id="val-g" class="font-mono w-8 text-right text-gray-500">255</span>
+          <input type="range" id="range-g" min="0" max="255" value="115" oninput="updateRgbMixer()" class="w-full accent-orange-500">
+          <span id="val-g" class="font-mono w-8 text-right text-gray-500">115</span>
         </div>
         <div class="flex items-center space-x-3 text-xs">
           <span class="w-4 text-cyan-500 font-bold">B</span>
-          <input type="range" id="range-b" min="0" max="255" value="102" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
-          <span id="val-b" class="font-mono w-8 text-right text-gray-500">102</span>
+          <input type="range" id="range-b" min="0" max="255" value="22" oninput="updateRgbMixer()" class="w-full accent-orange-500">
+          <span id="val-b" class="font-mono w-8 text-right text-gray-500">22</span>
         </div>
         <div id="rgb-preview" class="h-6 rounded-md border border-dark mt-2"></div>
       </div>
 
       <div class="space-y-2 text-xs">
         <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
-          <input type="radio" id="radio-pitch-black" name="bg-selection" value="pitch-black" checked class="accent-emerald-500">
+          <input type="radio" id="radio-pitch-black" name="bg-selection" value="pitch-black" checked class="accent-orange-500">
           <span class="font-medium text-gray-300">Pitch Dark Canvas</span>
         </label>
         <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
-          <input type="radio" id="radio-dark-gray" name="bg-selection" value="dark-gray" class="accent-emerald-500">
+          <input type="radio" id="radio-dark-gray" name="bg-selection" value="dark-gray" class="accent-orange-500">
           <span class="font-medium text-gray-300">Dark Charcoal Mix</span>
         </label>
       </div>
 
-      <button onclick="saveThemeAndClose()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition-colors">Apply Visual Matrix</button>
+      <button onclick="saveThemeAndClose()" class="w-full bg-orange-500 hover:bg-orange-400 text-black font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition-colors">Apply Visual Matrix</button>
     </div>
   </div>
 
@@ -281,9 +281,9 @@
     }
 
     function updateRgbMixer() {
-      const r = document.getElementById('range-r')?.value || 0;
-      const g = document.getElementById('range-g')?.value || 255;
-      const b = document.getElementById('range-b')?.value || 102;
+      const r = document.getElementById('range-r')?.value || 249;
+      const g = document.getElementById('range-g')?.value || 115;
+      const b = document.getElementById('range-b')?.value || 22;
       
       if(document.getElementById('val-r')) document.getElementById('val-r').innerText = r;
       if(document.getElementById('val-g')) document.getElementById('val-g').innerText = g;
@@ -295,8 +295,8 @@
 
     function saveThemeAndClose() {
       const isCharcoal = document.getElementById('radio-dark-gray')?.checked;
-      let bg = "#050505", card = "#111111", input = "#1c1c1e";
-      if (isCharcoal) { bg = "#1a1a1e"; card = "#252529"; input = "#2c2c35"; }
+      let bg = "#0f0f12", card = "#16161c", input = "#22222a";
+      if (isCharcoal) { bg = "#1a1a24"; card = "#252530"; input = "#2c2c3c"; }
       
       document.body.style.backgroundColor = bg;
       document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = card);
@@ -437,7 +437,7 @@
       if(document.getElementById('tab-yesterday')) document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
       if(document.getElementById('tab-today')) document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
       if(document.getElementById('tab-tomorrow')) document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      if(document.getElementById(`tab-${targetDay}`)) document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-emerald-500 text-black";
+      if(document.getElementById(`tab-${targetDay}`)) document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-orange-500 text-black";
       fetchLiveReleasingSchedule(targetDay);
     }
 
@@ -493,13 +493,13 @@
           const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
           
           const div = document.createElement('div');
-          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-emerald-500/30 cursor-pointer transition-all";
+          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-orange-500/30 cursor-pointer transition-all";
           div.innerHTML = `
             <div class="flex flex-col truncate pr-2">
               <span class="truncate font-medium text-gray-300">${title}</span>
               <span class="text-[9px] text-gray-500">Episode ${item.episode}</span>
             </div>
-            <span class="font-mono text-[10px] text-emerald-400 shrink-0 align-middle">${timeString}</span>
+            <span class="font-mono text-[10px] text-orange-400 shrink-0 align-middle">${timeString}</span>
           `;
           div.onclick = () => loadStreamingLayout(item.media.idMal || item.media.id, title, item.media.episodes || 12);
           scheduleBox.appendChild(div);
@@ -518,7 +518,7 @@
         const title = anime.title || anime.name || "Anime Series";
         const imgUrl = anime.image || anime.poster;
         const div = document.createElement('div');
-        div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all text-[11px]";
+        div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-orange-500 transition-all text-[11px]";
         div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.mal_id || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
@@ -534,7 +534,7 @@
         const title = anime.title.english || anime.title.romaji;
         const imgUrl = anime.coverImage?.large;
         const div = document.createElement('div');
-        div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all flex flex-col justify-between text-xs";
+        div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-orange-500 transition-all flex flex-col justify-between text-xs";
         div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
@@ -549,7 +549,7 @@
         if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
         const div = document.createElement('div');
-        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-emerald-500/30 cursor-pointer transition-all";
+        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-orange-500/30 cursor-pointer transition-all";
         div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium">${title}</span>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
@@ -590,7 +590,7 @@
         for (let i = 1; i <= window.activeMaxEpisodes; i++) {
           const btn = document.createElement('button');
           btn.id = `ep-btn-${i}`;
-          btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
+          btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-orange-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
           btn.innerText = i;
           btn.onclick = () => launchVideoPlayer(i);
           epBox.appendChild(btn);
@@ -612,9 +612,9 @@
         const btn = document.getElementById(`ep-btn-${i}`);
         if (btn) {
           if (i === epNum) {
-            btn.className = "bg-emerald-500 text-black border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-[0_0_10px_rgba(0,255,102,0.4)]";
+            btn.className = "bg-orange-500 text-black border-orange-500 text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-[0_0_10px_rgba(249,115,22,0.4)]";
           } else {
-            btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
+            btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-orange-500 text-xs font-bold w-10 h-10 rounded-lg transition-all";
           }
         }
       }
@@ -660,7 +660,7 @@
         const btn = document.getElementById(`server-${src}`);
         if (!btn) return;
         if (activeSourceMode === src) {
-          btn.className = "bg-emerald-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.3)] transition-all";
+          btn.className = "bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.3)] transition-all";
         } else {
           btn.className = "bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white transition-all";
         }
@@ -676,8 +676,8 @@
 
     function setLanguage(lang) {
       currentLanguage = lang;
-      if(document.getElementById('sub-btn')) document.getElementById('sub-btn').className = lang === 'sub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
-      if(document.getElementById('dub-btn')) document.getElementById('dub-btn').className = lang === 'dub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      if(document.getElementById('sub-btn')) document.getElementById('sub-btn').className = lang === 'sub' ? "bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-orange-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      if(document.getElementById('dub-btn')) document.getElementById('dub-btn').className = lang === 'dub' ? "bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-orange-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
       launchVideoPlayer(currentEpisodeIndex);
     }
 
