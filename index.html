@@ -208,6 +208,7 @@
             <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
             <button id="server-mal" onclick="setServerSource('mal')" class="dynamic-accent-bg bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold">MegaPlay MAL</button>
             <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
+            <button id="server-consumet" onclick="setServerSource('consumet')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">API Consumet Stack</button>
           </div>
           <div class="flex items-center space-x-1">
             <button id="sub-btn" onclick="setLanguage('sub')" class="dynamic-accent-bg bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md">SUB</button>
@@ -278,6 +279,9 @@
 
   <script>
     const JIKAN_BASE = "https://api.jikan.moe/v4";
+    // CHANGE THIS TO YOUR ACTIVE/SELF-HOSTED CONSUMET API ROUTE ENDPOINT URL STRING
+    const CONSUMET_BASE_API = "https://api.consumet.org/anime"; 
+    const CONSUMET_STACK = ['animekai', 'gogoanime', 'hianime'];
     
     let currentEpisodeIndex = 1;
     let currentLanguage = 'sub';
@@ -861,7 +865,7 @@
       const scheduleQuery = `
         query ($start: Int, $end: Int) { 
           Page(page: 1, perPage: 25) { 
-            airingSchedules(airingAt_greater: $start, airingAt_less: $end, sort: TIME_ASC) { 
+            airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME_ASC) { 
               episode
               airingAt
               media { 
@@ -1010,6 +1014,52 @@
       launchVideoPlayer(1);
     };
 
+    // Stacking Fallback Loop Engine for the Consumet API routes
+    async function fetchConsumetStreamWithStack(animeTitle, epNum, dubMode) {
+      const cleanTitle = encodeURIComponent(animeTitle.toLowerCase().replace(/[^a-z0-9\s]/g, ''));
+      const isDub = dubMode === 'dub';
+
+      for (const provider of CONSUMET_STACK) {
+        try {
+          console.log(`[Stack] Attempting fetch stream on provider: ${provider}`);
+          
+          // Step 1: Search provider endpoint to map out internal string identifiers
+          const searchUrl = `${CONSUMET_BASE_API}/${provider}/${cleanTitle}`;
+          const searchRes = await fetch(searchUrl);
+          if (!searchRes.ok) continue;
+          
+          const searchData = await searchRes.json();
+          const targetAnime = searchData.results?.[0];
+          if (!targetAnime || !targetAnime.id) continue;
+
+          // Step 2: Grab full internal episode metadata tree tracking lists
+          const infoUrl = `${CONSUMET_BASE_API}/${provider}/info?id=${targetAnime.id}`;
+          const infoRes = await fetch(infoUrl);
+          if (!infoRes.ok) continue;
+          
+          const infoData = await infoRes.json();
+          const epObject = infoData.episodes?.find(e => e.number == epNum);
+          if (!epObject || !epObject.id) continue;
+
+          // Step 3: Call extraction watch route to grab target streaming URL arrays
+          const watchUrl = `${CONSUMET_BASE_API}/${provider}/watch/${epObject.id}?dub=${isDub}`;
+          const watchRes = await fetch(watchUrl);
+          if (!watchRes.ok) continue;
+
+          const watchData = await watchRes.json();
+          const primaryStream = watchData.sources?.find(s => s.quality === 'default' || s.quality === 'auto') || watchData.sources?.[0];
+          
+          if (primaryStream && primaryStream.url) {
+            console.log(`[Stack] Stream tracking payload matched via: ${provider}`);
+            return primaryStream.url; 
+          }
+        } catch (e) {
+          console.warn(`[Stack] Provider engine step fail: ${provider}`, e);
+        }
+      }
+      return null;
+    }
+
     async function launchVideoPlayer(epNum) {
       currentEpisodeIndex = epNum;
       const iframe = document.getElementById('video-iframe');
@@ -1033,6 +1083,22 @@
           }
           handleAutomaticFallback();
         } catch (error) {
+          handleAutomaticFallback();
+        }
+      } else if (activeSourceMode === 'consumet') {
+        iframe.classList.add('hidden');
+        if (noticeOverlay) {
+          noticeOverlay.classList.remove('hidden');
+          noticeOverlay.querySelector('p').innerText = "🔄 Parsing API Stack Links...";
+        }
+        
+        const backupStreamUrl = await fetchConsumetStreamWithStack(window.activeAnimeTitle, epNum, currentLanguage);
+        if (backupStreamUrl) {
+          if(noticeOverlay) noticeOverlay.classList.add('hidden');
+          iframe.classList.remove('hidden');
+          // If returning an m3u8 playlist chunk directly, standard browser iframes need an HLS wrapper context proxy player
+          iframe.src = `https://player.vdocipher.com/v2/?url=${encodeURIComponent(backupStreamUrl)}`; 
+        } else {
           handleAutomaticFallback();
         }
       }
@@ -1061,6 +1127,8 @@
     function handleAutomaticFallback() {
       if (activeSourceMode === 'mal') {
         setServerSource('cdn-9anime');
+      } else if (activeSourceMode === 'cdn-9anime') {
+        setServerSource('consumet');
       } else {
         handleStreamMissingNotice();
       }
@@ -1076,7 +1144,7 @@
       const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
       const curPreset = presets[currentPresetName] || presets.subaru;
       
-      ['mal', 'cdn-9anime'].forEach(src => {
+      ['mal', 'cdn-9anime', 'consumet'].forEach(src => {
         const btn = document.getElementById(`server-${src}`);
         if (!btn) return;
         if (activeSourceMode === src) {
@@ -1095,7 +1163,10 @@
       const iframe = document.getElementById('video-iframe');
       const noticeOverlay = document.getElementById('notice-overlay');
       if (iframe) iframe.classList.add('hidden');
-      if (noticeOverlay) noticeOverlay.classList.remove('hidden');
+      if (noticeOverlay) {
+        noticeOverlay.classList.remove('hidden');
+        noticeOverlay.querySelector('p').innerText = "⚠️ Node Processing Standby";
+      }
     }
 
     function setLanguage(lang) {
