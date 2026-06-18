@@ -464,7 +464,8 @@
 
     async function triggerCatalogSearch(fromHeader = false) {
       const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
-      const query = document.getElementById(queryFieldId) ? document.getElementById(queryFieldId).value.trim() : "";
+      const queryInputEl = document.getElementById(queryFieldId);
+      const query = queryInputEl ? queryInputEl.value.trim() : "";
       
       if(document.getElementById('search-input')) document.getElementById('search-input').value = query;
       if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
@@ -483,6 +484,7 @@
       const yearFromEl = document.getElementById('filter-year-from');
       const yearToEl = document.getElementById('filter-year-to');
 
+      // STABLE FALLBACK INTERCEPTORS: Ensures parameters never break the GraphQL template variables
       const selectedFormat = formatEl && formatEl.value ? formatEl.value : null;
       let selectedSort = sortEl && sortEl.value ? sortEl.value : "POPULARITY_DESC";
       
