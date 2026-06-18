@@ -1,197 +1,24 @@
-/* Custom Base Layout Color Configurations */
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: #050505;
+body { 
+  font-family: 'Inter', sans-serif; 
+  transition: background-color 0.3s ease; 
+}
+.bg-dark-card { 
+  transition: background-color 0.3s ease; 
+}
+.bg-dark-input { 
+  transition: background-color 0.3s ease; 
+}
+.border-dark { 
+  transition: border-color 0.3s ease; 
 }
 
-.bg-pitch-black {
-  background-color: #0b0b0c;
+.scroll-row::-webkit-scrollbar { 
+  height: 4px; 
 }
-.bg-dark-card {
-  background-color: #121214;
+.scroll-row::-webkit-scrollbar-track { 
+  background: #0f0f12; 
 }
-.bg-dark-input {
-  background-color: #1a1a1e;
-}
-.border-dark {
-  border-color: #1f1f23;
-}
-
-/* Sidebar & Navigation Menu Styles */
-.sidebar {
-  width: 240px;
-  background-color: #0b0b0c; /* Matches your bg-pitch-black background */
-  border-right: 1px solid #1f1f23; /* Matches your border-dark color */
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-.nav-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  border-radius: 12px; /* Smooth rounded corners matching your select forms */
-  cursor: pointer;
-  color: #94a3b8; /* Soft text matching your quick-filter text color */
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.sidebar-item:hover {
-  background-color: #121214; /* Hover effect matching your bg-dark-card background */
-  color: #ffffff;
-}
-
-.sidebar-item.active {
-  background-color: #1a1a1e; /* Active panel selection matching your bg-dark-input layout */
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.sidebar-item .icon {
-  margin-right: 12px;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Sidebar Drawer Bottom Footer Layout */
-.sidebar-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid #1f1f23;
-}
-
-.social-icons {
-  display: flex;
-  gap: 16px;
-  justify-content: flex-start;
-  padding-left: 8px;
-}
-
-.footer-icon {
-  color: #94a3b8;
-  text-decoration: none;
-  font-size: 18px;
-  transition: color 0.2s ease;
-}
-
-.footer-icon:hover {
-  color: #ffffff;
-}
-
-.lang-selector {
-  width: auto;
-  align-self: flex-start;
-  background-color: #121214;
-  border: 1px solid #1f1f23;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
-  color: #e2e8f0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.lang-selector:hover {
-  border-color: #3f3f46;
-  background-color: #1a1a1e;
-}
-
-/* Dropdown Menu Select Form Styles */
-.filter-select {
-  width: 100%;
-  background-color: #1a1a1e;
-  border: 1px solid #1f1f23;
-  border-radius: 12px;
-  padding: 10px;
-  font-size: 12px;
-  color: #e2e8f0;
-  outline: none;
-  appearance: none;
-  transition: all 0.2s ease;
-}
-
-.filter-select:focus {
-  border-color: #10b981;
-}
-
-/* Genre Pill Buttons Configuration */
-.genre-tag, .genre-pill {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 6px 14px;
-  border-radius: 9999px;
-  background-color: #1a1a1e;
-  border: 1px solid #1f1f23;
-  color: #94a3b8;
-  transition: all 0.2s ease;
-}
-
-.genre-tag:hover, .genre-pill:hover {
-  border-color: #3f3f46;
-  color: #ffffff;
-}
-
-/* Unified Active States for Genres */
-.genre-tag.active, .genre-pill.active {
-  background-color: #10b981 !important;
-  color: #000000 !important;
-  border-color: #10b981 !important;
-}
-
-/* Filter Toggle Active Class State */
-#filter-panel-toggle-btn.active-green, #filter-toggle-btn.active-green {
-  background-color: rgba(16, 185, 129, 0.1) !important;
-  color: #10b981 !important;
-  border-color: #10b981 !important;
-}
-
-/* Row Filter Horizontal Quick Buttons */
-.quick-filter-btn {
-  padding: 6px 16px;
-  background-color: #1a1a1e;
-  color: #94a3b8;
-  border-radius: 9999px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.quick-filter-btn.active {
-  background-color: #ffffff;
-  color: #000000;
-}
-
-/* Card Presentation Overlay Elements */
-.card-overlay {
-  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
-}
-
-/* Hide native scrollbars on rows */
-.scroll-row::-webkit-scrollbar {
-  display: none;
-}
-.scroll-row {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.scroll-row::-webkit-scrollbar-thumb { 
+  background: #3b3b4a; 
+  border-radius: 2px; 
 }
