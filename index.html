@@ -77,7 +77,7 @@
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
         <div class="bg-dark-card p-2 rounded-full border border-dark flex items-center shadow-2xl focus-within:border-emerald-500 transition-all">
-          <input type="text" id="search-input" placeholder="Search titles or click filters below..." class="w-full bg-transparent pl-4 pr-2 text-sm focus:outline-none text-white">
+          <input type="text" id="search-input" placeholder="Search titles or click filters below..." class="w-full bg-transparent pl-4 pr-2 text-sm focus:outline-none text-white" onkeydown="if(event.key === 'Enter') triggerCatalogSearch(false)">
           <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
         </div>
 
@@ -110,7 +110,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div class="space-y-1">
               <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Format</label>
-              <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+              <select id="filter-format" onchange="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
                 <option value="">All Formats</option>
                 <option value="TV">TV Series</option>
                 <option value="MOVIE">Movie</option>
@@ -121,7 +121,7 @@
             
             <div class="space-y-1">
               <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Sort Order</label>
-              <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+              <select id="filter-sort" onchange="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
                 <option value="POPULARITY_DESC">Popularity Descending</option>
                 <option value="TRENDING_DESC">Trending Descending</option>
                 <option value="SCORE_DESC">Highest Rated</option>
@@ -131,12 +131,12 @@
 
             <div class="space-y-1">
               <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">From Year</label>
-              <input type="number" id="filter-year-from" min="1990" max="2026" placeholder="2000" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+              <input type="number" id="filter-year-from" min="1990" max="2026" placeholder="2000" oninput="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
             </div>
 
             <div class="space-y-1">
               <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">To Year</label>
-              <input type="number" id="filter-year-to" min="1990" max="2026" placeholder="2026" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+              <input type="number" id="filter-year-to" min="1990" max="2026" placeholder="2026" oninput="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
             </div>
           </div>
         </div>
@@ -379,7 +379,7 @@
       resetAdvancedFilters();
     }
 
-    // Toggle active status UI state for targeted genre chips
+    // FIXED: Selecting or removing a tag now forces the catalog to instantly search and render matching filters
     function toggleGenreTag(element, genreName) {
       if (element.classList.contains('active')) {
         element.classList.remove('active');
@@ -388,9 +388,10 @@
         element.classList.add('active');
         selectedGenres.push(genreName);
       }
+      triggerCatalogSearch(false);
     }
 
-    // Reset all filtration inputs back to default positions
+    // Reset items and perform default search to clean layout grid view state
     function resetAdvancedFilters() {
       selectedGenres = [];
       document.querySelectorAll('.genre-tag').forEach(btn => btn.classList.remove('active'));
@@ -398,6 +399,7 @@
       document.getElementById('filter-sort').value = "POPULARITY_DESC";
       document.getElementById('filter-year-from').value = "";
       document.getElementById('filter-year-to').value = "";
+      triggerCatalogSearch(false);
     }
 
     async function loadMainHubFeeds() {
@@ -438,7 +440,7 @@
       document.getElementById('recommendations-scroller').innerHTML = "<p class='text-xs text-gray-600 italic'>Anikoto scroller engine offline. Use core catalog below.</p>";
     }
 
-    // NEW COMPREHENSIVE MULTI-FILTER SEARCH ENGINE INTERFACE
+    // FIXED SEARCH ENGINE: Handled strict sorting query strings with reliable schema matching parameters
     async function triggerCatalogSearch(fromHeader = false) {
       const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
       const query = document.getElementById(queryFieldId).value.trim();
@@ -454,25 +456,30 @@
       document.getElementById('header-search-engine').classList.remove('hidden');
       document.getElementById('recommendations-container-block').classList.add('hidden');
       
-      document.getElementById('grid-header-title').innerText = query ? `Catalog Matches: "${query}"` : "Most Popular Anime";
+      document.getElementById('grid-header-title').innerText = query ? `Catalog Matches: "${query}"` : "Filtered Catalog Results";
       document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
       
       // Pull and pack variable references from filter components
       const selectedFormat = document.getElementById('filter-format').value || null;
-      const selectedSort = document.getElementById('filter-sort').value || "POPULARITY_DESC";
+      let selectedSort = document.getElementById('filter-sort').value || "POPULARITY_DESC";
       const yearFrom = parseInt(document.getElementById('filter-year-from').value) || null;
       const yearTo = parseInt(document.getElementById('filter-year-to').value) || null;
 
-      // Build out dynamic AniList parameters query variables schema
+      // AniList safety fallback rule: If text search is active, do not pass strict sorting modes to avoid zero returns
+      let sortArray = [selectedSort];
+      if (query && (selectedSort === 'TRENDING_DESC' || selectedSort === 'POPULARITY_DESC')) {
+        sortArray = ['SEARCH_MATCH'];
+      }
+
+      // Build out dynamic parameters variables object
       let variables = {
-        sort: [selectedSort]
+        sort: sortArray
       };
 
       if (query) variables.q = query;
       if (selectedGenres.length > 0) variables.genres = selectedGenres;
       if (selectedFormat) variables.format = selectedFormat;
       
-      // Handle setting complex date windows if filter inputs exist
       if (yearFrom) {
         variables.startDate = parseInt(yearFrom + "0000");
       }
@@ -480,7 +487,7 @@
         variables.endDate = parseInt(yearTo + "1231");
       }
 
-      // GraphQL complex variable configuration template structure
+      // GraphQL dynamic query schema mapping parameters
       const aniListSearchQuery = `
         query ($q: String, $genres: [String], $format: MediaFormat, $sort: [MediaSort], $startDate: FuzzyDateInt, $endDate: FuzzyDateInt) {
           Page(page: 1, perPage: 24) {
@@ -509,7 +516,7 @@
         const results = json.data?.Page?.media || [];
         
         if(results.length === 0) {
-          document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No valid endpoint matching patterns found. Try adjusting filter tags.</p>";
+          document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No anime matches found for your active filter selections.</p>";
         } else {
           displayGridFeed(results, 'results-grid');
         }
@@ -763,14 +770,11 @@
       }
     });
 
-    // Integrated loading fix triggers right here
     window.onload = function() {
       startSystemClock();
       updateRgbMixer();
       
-      // Forces page to pull trending/popular titles instead of looping "Syncing files..."
-      triggerCatalogSearch(false); 
-      
+      // Seed default feeds onto page load channels safely
       setTimeout(() => {
         loadMainHubFeeds();
       }, 150);
