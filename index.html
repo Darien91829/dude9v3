@@ -8,6 +8,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Styling default dropdown panels to match the clean dark theme */
+    select option {
+      background-color: #111111 !important;
+      color: #e5e7eb !important;
+    }
+  </style>
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
@@ -102,10 +109,10 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div class="space-y-1">
                 <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Format</label>
-                <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
-                  <option value="">All Formats</option>
-                  <option value="TV">TV Series</option>
-                  <option value="MOVIE">Movie</option>
+                <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                  <option value="">All Anime</option>
+                  <option value="TV">Series</option>
+                  <option value="MOVIE">Films</option>
                   <option value="OVA">OVA</option>
                   <option value="SPECIAL">Special</option>
                 </select>
@@ -113,11 +120,11 @@
               
               <div class="space-y-1">
                 <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Sort Order</label>
-                <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
-                  <option value="POPULARITY_DESC">Popularity Descending</option>
-                  <option value="TRENDING_DESC">Trending Descending</option>
-                  <option value="SCORE_DESC">Highest Rated</option>
-                  <option value="START_DATE_DESC">Newest Released</option>
+                <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                  <option value="POPULARITY_DESC">Popular</option>
+                  <option value="TRENDING_DESC">Trending</option>
+                  <option value="SCORE_DESC">Top Rated</option>
+                  <option value="START_DATE_DESC">New This Week</option>
                 </select>
               </div>
 
@@ -134,7 +141,7 @@
 
             <div class="pt-2">
               <button onclick="commitAdvancedFilterSearch()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg">
-                Show Filter Results
+                Show results
               </button>
             </div>
           </div>
@@ -392,7 +399,6 @@
       resetAdvancedFilters();
     }
 
-    // FIXED: Clicking buttons now only handles UI state highlights, no instant query triggers
     function toggleGenreTag(element, genreName) {
       if (element.classList.contains('active')) {
         element.classList.remove('active');
@@ -403,7 +409,6 @@
       }
     }
 
-    // FIXED: Form resets clear everything inside the selection matrix array cleanly
     function resetAdvancedFilters() {
       selectedGenres = [];
       document.querySelectorAll('.genre-pill').forEach(btn => btn.classList.remove('active'));
@@ -414,10 +419,9 @@
       triggerCatalogSearch(false);
     }
 
-    // NEW FUNCTION: Submits everything explicitly when clicking the bottom panel action button
     function commitAdvancedFilterSearch() {
-      toggleAdvancedFilterPanel(); // Close panel menu drawer
-      triggerCatalogSearch(false); // Fire API call setup
+      toggleAdvancedFilterPanel(); 
+      triggerCatalogSearch(false); 
     }
 
     async function loadMainHubFeeds() {
@@ -476,8 +480,12 @@
       
       const selectedFormat = document.getElementById('filter-format').value || null;
       let selectedSort = document.getElementById('filter-sort').value || "POPULARITY_DESC";
-      const yearFrom = parseInt(document.getElementById('filter-year-from').value) || null;
-      const yearTo = parseInt(document.getElementById('filter-year-to').value) || null;
+      
+      // FIXED: Safely handling empty date values so empty inputs don't return NaN or zero values to AniList
+      const yearFromVal = document.getElementById('filter-year-from').value;
+      const yearToVal = document.getElementById('filter-year-to').value;
+      const yearFrom = yearFromVal ? parseInt(yearFromVal) : null;
+      const yearTo = yearToVal ? parseInt(yearToVal) : null;
 
       let sortArray = [selectedSort];
       if (query && (selectedSort === 'TRENDING_DESC' || selectedSort === 'POPULARITY_DESC')) {
@@ -714,7 +722,6 @@
       }
     }
 
-    document.write("");
     function handleAutomaticFallback() {
       if (activeSourceMode === 'anikoto') {
         setServerSource('mal');
