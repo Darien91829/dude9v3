@@ -369,7 +369,6 @@
     }
 
     function setupCalendarControls() {
-      // Avoid attaching compounding event loops by resetting clean listeners
       const prevBtn = document.getElementById('prev-month-btn');
       const nextBtn = document.getElementById('next-month-btn');
       const todayBtn = document.getElementById('jump-today-btn');
@@ -422,14 +421,12 @@
       const month = currentCalendarDate.getMonth();
       const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
       
-      // Match 3 column styling grid mapping exactly out from the baseline layout template reference
       for (let day = 5; day <= totalDaysInMonth; day++) {
         if (day > 28) break; 
         const dayBox = document.createElement('div');
         dayBox.className = "bg-[#16161a] border border-gray-800/80 rounded-xl aspect-[4/5] p-2 flex items-start justify-start text-xs font-bold text-gray-400 transition-all hover:border-gray-600 cursor-pointer select-none";
         dayBox.innerText = day;
         
-        // Emphasize the target date frame tracking link
         if (day === 18 && month === 5 && year === 2026) {
           const currentAccentColor = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
           dayBox.style.borderColor = currentAccentColor;
@@ -450,7 +447,6 @@
         </div>
       `;
 
-      // Form stable 7-day query channel boundaries centered onto June 18, 2026
       const queryStart = Math.floor(new Date(2026, 5, 15).getTime() / 1000);
       const queryEnd = queryStart + (7 * 86400);
 
@@ -555,19 +551,6 @@
       } catch (err) {
         console.error(err);
         listContainer.innerHTML = `<div class="text-xs text-rose-400 py-4 text-center">Network connectivity block syncing timeline updates.</div>`;
-      }
-    }
-
-    function toggleMainMenu() {
-      const drawer = document.getElementById('main-menu-drawer');
-      const overlay = document.getElementById('menu-overlay');
-      if (!drawer || !overlay) return;
-      if (drawer.classList.contains('-translate-x-full')) {
-        drawer.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-      } else {
-        drawer.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
       }
     }
 
@@ -690,11 +673,11 @@
         loadRecentReleases(); 
       } else if (targetViewId === 'calendar') {
         document.getElementById('calendar-focus-view')?.classList.remove('hidden');
-        document.getElementById('header-search-engine')?.classList.add('hidden'); // Match video layouts profile
+        document.getElementById('header-search-engine')?.classList.add('hidden'); 
         document.getElementById('side-nav-calendar')?.classList.add('active');
         if (indicator) indicator.innerText = "Airing Schedule";
         
-        initCalendarUI(); // Instantly fire the visual matrix loading algorithms
+        initCalendarUI(); 
       }
     }
 
@@ -883,7 +866,7 @@
         const schedules = json.data?.Page?.airingSchedules || [];
         
         if(schedules.length === 0) {
-          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No calendar items found for this window.</p>';
+          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No calendar items found for this window.</p>`;
           return;
         }
         
