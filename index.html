@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
@@ -102,7 +102,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div class="space-y-1">
                 <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Format</label>
-                <select id="filter-format" onchange="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+                <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
                   <option value="">All Formats</option>
                   <option value="TV">TV Series</option>
                   <option value="MOVIE">Movie</option>
@@ -113,7 +113,7 @@
               
               <div class="space-y-1">
                 <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Sort Order</label>
-                <select id="filter-sort" onchange="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+                <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
                   <option value="POPULARITY_DESC">Popularity Descending</option>
                   <option value="TRENDING_DESC">Trending Descending</option>
                   <option value="SCORE_DESC">Highest Rated</option>
@@ -123,17 +123,17 @@
 
               <div class="space-y-1">
                 <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">From Year</label>
-                <input type="number" id="filter-year-from" min="1990" max="2026" placeholder="2000" oninput="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+                <input type="number" id="filter-year-from" min="1990" max="2026" placeholder="2000" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
               </div>
 
               <div class="space-y-1">
                 <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">To Year</label>
-                <input type="number" id="filter-year-to" min="1990" max="2026" placeholder="2026" oninput="triggerCatalogSearch(false)" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+                <input type="number" id="filter-year-to" min="1990" max="2026" placeholder="2026" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
               </div>
             </div>
 
             <div class="pt-2">
-              <button onclick="toggleAdvancedFilterPanel()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg">
+              <button onclick="commitAdvancedFilterSearch()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg">
                 Show Filter Results
               </button>
             </div>
@@ -251,7 +251,7 @@
         </div>
         <div class="flex items-center space-x-3 text-xs">
           <span class="w-4 text-emerald-500 font-bold">G</span>
-          <input type="range" id="range-g" min="0" max="255" value="255" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
+          <input type="range" id="range-g" min="0" max="255" value="0" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
           <span id="val-g" class="font-mono w-8 text-right text-gray-500">255</span>
         </div>
         <div class="flex items-center space-x-3 text-xs">
@@ -392,7 +392,7 @@
       resetAdvancedFilters();
     }
 
-    // Handles toggle state on custom .genre-pill configurations smoothly
+    // FIXED: Clicking buttons now only handles UI state highlights, no instant query triggers
     function toggleGenreTag(element, genreName) {
       if (element.classList.contains('active')) {
         element.classList.remove('active');
@@ -401,9 +401,9 @@
         element.classList.add('active');
         selectedGenres.push(genreName);
       }
-      triggerCatalogSearch(false);
     }
 
+    // FIXED: Form resets clear everything inside the selection matrix array cleanly
     function resetAdvancedFilters() {
       selectedGenres = [];
       document.querySelectorAll('.genre-pill').forEach(btn => btn.classList.remove('active'));
@@ -412,6 +412,12 @@
       document.getElementById('filter-year-from').value = "";
       document.getElementById('filter-year-to').value = "";
       triggerCatalogSearch(false);
+    }
+
+    // NEW FUNCTION: Submits everything explicitly when clicking the bottom panel action button
+    function commitAdvancedFilterSearch() {
+      toggleAdvancedFilterPanel(); // Close panel menu drawer
+      triggerCatalogSearch(false); // Fire API call setup
     }
 
     async function loadMainHubFeeds() {
