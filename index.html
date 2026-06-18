@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thedude9 Anime</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #050505; }
@@ -133,8 +133,13 @@
 
     <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
       <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-emerald-500/20 shadow-2xl">
-        <div id="player-box" class="w-full h-full">
-          <iframe id="video-iframe" class="w-full h-full" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
+        <div id="player-box" class="w-full h-full relative">
+          <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
+            <p class="text-sm font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">⚠️ Node Processing Standby</p>
+            <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
+            <button onclick="openExplorationHub()" class="mt-4 bg-emerald-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
+          </div>
+          <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
         </div>
       </div>
 
@@ -143,7 +148,6 @@
           <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
           <button id="server-anikoto" onclick="setServerSource('anikoto')" class="bg-emerald-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-emerald-500">Anikoto</button>
           <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay MAL</button>
-          <button id="server-anilist" onclick="setServerSource('anilist')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay AniList</button>
           <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
         </div>
         
@@ -307,7 +311,6 @@
     async function loadMainHubFeeds() {
       fetchLiveReleasingSchedule(activeScheduleDay);
       
-      // DECOUPLED BLOCK 1: Try gathering recent scroller content from Anikoto
       try {
         const res = await fetch(`${ANIKOTO_BASE}/recent-anime?page=1&per_page=12`);
         const json = await res.json();
@@ -321,7 +324,6 @@
         handleAnikotoScrollerEmpty();
       }
         
-      // DECOUPLED BLOCK 2: Fetch stable trending lists and sidebars from AniList GraphQL independently
       try {
         const aniListQuery = `query { Page(page: 1, perPage: 12) { media(sort: TRENDING_DESC, type: ANIME) { id idMal title { english romaji } coverImage { large } episodes } } }`;
         const graphRes = await fetch('https://graphql.anilist.co', {
@@ -502,14 +504,16 @@
     async function launchVideoPlayer(epNum) {
       currentEpisodeIndex = epNum;
       const iframe = document.getElementById('video-iframe');
+      const noticeOverlay = document.getElementById('notice-overlay');
       if (!iframe) return;
+
+      noticeOverlay.classList.add('hidden');
+      iframe.classList.remove('hidden');
 
       if (activeSourceMode === 'anikoto' && currentAnikotoEmbedId) {
         iframe.src = `https://megaplay.buzz/stream/s-2/${currentAnikotoEmbedId}/${currentLanguage}`;
       } else if (activeSourceMode === 'mal') {
         iframe.src = `https://megaplay.buzz/stream/mal/${window.currentMalId}/${epNum}/${currentLanguage}`;
-      } else if (activeSourceMode === 'anilist') {
-        iframe.src = `https://megaplay.buzz/stream/ani/${window.currentMalId}/${epNum}/${currentLanguage}`;
       } else if (activeSourceMode === 'cdn-9anime') {
         try {
           if (animeScraperInstance && typeof animeScraperInstance.getStreamUrl === 'function') {
@@ -530,8 +534,6 @@
       if (activeSourceMode === 'anikoto') {
         setServerSource('mal');
       } else if (activeSourceMode === 'mal') {
-        setServerSource('anilist');
-      } else if (activeSourceMode === 'anilist') {
         setServerSource('cdn-9anime');
       } else {
         handleStreamMissingNotice();
@@ -545,7 +547,7 @@
     }
 
     function updateServerButtonsUI() {
-      ['anikoto', 'mal', 'anilist', 'cdn-9anime'].forEach(src => {
+      ['anikoto', 'mal', 'cdn-9anime'].forEach(src => {
         const btn = document.getElementById(`server-${src}`);
         if (!btn) return;
         if (activeSourceMode === src) {
@@ -557,12 +559,11 @@
     }
 
     function handleStreamMissingNotice() {
-      document.getElementById('player-box').innerHTML = `
-        <div class="w-full h-full flex flex-col justify-center items-center bg-neutral-900 text-center p-4">
-          <p class="text-sm font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">⚠️ Node Processing Standby</p>
-          <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
-          <button onclick="openExplorationHub()" class="mt-4 bg-emerald-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
-        </div>`;
+      const iframe = document.getElementById('video-iframe');
+      const noticeOverlay = document.getElementById('notice-overlay');
+      
+      if (iframe) iframe.classList.add('hidden');
+      if (noticeOverlay) noticeOverlay.classList.remove('hidden');
     }
 
     function setLanguage(lang) {
