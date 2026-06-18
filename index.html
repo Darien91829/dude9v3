@@ -7,24 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #050505; }
-    .bg-dark-card { background-color: #111111; }
-    .bg-dark-input { background-color: #1c1c1e; }
-    .border-dark { border-color: #1c1c1e; }
-    
-    .scroll-row::-webkit-scrollbar { height: 4px; }
-    .scroll-row::-webkit-scrollbar-track { background: #050505; }
-    .scroll-row::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 2px; }
-    
-    /* Genre tag active states */
-    .genre-tag.active {
-      background-color: #10b981 !important;
-      color: #000000 !important;
-      border-color: #10b981 !important;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
@@ -102,17 +85,17 @@
 
             <div class="space-y-1.5">
               <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider block">Genres and Themes</span>
-              <div id="genres-container" class="flex flex-wrap gap-1.5">
-                <button onclick="toggleGenreTag(this, 'Action')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Action</button>
-                <button onclick="toggleGenreTag(this, 'Adventure')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Adventure</button>
-                <button onclick="toggleGenreTag(this, 'Comedy')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Comedy</button>
-                <button onclick="toggleGenreTag(this, 'Drama')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Drama</button>
-                <button onclick="toggleGenreTag(this, 'Fantasy')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Fantasy</button>
-                <button onclick="toggleGenreTag(this, 'Mystery')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Mystery</button>
-                <button onclick="toggleGenreTag(this, 'Romance')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Romance</button>
-                <button onclick="toggleGenreTag(this, 'Sci-Fi')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Sci-Fi</button>
-                <button onclick="toggleGenreTag(this, 'Slice of Life')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Slice of Life</button>
-                <button onclick="toggleGenreTag(this, 'Supernatural')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Supernatural</button>
+              <div id="genres-container" class="flex flex-wrap gap-2">
+                <button onclick="toggleGenreTag(this, 'Action')" class="genre-pill">Action</button>
+                <button onclick="toggleGenreTag(this, 'Adventure')" class="genre-pill">Adventure</button>
+                <button onclick="toggleGenreTag(this, 'Comedy')" class="genre-pill">Comedy</button>
+                <button onclick="toggleGenreTag(this, 'Drama')" class="genre-pill">Drama</button>
+                <button onclick="toggleGenreTag(this, 'Fantasy')" class="genre-pill">Fantasy</button>
+                <button onclick="toggleGenreTag(this, 'Mystery')" class="genre-pill">Mystery</button>
+                <button onclick="toggleGenreTag(this, 'Romance')" class="genre-pill">Romance</button>
+                <button onclick="toggleGenreTag(this, 'Sci-Fi')" class="genre-pill">Sci-Fi</button>
+                <button onclick="toggleGenreTag(this, 'Slice of Life')" class="genre-pill">Slice of Life</button>
+                <button onclick="toggleGenreTag(this, 'Supernatural')" class="genre-pill">Supernatural</button>
               </div>
             </div>
 
@@ -332,21 +315,16 @@
       }
     }
 
-    // Controls the toggling and visualization states of the advanced panel drawer elements
     function toggleAdvancedFilterPanel() {
       const panel = document.getElementById('advanced-filter-dropdown-panel');
       const toggleBtn = document.getElementById('filter-panel-toggle-btn');
       
       if (panel.classList.contains('hidden')) {
         panel.classList.remove('hidden');
-        toggleBtn.style.borderColor = "#10b981";
-        toggleBtn.style.color = "#10b981";
-        toggleBtn.style.backgroundColor = "rgba(16, 185, 129, 0.05)";
+        toggleBtn.classList.add('active-green');
       } else {
         panel.classList.add('hidden');
-        toggleBtn.style.borderColor = "";
-        toggleBtn.style.color = "";
-        toggleBtn.style.backgroundColor = "";
+        toggleBtn.classList.remove('active-green');
       }
     }
 
@@ -410,15 +388,11 @@
       document.getElementById('search-input').value = "";
       document.getElementById('header-search-input').value = "";
       document.getElementById('advanced-filter-dropdown-panel').classList.add('hidden');
-      
-      const toggleBtn = document.getElementById('filter-panel-toggle-btn');
-      toggleBtn.style.borderColor = "";
-      toggleBtn.style.color = "";
-      toggleBtn.style.backgroundColor = "";
-
+      document.getElementById('filter-panel-toggle-btn').classList.remove('active-green');
       resetAdvancedFilters();
     }
 
+    // Handles toggle state on custom .genre-pill configurations smoothly
     function toggleGenreTag(element, genreName) {
       if (element.classList.contains('active')) {
         element.classList.remove('active');
@@ -432,7 +406,7 @@
 
     function resetAdvancedFilters() {
       selectedGenres = [];
-      document.querySelectorAll('.genre-tag').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.genre-pill').forEach(btn => btn.classList.remove('active'));
       document.getElementById('filter-format').value = "";
       document.getElementById('filter-sort').value = "POPULARITY_DESC";
       document.getElementById('filter-year-from').value = "";
@@ -734,6 +708,7 @@
       }
     }
 
+    document.write("");
     function handleAutomaticFallback() {
       if (activeSourceMode === 'anikoto') {
         setServerSource('mal');
