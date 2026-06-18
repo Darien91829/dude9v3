@@ -49,7 +49,7 @@
       <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
       </span>
-      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-emerald-500 text-gray-300" onkeydown="if(event.key === 'Enter') triggerCatalogSearch(true)">
+      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-emerald-500 text-gray-300" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
       <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
     </div>
 
@@ -71,7 +71,7 @@
           <div class="flex items-center gap-2">
             <div class="flex-1 bg-dark-card p-2 rounded-xl border border-dark flex items-center shadow-2xl focus-within:border-emerald-500 transition-all">
               <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
-              <input type="text" id="search-input" placeholder="Search titles or click filters..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') triggerCatalogSearch(false)">
+              <input type="text" id="search-input" placeholder="Search titles or click filters..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
               <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
             </div>
 
@@ -300,19 +300,21 @@
     window.activeMaxEpisodes = 12;
 
     let selectedGenres = [];
-
     let animeScraperInstance = null;
+
+    // Safety handling for third party constructor libraries
     try {
       if (typeof NineAnimeScraper !== 'undefined') {
         animeScraperInstance = new NineAnimeScraper();
       }
     } catch(e) {
-      console.log("CDN Scraper config standby.");
+      console.log("External catalog hook standing by.");
     }
 
     function toggleMainMenu() {
       const drawer = document.getElementById('main-menu-drawer');
       const overlay = document.getElementById('menu-overlay');
+      if (!drawer || !overlay) return;
       if (drawer.classList.contains('-translate-x-full')) {
         drawer.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
@@ -325,6 +327,7 @@
     function toggleAdvancedFilterPanel() {
       const panel = document.getElementById('advanced-filter-dropdown-panel');
       const toggleBtn = document.getElementById('filter-panel-toggle-btn');
+      if (!panel || !toggleBtn) return;
       
       if (panel.classList.contains('hidden')) {
         panel.classList.remove('hidden');
@@ -347,27 +350,30 @@
     }
 
     function openBottomSheet() {
-      document.getElementById('sheet-overlay').classList.remove('hidden');
-      document.getElementById('bottom-sheet-menu').classList.remove('translate-y-full');
+      document.getElementById('sheet-overlay')?.classList.remove('hidden');
+      document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
     }
 
     function closeBottomSheet() {
-      document.getElementById('sheet-overlay').classList.add('hidden');
-      document.getElementById('bottom-sheet-menu').classList.add('translate-y-full');
+      document.getElementById('sheet-overlay')?.classList.add('hidden');
+      document.getElementById('bottom-sheet-menu')?.classList.add('translate-y-full');
     }
 
     function updateRgbMixer() {
-      const r = document.getElementById('range-r').value;
-      const g = document.getElementById('range-g').value;
-      const b = document.getElementById('range-b').value;
-      document.getElementById('val-r').innerText = r;
-      document.getElementById('val-g').innerText = g;
-      document.getElementById('val-b').innerText = b;
-      document.getElementById('rgb-preview').style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      const r = document.getElementById('range-r')?.value || 0;
+      const g = document.getElementById('range-g')?.value || 255;
+      const b = document.getElementById('range-b')?.value || 102;
+      
+      if(document.getElementById('val-r')) document.getElementById('val-r').innerText = r;
+      if(document.getElementById('val-g')) document.getElementById('val-g').innerText = g;
+      if(document.getElementById('val-b')) document.getElementById('val-b').innerText = b;
+      
+      const preview = document.getElementById('rgb-preview');
+      if (preview) preview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
     }
 
     function saveThemeAndClose() {
-      const isCharcoal = document.getElementById('radio-dark-gray').checked;
+      const isCharcoal = document.getElementById('radio-dark-gray')?.checked;
       let bg = "#050505", card = "#111111", input = "#1c1c1e";
       if (isCharcoal) { bg = "#1a1a1e"; card = "#252529"; input = "#2c2c35"; }
       
@@ -378,28 +384,32 @@
     }
 
     function openExplorationHub() {
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('stream-dashboard-box').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.remove('hidden');
-      document.getElementById('header-search-engine').classList.remove('hidden');
-      document.getElementById('recommendations-container-block').classList.remove('hidden');
-      document.getElementById('grid-header-title').innerText = "Trending Global Media Items";
+      document.getElementById('landing-portal')?.classList.add('hidden');
+      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
+      document.getElementById('header-search-engine')?.classList.remove('hidden');
+      document.getElementById('recommendations-container-block')?.classList.remove('hidden');
+      
+      const gridHeader = document.getElementById('grid-header-title');
+      if (gridHeader) gridHeader.innerText = "Trending Global Media Items";
       loadMainHubFeeds();
     }
 
     function homeReturnReset() {
-      document.getElementById('stream-dashboard-box').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.add('hidden');
-      document.getElementById('header-search-engine').classList.add('hidden');
-      document.getElementById('landing-portal').classList.remove('hidden');
-      document.getElementById('search-input').value = "";
-      document.getElementById('header-search-input').value = "";
-      document.getElementById('advanced-filter-dropdown-panel').classList.add('hidden');
-      document.getElementById('filter-panel-toggle-btn').classList.remove('active-green');
+      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.add('hidden');
+      document.getElementById('header-search-engine')?.classList.add('hidden');
+      document.getElementById('landing-portal')?.classList.remove('hidden');
+      
+      if(document.getElementById('search-input')) document.getElementById('search-input').value = "";
+      if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = "";
+      document.getElementById('advanced-filter-dropdown-panel')?.classList.add('hidden');
+      document.getElementById('filter-panel-toggle-btn')?.classList.remove('active-green');
       resetAdvancedFilters();
     }
 
     function toggleGenreTag(element, genreName) {
+      if (!element) return;
       if (element.classList.contains('active')) {
         element.classList.remove('active');
         selectedGenres = selectedGenres.filter(g => g !== genreName);
@@ -451,15 +461,18 @@
           displayGridFeed(trendingItems, 'results-grid');
           displayTop10Sidebar(trendingItems);
         } else {
-          document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No trending items returned from server.</p>";
+          const grid = document.getElementById('results-grid');
+          if (grid) grid.innerHTML = "<p class='text-xs text-gray-500'>No trending items returned from server.</p>";
         }
       } catch (err) {
-        document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Error loading layout catalog channels.</p>";
+        const grid = document.getElementById('results-grid');
+        if (grid) grid.innerHTML = "<p class='text-xs text-gray-500'>Error loading layout catalog channels.</p>";
       }
     }
 
     function handleAnikotoScrollerEmpty() {
-      document.getElementById('recommendations-scroller').innerHTML = "<p class='text-xs text-gray-600 italic'>Anikoto scroller engine offline. Use core catalog below.</p>";
+      const scroller = document.getElementById('recommendations-scroller');
+      if (scroller) scroller.innerHTML = "<p class='text-xs text-gray-600 italic'>Anikoto scroller engine offline. Use core catalog below.</p>";
     }
 
     async function triggerCatalogSearch(fromHeader = false) {
@@ -470,21 +483,23 @@
       if(document.getElementById('search-input')) document.getElementById('search-input').value = query;
       if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
 
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('stream-dashboard-box').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.remove('hidden');
-      document.getElementById('header-search-engine').classList.remove('hidden');
-      document.getElementById('recommendations-container-block').classList.add('hidden');
+      document.getElementById('landing-portal')?.classList.add('hidden');
+      document.getElementById('stream-dashboard-box')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.remove('hidden');
+      document.getElementById('header-search-engine')?.classList.remove('hidden');
+      document.getElementById('recommendations-container-block')?.classList.add('hidden');
       
-      document.getElementById('grid-header-title').innerText = query ? `Catalog Matches: "${query}"` : "Filtered Catalog Results";
-      document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
+      const gridHeader = document.getElementById('grid-header-title');
+      if (gridHeader) gridHeader.innerText = query ? `Catalog Matches: "${query}"` : "Filtered Catalog Results";
+      
+      const gridResults = document.getElementById('results-grid');
+      if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
       
       const formatEl = document.getElementById('filter-format');
       const sortEl = document.getElementById('filter-sort');
       const yearFromEl = document.getElementById('filter-year-from');
       const yearToEl = document.getElementById('filter-year-to');
 
-      // STABLE FALLBACK INTERCEPTORS: Ensures parameters never break the GraphQL template variables
       const selectedFormat = formatEl && formatEl.value ? formatEl.value : null;
       let selectedSort = sortEl && sortEl.value ? sortEl.value : "POPULARITY_DESC";
       
@@ -498,14 +513,11 @@
         sortArray = ['SEARCH_MATCH'];
       }
 
-      let variables = {
-        sort: sortArray
-      };
+      let variables = { sort: sortArray };
 
       if (query) variables.q = query;
       if (selectedGenres && selectedGenres.length > 0) variables.genres = selectedGenres;
       if (selectedFormat) variables.format = selectedFormat;
-      
       if (yearFrom) variables.startDate = parseInt(yearFrom + "0000");
       if (yearTo) variables.endDate = parseInt(yearTo + "1231");
 
@@ -531,23 +543,25 @@
         const json = await graphRes.json();
         const results = json.data?.Page?.media || [];
         
-        if(results.length === 0) {
-          document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No anime matches found for your active filter selections.</p>";
-        } else {
-          displayGridFeed(results, 'results-grid');
+        if (gridResults) {
+          if(results.length === 0) {
+            gridResults.innerHTML = "<p class='text-xs text-gray-500'>No anime matches found for your active filter selections.</p>";
+          } else {
+            displayGridFeed(results, 'results-grid');
+          }
         }
       } catch (e) {
         console.error(e);
-        document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>API filter mapping processing error.</p>";
+        if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>API filter mapping processing error.</p>";
       }
     }
 
     function changeScheduleDay(targetDay) {
       activeScheduleDay = targetDay;
-      document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
-      document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-emerald-500 text-black";
+      if(document.getElementById('tab-yesterday')) document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      if(document.getElementById('tab-today')) document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      if(document.getElementById('tab-tomorrow')) document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      if(document.getElementById(`tab-${targetDay}`)) document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-emerald-500 text-black";
       fetchLiveReleasingSchedule(targetDay);
     }
 
@@ -629,7 +643,7 @@
         const imgUrl = anime.image || anime.poster || 'https://images.alphacoders.com/134/1344238.png';
         const div = document.createElement('div');
         div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all text-[11px]";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='https://images.alphacoders.com/134/1344238.png'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.mal_id || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -640,11 +654,12 @@
       if(!container) return;
       container.innerHTML = '';
       animeArray.forEach(anime => {
+        if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
-        const imgUrl = anime.coverImage.large;
+        const imgUrl = anime.coverImage?.large || 'https://images.alphacoders.com/134/1344238.png';
         const div = document.createElement('div');
         div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all flex flex-col justify-between text-xs";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='https://images.alphacoders.com/134/1344238.png'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -655,6 +670,7 @@
       if(!container) return;
       container.innerHTML = '';
       animeArray.slice(0, 6).forEach((anime, idx) => {
+        if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
         const div = document.createElement('div');
         div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-emerald-500/30 cursor-pointer transition-all";
@@ -669,11 +685,13 @@
       window.activeAnimeTitle = titleName;
       window.activeMaxEpisodes = totalEpisodes || 12;
 
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.add('hidden');
-      document.getElementById('stream-dashboard-box').classList.remove('hidden');
-      document.getElementById('header-search-engine').classList.remove('hidden');
-      document.getElementById('ep-title').innerText = `Watching: ${titleName}`;
+      document.getElementById('landing-portal')?.classList.add('hidden');
+      document.getElementById('main-exploration-hub')?.classList.add('hidden');
+      document.getElementById('stream-dashboard-box')?.classList.remove('hidden');
+      document.getElementById('header-search-engine')?.classList.remove('hidden');
+      
+      const epTitle = document.getElementById('ep-title');
+      if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
       
       activeSourceMode = 'anikoto';
       currentAnikotoEmbedId = null;
@@ -686,7 +704,7 @@
           currentAnikotoEmbedId = data.episodes[0].episode_embed_id || data.episodes[0].id;
         }
       } catch(e) {
-        console.log("Anikoto unmapped, switching default mode to MAL.");
+        console.log("Anikoto mapping bypassed, fallback to MAL mode active.");
         activeSourceMode = 'mal';
         updateServerButtonsUI();
       }
