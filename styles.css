@@ -1,25 +1,98 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Custom Base Layout Color Configurations */
 body {
-  background-color: #0d0e12;
-  color: #e2e8f0;
   font-family: 'Inter', sans-serif;
+  background-color: #050505;
 }
 
-/* Custom scrollbar matching the dark theme */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.bg-pitch-black {
+  background-color: #0b0b0c;
 }
-::-webkit-scrollbar-track {
-  background: #0d0e12;
+.bg-dark-card {
+  background-color: #121214;
 }
-::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 3px;
+.bg-dark-input {
+  background-color: #1a1a1e;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+.border-dark {
+  border-color: #1f1f23;
+}
+
+/* Dropdown Menu Select Form Styles */
+.filter-select {
+  width: 100%;
+  background-color: #1a1a1e;
+  border: 1px solid #1f1f23;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 12px;
+  color: #e2e8f0;
+  outline: none;
+  appearance: none;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+  border-color: #10b981;
+}
+
+/* Genre Pill Buttons Configuration */
+.genre-tag, .genre-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background-color: #1a1a1e;
+  border: 1px solid #1f1f23;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.genre-tag:hover, .genre-pill:hover {
+  border-color: #3f3f46;
+  color: #ffffff;
+}
+
+/* Unified Active States for Genres */
+.genre-tag.active, .genre-pill.active {
+  background-color: #10b981 !important;
+  color: #000000 !important;
+  border-color: #10b981 !important;
+}
+
+/* Filter Toggle Active Class State */
+#filter-panel-toggle-btn.active-green, #filter-toggle-btn.active-green {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  color: #10b981 !important;
+  border-color: #10b981 !important;
+}
+
+/* Row Filter Horizontal Quick Buttons */
+.quick-filter-btn {
+  padding: 6px 16px;
+  background-color: #1a1a1e;
+  color: #94a3b8;
+  border-radius: 9999px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-filter-btn.active {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Card Presentation Overlay Elements */
+.card-overlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+}
+
+/* Hide native scrollbars on rows */
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
+.scroll-row {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
