@@ -22,7 +22,9 @@
 
   <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#050505] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
     <div class="p-4 flex items-center justify-between border-b border-dark">
-      <span class="text-emerald-400 text-lg font-bold tracking-wider">Thedude9 Menu</span>
+      <div class="flex items-center space-x-2">
+        <img src="1781803910241.png" alt="Logo" class="h-7 object-contain">
+      </div>
       <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
@@ -42,8 +44,8 @@
       <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-bars"></i>
       </button>
-      <div onclick="homeReturnReset()" class="flex items-center space-x-2 cursor-pointer">
-        <span class="text-emerald-400 text-xl font-bold tracking-wider drop-shadow-[0_0_8px_rgba(0,255,102,0.5)]">Thedude9</span>
+      <div onclick="homeReturnReset()" class="flex items-center cursor-pointer transition-transform active:scale-95">
+        <img src="1781803910241.png" alt="Thedude9 Anime Logo" class="h-8 md:h-9 object-contain drop-shadow-[0_0_6px_rgba(0,255,102,0.3)]">
       </div>
     </div>
     
@@ -64,9 +66,11 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-24 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
+    <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
       <div class="max-w-xl w-full space-y-6">
-        <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to <span class="text-emerald-400 drop-shadow-[0_0_10px_rgba(0,255,102,0.3)]">Thedude9</span></h1>
+        <div class="flex justify-center mb-2">
+          <img src="1781803910241.png" alt="Thedude9 Anime Showcase" class="w-72 max-w-full object-contain drop-shadow-[0_0_20px_rgba(0,255,102,0.25)] select-none">
+        </div>
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
         <div class="relative">
@@ -77,7 +81,7 @@
           </div>
         </div>
 
-        <div class="pt-4">
+        <div class="pt-2">
           <button onclick="openExplorationHub()" class="bg-emerald-500 text-black shadow-[0_4px_20px_rgba(0,255,102,0.2)] hover:bg-emerald-400 px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
         </div>
       </div>
@@ -217,6 +221,7 @@
 
   <script>
     const ANIKOTO_BASE = "https://anikotoapi.site";
+    const FALLBACK_LOGO = "1781803910241.png";
     
     let currentEpisodeIndex = 1;
     let currentLanguage = 'sub';
@@ -507,10 +512,10 @@
       container.innerHTML = '';
       animeArray.forEach(anime => {
         const title = anime.title || anime.name || "Anime Series";
-        const imgUrl = anime.image || anime.poster || 'https://images.alphacoders.com/134/1344238.png';
+        const imgUrl = anime.image || anime.poster || FALLBACK_LOGO;
         const div = document.createElement('div');
         div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all text-[11px]";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='https://images.alphacoders.com/134/1344238.png'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='${FALLBACK_LOGO}'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.mal_id || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -523,10 +528,10 @@
       animeArray.forEach(anime => {
         if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
-        const imgUrl = anime.coverImage?.large || 'https://images.alphacoders.com/134/1344238.png';
+        const imgUrl = anime.coverImage?.large || FALLBACK_LOGO;
         const div = document.createElement('div');
         div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all flex flex-col justify-between text-xs";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='https://images.alphacoders.com/134/1344238.png'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='${FALLBACK_LOGO}'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -599,7 +604,7 @@
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
 
-      // Update active state class styling for episode nodes dynamically
+      // Sync active state indicators
       for (let i = 1; i <= window.activeMaxEpisodes; i++) {
         const btn = document.getElementById(`ep-btn-${i}`);
         if (btn) {
@@ -647,6 +652,7 @@
       launchVideoPlayer(currentEpisodeIndex);
     }
 
+    // Modern neon glowing indicator for active servers
     function updateServerButtonsUI() {
       ['anikoto', 'mal', 'cdn-9anime'].forEach(src => {
         const btn = document.getElementById(`server-${src}`);
