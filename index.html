@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thedude9 Anime</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts & FontAwesome for Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -22,7 +20,6 @@
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
-  <!-- MAIN MENU DRAWER -->
   <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#050505] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
     <div class="p-4 flex items-center justify-between border-b border-dark">
       <span class="text-emerald-400 text-lg font-bold tracking-wider">Thedude9 Menu</span>
@@ -38,10 +35,8 @@
       </div>
     </div>
   </div>
-  <!-- Menu Backdrop Dimmer Overlay -->
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40"></div>
 
-  <!-- STICKY HEADER -->
   <nav class="sticky top-0 z-30 bg-[#050505]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
       <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
@@ -52,7 +47,6 @@
       </div>
     </div>
     
-    <!-- Header Persistent Search Engine -->
     <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
       <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -68,10 +62,8 @@
     </div>
   </nav>
 
-  <!-- APP VIEWPORT WRAPPER -->
   <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- PAGE 1: EXCLUSIVE INITIAL LANDING HOME SCREEN -->
     <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-24 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
       <div class="max-w-xl w-full space-y-6">
         <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to <span class="text-emerald-400 drop-shadow-[0_0_10px_rgba(0,255,102,0.3)]">Thedude9</span></h1>
@@ -88,14 +80,11 @@
       </div>
     </section>
 
-    <!-- PAGE 2: EXPLORATION PORTAL DASHBOARD -->
     <section id="main-exploration-hub" class="hidden space-y-8">
       
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
-        <!-- Main Panel Catalog Grid Column -->
         <div class="lg:col-span-2 space-y-8">
-          <!-- Recent Releases Scroller -->
           <div id="recommendations-container-block" class="space-y-3">
             <div class="border-b border-dark pb-2">
               <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Recently Updated Releases (Anikoto API)</h2>
@@ -105,7 +94,6 @@
             </div>
           </div>
 
-          <!-- Dynamic Database Media Grid -->
           <div class="space-y-3">
             <div class="border-b border-dark pb-2">
               <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Trending Global Media Items</h2>
@@ -114,7 +102,6 @@
           </div>
         </div>
 
-        <!-- Sidebar Content Block Panel -->
         <div class="space-y-6">
           <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
             <div class="flex items-center justify-between border-b border-dark pb-2">
@@ -131,7 +118,6 @@
             <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
           </div>
 
-          <!-- Top 10 Sidebar -->
           <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
             <div class="border-b border-dark pb-2">
               <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Watched Globally</h3>
@@ -143,16 +129,13 @@
       </div>
     </section>
 
-    <!-- PAGE 3: MOUNTED STREAM VIEW DASHBOARD -->
     <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
       <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-emerald-500/20 shadow-2xl">
         <div id="player-box" class="w-full h-full">
-          <!-- Added structural adjustments and native onerror hooks to watch the frame -->
           <iframe id="video-iframe" class="w-full h-full" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
         </div>
       </div>
 
-      <!-- Server & Language Controls -->
       <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark p-3 rounded-xl gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
@@ -168,13 +151,11 @@
         </div>
       </div>
 
-      <!-- Video Control Metadata -->
       <div class="bg-dark-card border border-dark rounded-xl p-4">
         <h2 id="ep-title" class="text-sm font-bold text-white">Streaming Catalog Suite</h2>
         <p class="text-xs text-gray-500 mt-0.5">Automated episode smart switching updates natively enabled via message-channel handshakes.</p>
       </div>
 
-      <!-- Dynamic Node Grid Lists -->
       <div class="space-y-2">
         <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Available Episode Indices</span>
         <div id="episode-buttons" class="flex flex-wrap gap-2"></div>
@@ -183,7 +164,6 @@
 
   </main>
 
-  <!-- DRAWER INTERACTIVE THEME BOX SLIDERS -->
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#111111] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
     <div class="max-w-md mx-auto space-y-6">
@@ -225,10 +205,8 @@
     </div>
   </div>
 
-  <!-- LOAD 9ANIME SCRAPER FROM CDN PACKAGE SCOPE -->
   <script src="https://cdn.jsdelivr.net/npm/9anime-scraper@1.1.1/index.min.js"></script>
 
-  <!-- APPLICATION CONTROLLER LOGIC ENGINE -->
   <script>
     const ANIKOTO_BASE = "https://anikotoapi.site";
     
@@ -248,7 +226,7 @@
         animeScraperInstance = new NineAnimeScraper();
       }
     } catch(e) {
-      console.log("CDN Scraper configuration initialized with fallback flags.");
+      console.log("CDN Scraper config standby.");
     }
 
     function toggleMainMenu() {
@@ -327,6 +305,7 @@
     async function loadMainHubFeeds() {
       fetchLiveReleasingSchedule(activeScheduleDay);
       try {
+        // Populates your Anikoto horizontal scroll container
         const res = await fetch(`${ANIKOTO_BASE}/recent-anime?page=1&per_page=12`);
         const json = await res.json();
         const dataset = json.data || json;
@@ -334,6 +313,7 @@
           displayScrollFeed(dataset, 'recommendations-scroller');
         }
         
+        // Populates your dynamic bottom cards and side columns
         const aniListQuery = `query { Page(page: 1, perPage: 12) { media(sort: TRENDING_DESC, type: ANIME) { id idMal title { english romaji } coverImage { large } episodes } } }`;
         const graphRes = await fetch('https://graphql.anilist.co', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: aniListQuery })
@@ -421,7 +401,7 @@
           div.onclick = () => loadStreamingLayout(item.media.idMal || item.media.id, title, item.media.episodes || 12);
           scheduleBox.appendChild(div);
         });
-      } catch (error) { scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>`; }
+      } catch (error) { scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>'; }
     }
 
     function displayScrollFeed(animeArray, elementId) {
@@ -470,8 +450,10 @@
       window.activeAnimeTitle = titleName;
       window.activeMaxEpisodes = totalEpisodes || 12;
 
+      document.getElementById('landing-portal').classList.add('hidden');
       document.getElementById('main-exploration-hub').classList.add('hidden');
       document.getElementById('stream-dashboard-box').classList.remove('hidden');
+      document.getElementById('header-search-engine').classList.remove('hidden');
       document.getElementById('ep-title').innerText = `Watching: ${titleName}`;
       
       activeSourceMode = 'anikoto';
@@ -507,7 +489,6 @@
       const iframe = document.getElementById('video-iframe');
       if (!iframe) return;
 
-      // FIXED: Aggressive window.streamLoadGuard timer completely removed to avoid dropping working streams.
       if (activeSourceMode === 'anikoto' && currentAnikotoEmbedId) {
         iframe.src = `https://megaplay.buzz/stream/s-2/${currentAnikotoEmbedId}/${currentLanguage}`;
       } else if (activeSourceMode === 'mal') {
@@ -530,7 +511,6 @@
       }
     }
 
-    // Fallback cascade runs ONLY if a server switch is requested or a direct iframe error triggers
     function handleAutomaticFallback() {
       if (activeSourceMode === 'anikoto') {
         setServerSource('mal');
@@ -577,7 +557,6 @@
       launchVideoPlayer(currentEpisodeIndex);
     }
 
-    // Listens for completed playback to trigger auto-next
     window.addEventListener("message", function (event) {
       let data = event.data;
       if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
@@ -590,6 +569,8 @@
     window.onload = function() {
       startSystemClock();
       updateRgbMixer();
+      // FIXED: Forces data maps to sync immediately on window lifecycle bootstrap
+      loadMainHubFeeds();
     };
   </script>
 </body>
