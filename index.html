@@ -23,7 +23,7 @@
   <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#050505] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
     <div class="p-4 flex items-center justify-between border-b border-dark">
       <div class="flex items-center space-x-2">
-        <img src="1781803910241.png" alt="Logo" class="h-7 object-contain">
+        <img id="drawer-logo" src="" alt="Logo" class="h-7 object-contain">
       </div>
       <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-xmark text-lg"></i>
@@ -45,7 +45,7 @@
         <i class="fa-solid fa-bars"></i>
       </button>
       <div onclick="homeReturnReset()" class="flex items-center cursor-pointer transition-transform active:scale-95">
-        <img src="1781803910241.png" alt="Thedude9 Anime Logo" class="h-8 md:h-9 object-contain drop-shadow-[0_0_6px_rgba(0,255,102,0.3)]">
+        <img id="nav-logo" src="" alt="Thedude9 Anime Logo" class="h-8 md:h-9 object-contain drop-shadow-[0_0_6px_rgba(0,255,102,0.3)]">
       </div>
     </div>
     
@@ -69,7 +69,7 @@
     <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
       <div class="max-w-xl w-full space-y-6">
         <div class="flex justify-center mb-2">
-          <img src="1781803910241.png" alt="Thedude9 Anime Showcase" class="w-72 max-w-full object-contain drop-shadow-[0_0_20px_rgba(0,255,102,0.25)] select-none">
+          <img id="landing-logo" src="" alt="Thedude9 Anime Showcase" class="w-72 max-w-full object-contain drop-shadow-[0_0_20px_rgba(0,255,102,0.25)] select-none">
         </div>
         <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
@@ -221,7 +221,9 @@
 
   <script>
     const ANIKOTO_BASE = "https://anikotoapi.site";
-    const FALLBACK_LOGO = "1781803910241.png";
+    
+    // CHANGE THIS VALUE TO YOUR NEW IMAGE NAME OR URL PATH
+    const GLOBAL_LOGO_URL = "1781803910241.png"; 
     
     let currentEpisodeIndex = 1;
     let currentLanguage = 'sub';
@@ -240,6 +242,15 @@
       }
     } catch(e) {
       console.log("CDN Scraper config standby.");
+    }
+
+    // Assign branding logo strings globally
+    function initializeLogos() {
+      const ids = ['drawer-logo', 'nav-logo', 'landing-logo'];
+      ids.forEach(id => {
+        const img = document.getElementById(id);
+        if (img) img.src = GLOBAL_LOGO_URL;
+      });
     }
 
     function toggleMainMenu() {
@@ -512,10 +523,10 @@
       container.innerHTML = '';
       animeArray.forEach(anime => {
         const title = anime.title || anime.name || "Anime Series";
-        const imgUrl = anime.image || anime.poster || FALLBACK_LOGO;
+        const imgUrl = anime.image || anime.poster || GLOBAL_LOGO_URL;
         const div = document.createElement('div');
         div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all text-[11px]";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='${FALLBACK_LOGO}'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='${GLOBAL_LOGO_URL}'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.mal_id || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -528,10 +539,10 @@
       animeArray.forEach(anime => {
         if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
-        const imgUrl = anime.coverImage?.large || FALLBACK_LOGO;
+        const imgUrl = anime.coverImage?.large || GLOBAL_LOGO_URL;
         const div = document.createElement('div');
         div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all flex flex-col justify-between text-xs";
-        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='${FALLBACK_LOGO}'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full" onerror="this.src='${GLOBAL_LOGO_URL}'"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
@@ -604,7 +615,6 @@
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
 
-      // Sync active state indicators
       for (let i = 1; i <= window.activeMaxEpisodes; i++) {
         const btn = document.getElementById(`ep-btn-${i}`);
         if (btn) {
@@ -652,7 +662,6 @@
       launchVideoPlayer(currentEpisodeIndex);
     }
 
-    // Modern neon glowing indicator for active servers
     function updateServerButtonsUI() {
       ['anikoto', 'mal', 'cdn-9anime'].forEach(src => {
         const btn = document.getElementById(`server-${src}`);
@@ -689,6 +698,7 @@
     });
 
     window.onload = function() {
+      initializeLogos();
       startSystemClock();
       if(typeof updateRgbMixer === 'function') updateRgbMixer();
       
