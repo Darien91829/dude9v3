@@ -5,96 +5,770 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thedude9 Anime</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #050505; }
     .bg-dark-card { background-color: #111111; }
     .bg-dark-input { background-color: #1c1c1e; }
     .border-dark { border-color: #1c1c1e; }
-    .genre-tag.active { background-color: #10b981 !important; color: #000000 !important; border-color: #10b981 !important; }
+    
+    .scroll-row::-webkit-scrollbar { height: 4px; }
+    .scroll-row::-webkit-scrollbar-track { background: #050505; }
+    .scroll-row::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 2px; }
+    
+    /* Genre tag active states */
+    .genre-tag.active {
+      background-color: #10b981 !important;
+      color: #000000 !important;
+      border-color: #10b981 !important;
+    }
   </style>
 </head>
 <body class="text-gray-200 min-h-screen relative overflow-x-hidden">
 
+  <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#050505] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+    <div class="p-4 flex items-center justify-between border-b border-dark">
+      <span class="text-emerald-400 text-lg font-bold tracking-wider">Thedude9 Menu</span>
+      <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="p-4 space-y-6 text-sm">
+      <div class="space-y-3">
+        <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block">Navigation</span>
+        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-emerald-400 py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
+        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-emerald-400 py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
+      </div>
+    </div>
+  </div>
+  <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40"></div>
+
+  <nav class="sticky top-0 z-30 bg-[#050505]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div onclick="homeReturnReset()" class="flex items-center space-x-2 cursor-pointer">
+        <span class="text-emerald-400 text-xl font-bold tracking-wider drop-shadow-[0_0_8px_rgba(0,255,102,0.5)]">Thedude9</span>
+      </div>
+    </div>
+    
+    <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
+      <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+      </span>
+      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none focus:border-emerald-500 text-gray-300">
+      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-palette"></i>
+      </button>
+    </div>
+  </nav>
+
   <main class="max-w-7xl mx-auto px-4 py-6">
+
     <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-12 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-emerald-950/10 to-transparent">
       <div class="max-w-2xl w-full space-y-6">
-        <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to <span class="text-emerald-400">Thedude9</span></h1>
+        <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to <span class="text-emerald-400 drop-shadow-[0_0_10px_rgba(0,255,102,0.3)]">Thedude9</span></h1>
+        <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
         
-        <div class="bg-dark-card p-2 rounded-full border border-dark flex items-center shadow-2xl">
-          <input type="text" id="search-input" placeholder="Search titles..." class="w-full bg-transparent pl-4 pr-2 text-sm focus:outline-none text-white">
+        <div class="bg-dark-card p-2 rounded-full border border-dark flex items-center shadow-2xl focus-within:border-emerald-500 transition-all">
+          <input type="text" id="search-input" placeholder="Search titles or click filters below..." class="w-full bg-transparent pl-4 pr-2 text-sm focus:outline-none text-white">
           <button onclick="triggerCatalogSearch(false)" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
         </div>
 
         <div class="bg-dark-card border border-dark rounded-xl p-4 text-left space-y-4 shadow-xl">
           <div class="flex items-center justify-between border-b border-dark/60 pb-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Advanced Filters</span>
-            <button onclick="resetAdvancedFilters()" class="text-[10px] bg-dark-input border border-dark text-gray-400 py-1 px-2.5 rounded">Reset</button>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+              <i class="fa-solid fa-sliders"></i> Refine Index Results
+            </span>
+            <button onclick="resetAdvancedFilters()" class="text-[10px] bg-dark-input hover:text-white border border-dark text-gray-400 py-1 px-2.5 rounded transition-all">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+            </button>
           </div>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-[10px] font-bold uppercase text-gray-500">Format</label>
-              <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300">
+
+          <div class="space-y-1.5">
+            <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider block">Genres and Themes</span>
+            <div id="genres-container" class="flex flex-wrap gap-1.5">
+              <button onclick="toggleGenreTag(this, 'Action')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Action</button>
+              <button onclick="toggleGenreTag(this, 'Adventure')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Adventure</button>
+              <button onclick="toggleGenreTag(this, 'Comedy')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Comedy</button>
+              <button onclick="toggleGenreTag(this, 'Drama')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Drama</button>
+              <button onclick="toggleGenreTag(this, 'Fantasy')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Fantasy</button>
+              <button onclick="toggleGenreTag(this, 'Mystery')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Mystery</button>
+              <button onclick="toggleGenreTag(this, 'Romance')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Romance</button>
+              <button onclick="toggleGenreTag(this, 'Sci-Fi')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Sci-Fi</button>
+              <button onclick="toggleGenreTag(this, 'Slice of Life')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Slice of Life</button>
+              <button onclick="toggleGenreTag(this, 'Supernatural')" class="genre-tag text-[11px] font-medium px-2.5 py-1 rounded bg-dark-input border border-dark text-gray-300 hover:border-emerald-500/50 transition-all">Supernatural</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Format</label>
+              <select id="filter-format" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
                 <option value="">All Formats</option>
                 <option value="TV">TV Series</option>
                 <option value="MOVIE">Movie</option>
+                <option value="OVA">OVA</option>
+                <option value="SPECIAL">Special</option>
               </select>
             </div>
-            <div>
-              <label class="text-[10px] font-bold uppercase text-gray-500">Sort Order</label>
-              <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300">
-                <option value="POPULARITY_DESC">Popular</option>
-                <option value="TRENDING_DESC">Trending</option>
+            
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">Sort Order</label>
+              <select id="filter-sort" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+                <option value="POPULARITY_DESC">Popularity Descending</option>
+                <option value="TRENDING_DESC">Trending Descending</option>
                 <option value="SCORE_DESC">Highest Rated</option>
+                <option value="START_DATE_DESC">Newest Released</option>
               </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">From Year</label>
+              <input type="number" id="filter-year-from" min="1990" max="2026" placeholder="2000" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider block">To Year</label>
+              <input type="number" id="filter-year-to" min="1990" max="2026" placeholder="2026" class="w-full text-xs bg-dark-input border border-dark rounded p-2 text-gray-300 focus:outline-none focus:border-emerald-500">
             </div>
           </div>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="openExplorationHub()" class="bg-emerald-500 text-black shadow-[0_4px_20px_rgba(0,255,102,0.2)] hover:bg-emerald-400 px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
         </div>
       </div>
     </section>
 
     <section id="main-exploration-hub" class="hidden space-y-8">
-        <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            <p class="text-xs text-gray-500">Loading catalog...</p>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        <div class="lg:col-span-2 space-y-8">
+          <div id="recommendations-container-block" class="space-y-3">
+            <div class="border-b border-dark pb-2">
+              <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Recently Updated Releases (Anikoto API)</h2>
+            </div>
+            <div id="recommendations-scroller" class="scroll-row flex gap-4 overflow-x-auto pb-3">
+              <p class="text-xs text-gray-500">Syncing index files...</p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="border-b border-dark pb-2">
+              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Trending Global Media Items</h2>
+            </div>
+            <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <p class="text-xs text-gray-500">Syncing trending files...</p>
+            </div>
+          </div>
         </div>
+
+        <div class="space-y-6">
+          <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
+            <div class="flex items-center justify-between border-b border-dark pb-2">
+              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
+              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-emerald-950/50 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800/30">00:00:00 JST</div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-md text-[10px] font-bold uppercase text-center">
+              <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded text-gray-500 hover:text-white">Yesterday</button>
+              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded bg-emerald-500 text-black">Today</button>
+              <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded text-gray-500 hover:text-white">Tomorrow</button>
+            </div>
+
+            <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
+          </div>
+
+          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
+            <div class="border-b border-dark pb-2">
+              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Watched Globally</h3>
+            </div>
+            <div id="top10-box" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+      </div>
     </section>
+
+    <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
+      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-emerald-500/20 shadow-2xl">
+        <div id="player-box" class="w-full h-full relative">
+          <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
+            <p class="text-sm font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">⚠️ Node Processing Standby</p>
+            <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
+            <button onclick="openExplorationHub()" class="mt-4 bg-emerald-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
+          </div>
+          <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark p-3 rounded-xl gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
+          <button id="server-anikoto" onclick="setServerSource('anikoto')" class="bg-emerald-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-emerald-500">Anikoto</button>
+          <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay MAL</button>
+          <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
+        </div>
+        
+        <div class="flex items-center space-x-1">
+          <button id="sub-btn" onclick="setLanguage('sub')" class="bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500">SUB</button>
+          <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 rounded-r-md border border-dark hover:text-white">DUB</button>
+        </div>
+      </div>
+
+      <div class="bg-dark-card border border-dark rounded-xl p-4">
+        <h2 id="ep-title" class="text-sm font-bold text-white">Streaming Catalog Suite</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Automated episode smart switching updates natively enabled via message-channel handshakes.</p>
+      </div>
+
+      <div class="space-y-2">
+        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Available Episode Indices</span>
+        <div id="episode-buttons" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
+
   </main>
 
-  <script>
-    // Updated function to handle auto-popular load
-    async function triggerCatalogSearch(fromHeader = false) {
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.remove('hidden');
+  <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
+  <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#111111] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
+    <div class="max-w-md mx-auto space-y-6">
+      <div class="text-center">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">RGB Theme Accent Mixer</h3>
+      </div>
       
-      const query = document.getElementById('search-input').value;
-      const format = document.getElementById('filter-format').value || null;
-      const sort = document.getElementById('filter-sort').value || "POPULARITY_DESC";
+      <div class="space-y-3 bg-dark-input p-4 rounded-xl border border-dark">
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="w-4 text-red-500 font-bold">R</span>
+          <input type="range" id="range-r" min="0" max="255" value="0" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
+          <span id="val-r" class="font-mono w-8 text-right text-gray-500">0</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="w-4 text-emerald-500 font-bold">G</span>
+          <input type="range" id="range-g" min="0" max="255" value="255" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
+          <span id="val-g" class="font-mono w-8 text-right text-gray-500">255</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="w-4 text-cyan-500 font-bold">B</span>
+          <input type="range" id="range-b" min="0" max="255" value="102" oninput="updateRgbMixer()" class="w-full accent-emerald-500">
+          <span id="val-b" class="font-mono w-8 text-right text-gray-500">102</span>
+        </div>
+        <div id="rgb-preview" class="h-6 rounded-md border border-dark mt-2"></div>
+      </div>
 
-      const variables = { q: query || null, format: format, sort: [sort] };
+      <div class="space-y-2 text-xs">
+        <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
+          <input type="radio" id="radio-pitch-black" name="bg-selection" value="pitch-black" checked class="accent-emerald-500">
+          <span class="font-medium text-gray-300">Pitch Dark Canvas</span>
+        </label>
+        <label class="flex items-center space-x-3 p-3 bg-dark-input rounded-xl border border-dark cursor-pointer">
+          <input type="radio" id="radio-dark-gray" name="bg-selection" value="dark-gray" class="accent-emerald-500">
+          <span class="font-medium text-gray-300">Dark Charcoal Mix</span>
+        </label>
+      </div>
+
+      <button onclick="saveThemeAndClose()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition-colors">Apply Visual Matrix</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/9anime-scraper@1.1.1/index.min.js"></script>
+
+  <script>
+    const ANIKOTO_BASE = "https://anikotoapi.site";
+    
+    let currentEpisodeIndex = 1;
+    let currentLanguage = 'sub';
+    let activeScheduleDay = 'today';
+    let activeSourceMode = 'anikoto'; 
+    let currentAnikotoEmbedId = null;
+
+    window.currentMalId = null;
+    window.activeAnimeTitle = "";
+    window.activeMaxEpisodes = 12;
+
+    // Track active genres filtering collection array
+    let selectedGenres = [];
+
+    let animeScraperInstance = null;
+    try {
+      if (typeof NineAnimeScraper !== 'undefined') {
+        animeScraperInstance = new NineAnimeScraper();
+      }
+    } catch(e) {
+      console.log("CDN Scraper config standby.");
+    }
+
+    function toggleMainMenu() {
+      const drawer = document.getElementById('main-menu-drawer');
+      const overlay = document.getElementById('menu-overlay');
+      if (drawer.classList.contains('-translate-x-full')) {
+        drawer.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      } else {
+        drawer.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function startSystemClock() {
+      setInterval(() => {
+        const now = new Date();
+        const jstString = now.toLocaleTimeString("en-US", {
+          timeZone: "Asia/Tokyo", hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+        const clockEl = document.getElementById('live-24h-clock');
+        if (clockEl) clockEl.innerText = `${jstString} JST`;
+      }, 1000);
+    }
+
+    function openBottomSheet() {
+      document.getElementById('sheet-overlay').classList.remove('hidden');
+      document.getElementById('bottom-sheet-menu').classList.remove('translate-y-full');
+    }
+
+    function closeBottomSheet() {
+      document.getElementById('sheet-overlay').classList.add('hidden');
+      document.getElementById('bottom-sheet-menu').classList.add('translate-y-full');
+    }
+
+    function updateRgbMixer() {
+      const r = document.getElementById('range-r').value;
+      const g = document.getElementById('range-g').value;
+      const b = document.getElementById('range-b').value;
+      document.getElementById('val-r').innerText = r;
+      document.getElementById('val-g').innerText = g;
+      document.getElementById('val-b').innerText = b;
+      document.getElementById('rgb-preview').style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function saveThemeAndClose() {
+      const isCharcoal = document.getElementById('radio-dark-gray').checked;
+      let bg = "#050505", card = "#111111", input = "#1c1c1e";
+      if (isCharcoal) { bg = "#1a1a1e"; card = "#252529"; input = "#2c2c35"; }
+      
+      document.body.style.backgroundColor = bg;
+      document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = card);
+      document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = input);
+      closeBottomSheet();
+    }
+
+    function openExplorationHub() {
+      document.getElementById('landing-portal').classList.add('hidden');
+      document.getElementById('stream-dashboard-box').classList.add('hidden');
+      document.getElementById('main-exploration-hub').classList.remove('hidden');
+      document.getElementById('header-search-engine').classList.remove('hidden');
+      document.getElementById('recommendations-container-block').classList.remove('hidden');
+      document.getElementById('grid-header-title').innerText = "Trending Global Media Items";
+      loadMainHubFeeds();
+    }
+
+    function homeReturnReset() {
+      document.getElementById('stream-dashboard-box').classList.add('hidden');
+      document.getElementById('main-exploration-hub').classList.add('hidden');
+      document.getElementById('header-search-engine').classList.add('hidden');
+      document.getElementById('landing-portal').classList.remove('hidden');
+      document.getElementById('search-input').value = "";
+      document.getElementById('header-search-input').value = "";
+      resetAdvancedFilters();
+    }
+
+    // Toggle active status UI state for targeted genre chips
+    function toggleGenreTag(element, genreName) {
+      if (element.classList.contains('active')) {
+        element.classList.remove('active');
+        selectedGenres = selectedGenres.filter(g => g !== genreName);
+      } else {
+        element.classList.add('active');
+        selectedGenres.push(genreName);
+      }
+    }
+
+    // Reset all filtration inputs back to default positions
+    function resetAdvancedFilters() {
+      selectedGenres = [];
+      document.querySelectorAll('.genre-tag').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('filter-format').value = "";
+      document.getElementById('filter-sort').value = "POPULARITY_DESC";
+      document.getElementById('filter-year-from').value = "";
+      document.getElementById('filter-year-to').value = "";
+    }
+
+    async function loadMainHubFeeds() {
+      fetchLiveReleasingSchedule(activeScheduleDay);
+      
+      try {
+        const res = await fetch(`${ANIKOTO_BASE}/recent-anime?page=1&per_page=12`);
+        const json = await res.json();
+        const dataset = json.data || json;
+        if(Array.isArray(dataset) && dataset.length > 0) {
+          displayScrollFeed(dataset, 'recommendations-scroller');
+        } else {
+          handleAnikotoScrollerEmpty();
+        }
+      } catch (err) {
+        handleAnikotoScrollerEmpty();
+      }
+        
+      try {
+        const aniListQuery = `query { Page(page: 1, perPage: 12) { media(sort: TRENDING_DESC, type: ANIME) { id idMal title { english romaji } coverImage { large } episodes } } }`;
+        const graphRes = await fetch('https://graphql.anilist.co', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: aniListQuery })
+        });
+        const graphJson = await graphRes.json();
+        const trendingItems = graphJson.data?.Page?.media || [];
+        if(trendingItems.length > 0) {
+          displayGridFeed(trendingItems, 'results-grid');
+          displayTop10Sidebar(trendingItems);
+        } else {
+          document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No trending items returned from server.</p>";
+        }
+      } catch (err) {
+        document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Error loading layout catalog channels.</p>";
+      }
+    }
+
+    function handleAnikotoScrollerEmpty() {
+      document.getElementById('recommendations-scroller').innerHTML = "<p class='text-xs text-gray-600 italic'>Anikoto scroller engine offline. Use core catalog below.</p>";
+    }
+
+    // NEW COMPREHENSIVE MULTI-FILTER SEARCH ENGINE INTERFACE (Replaces Title-Only Lock)
+    async function triggerCatalogSearch(fromHeader = false) {
+      const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
+      const query = document.getElementById(queryFieldId).value.trim();
+      
+      // Mirror search values across input bars
+      document.getElementById('search-input').value = query;
+      document.getElementById('header-search-input').value = query;
+
+      // Swap viewport visibility nodes
+      document.getElementById('landing-portal').classList.add('hidden');
+      document.getElementById('stream-dashboard-box').classList.add('hidden');
+      document.getElementById('main-exploration-hub').classList.remove('hidden');
+      document.getElementById('header-search-engine').classList.remove('hidden');
+      document.getElementById('recommendations-container-block').classList.add('hidden');
+      
+      document.getElementById('grid-header-title').innerText = query ? `Catalog Matches: "${query}"` : "Filtered Catalog Results";
+      document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
+      
+      // Pull and pack variable references from filter components
+      const selectedFormat = document.getElementById('filter-format').value || null;
+      const selectedSort = document.getElementById('filter-sort').value || "POPULARITY_DESC";
+      const yearFrom = parseInt(document.getElementById('filter-year-from').value) || null;
+      const yearTo = parseInt(document.getElementById('filter-year-to').value) || null;
+
+      // Build out dynamic AniList parameters query variables schema
+      let variables = {
+        sort: [selectedSort]
+      };
+
+      if (query) variables.q = query;
+      if (selectedGenres.length > 0) variables.genres = selectedGenres;
+      if (selectedFormat) variables.format = selectedFormat;
+      
+      // Handle setting complex date windows if filter inputs exist
+      if (yearFrom) {
+        variables.startDate = parseInt(yearFrom + "0000");
+      }
+      if (yearTo) {
+        variables.endDate = parseInt(yearTo + "1231");
+      }
+
+      // GraphQL complex variable configuration template structure
       const aniListSearchQuery = `
-        query ($q: String, $format: MediaFormat, $sort: [MediaSort]) {
+        query ($q: String, $genres: [String], $format: MediaFormat, $sort: [MediaSort], $startDate: FuzzyDateInt, $endDate: FuzzyDateInt) {
           Page(page: 1, perPage: 24) {
-            media(search: $q, format: $format, sort: $sort, type: ANIME) {
-              id idMal title { romaji } coverImage { large } episodes
+            media(search: $q, genre_in: $genres, format: $format, sort: $sort, startDate_greater: $startDate, endDate_less: $endDate, type: ANIME) {
+              id
+              idMal
+              title {
+                english
+                romaji
+              }
+              coverImage {
+                large
+              }
+              episodes
             }
           }
         }`;
 
-      const res = await fetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: aniListSearchQuery, variables: variables })
-      });
-      const json = await res.json();
-      displayGridFeed(json.data.Page.media, 'results-grid');
+      try {
+        const graphRes = await fetch('https://graphql.anilist.co', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: aniListSearchQuery, variables: variables })
+        });
+        const json = await graphRes.json();
+        const results = json.data?.Page?.media || [];
+        
+        if(results.length === 0) {
+          document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No valid endpoint matching patterns found. Try adjusting filter tags.</p>";
+        } else {
+          displayGridFeed(results, 'results-grid');
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>API filter mapping processing error.</p>";
+      }
     }
 
-    // Auto-load popular items on start
+    function changeScheduleDay(targetDay) {
+      activeScheduleDay = targetDay;
+      document.getElementById('tab-yesterday').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      document.getElementById('tab-today').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      document.getElementById('tab-tomorrow').className = "py-1.5 rounded text-gray-500 hover:text-white";
+      document.getElementById(`tab-${targetDay}`).className = "py-1.5 rounded bg-emerald-500 text-black";
+      fetchLiveReleasingSchedule(targetDay);
+    }
+
+    async function fetchLiveReleasingSchedule(dayMode) {
+      const scheduleBox = document.getElementById('schedule-box');
+      scheduleBox.innerHTML = '<p class="text-gray-500 text-[11px]">Querying timelines...</p>';
+      
+      const nowJst = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+      const dayOffsetMap = { 'yesterday': -1, 'today': 0, 'tomorrow': 1 };
+      nowJst.setDate(nowJst.getDate() + dayOffsetMap[dayMode]);
+      nowJst.setHours(0,0,0,0);
+      
+      const startTimestamp = Math.floor(nowJst.getTime() / 1000);
+      const endTimestamp = startTimestamp + 86400;
+
+      const scheduleQuery = `
+        query ($start: Int, $end: Int) { 
+          Page(page: 1, perPage: 25) { 
+            airingSchedules(airingAt_greater: $start, airingAt_less: $end, sort: TIME_ASC) { 
+              episode
+              airingAt
+              media { 
+                id 
+                idMal 
+                title { 
+                  english 
+                  romaji 
+                } 
+                coverImage { 
+                  large 
+                } 
+                episodes 
+              } 
+            } 
+          } 
+        }`;
+      
+      try {
+        const response = await fetch('https://graphql.anilist.co', {
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ query: scheduleQuery, variables: { start: startTimestamp, end: endTimestamp } })
+        });
+        const json = await response.json();
+        const schedules = json.data?.Page?.airingSchedules || [];
+        
+        if(schedules.length === 0) {
+          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No calendar items found for this window.</p>`;
+          return;
+        }
+        
+        scheduleBox.innerHTML = '';
+        
+        schedules.forEach(item => {
+          if (!item.media) return;
+          const title = item.media.title.english || item.media.title.romaji;
+          const airDate = new Date(item.airingAt * 1000);
+          const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+          
+          const div = document.createElement('div');
+          div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-emerald-500/30 cursor-pointer transition-all";
+          div.innerHTML = `
+            <div class="flex flex-col truncate pr-2">
+              <span class="truncate font-medium text-gray-300">${title}</span>
+              <span class="text-[9px] text-gray-500">Episode ${item.episode}</span>
+            </div>
+            <span class="font-mono text-[10px] text-emerald-400 shrink-0 align-middle">${timeString}</span>
+          `;
+          div.onclick = () => loadStreamingLayout(item.media.idMal || item.media.id, title, item.media.episodes || 12);
+          scheduleBox.appendChild(div);
+        });
+      } catch (error) { 
+        console.error(error);
+        scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>`; 
+      }
+    }
+
+    function displayScrollFeed(animeArray, elementId) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      animeArray.forEach(anime => {
+        const title = anime.title || anime.name || "Anime Series";
+        const imgUrl = anime.image || anime.poster || 'https://images.alphacoders.com/134/1344238.png';
+        const div = document.createElement('div');
+        div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all text-[11px]";
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.onclick = () => loadStreamingLayout(anime.mal_id || anime.id, title, anime.episodes || 12);
+        container.appendChild(div);
+      });
+    }
+
+    function displayGridFeed(animeArray, elementId) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      animeArray.forEach(anime => {
+        const title = anime.title.english || anime.title.romaji;
+        const imgUrl = anime.coverImage.large;
+        const div = document.createElement('div');
+        div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer hover:border-emerald-500 transition-all flex flex-col justify-between text-xs";
+        div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+        div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
+        container.appendChild(div);
+      });
+    }
+
+    function displayTop10Sidebar(animeArray) {
+      const container = document.getElementById('top10-box');
+      container.innerHTML = '';
+      animeArray.slice(0, 6).forEach((anime, idx) => {
+        const title = anime.title.english || anime.title.romaji;
+        const div = document.createElement('div');
+        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 hover:border-emerald-500/30 cursor-pointer transition-all";
+        div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium">${title}</span>`;
+        div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
+        container.appendChild(div);
+      });
+    }
+
+    window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
+      window.currentMalId = malId;
+      window.activeAnimeTitle = titleName;
+      window.activeMaxEpisodes = totalEpisodes || 12;
+
+      document.getElementById('landing-portal').classList.add('hidden');
+      document.getElementById('main-exploration-hub').classList.add('hidden');
+      document.getElementById('stream-dashboard-box').classList.remove('hidden');
+      document.getElementById('header-search-engine').classList.remove('hidden');
+      document.getElementById('ep-title').innerText = `Watching: ${titleName}`;
+      
+      activeSourceMode = 'anikoto';
+      currentAnikotoEmbedId = null;
+      updateServerButtonsUI();
+
+      try {
+        const res = await fetch(`${ANIKOTO_BASE}/series/${malId}`);
+        const data = await res.json();
+        if (data && data.episodes && data.episodes[0]) {
+          currentAnikotoEmbedId = data.episodes[0].episode_embed_id || data.episodes[0].id;
+        }
+      } catch(e) {
+        console.log("Anikoto unmapped, switching default mode to MAL.");
+        activeSourceMode = 'mal';
+        updateServerButtonsUI();
+      }
+
+      const epBox = document.getElementById('episode-buttons');
+      epBox.innerHTML = '';
+      for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+        const btn = document.createElement('button');
+        btn.className = "bg-dark-input text-gray-400 border border-dark hover:border-emerald-500 text-xs font-bold w-10 h-10 rounded-lg transition-all focus:bg-emerald-500 focus:text-black focus:border-emerald-500";
+        btn.innerText = i;
+        btn.onclick = () => launchVideoPlayer(i);
+        epBox.appendChild(btn);
+      }
+      launchVideoPlayer(1);
+    };
+
+    async function launchVideoPlayer(epNum) {
+      currentEpisodeIndex = epNum;
+      const iframe = document.getElementById('video-iframe');
+      const noticeOverlay = document.getElementById('notice-overlay');
+      if (!iframe) return;
+
+      noticeOverlay.classList.add('hidden');
+      iframe.classList.remove('hidden');
+
+      if (activeSourceMode === 'anikoto' && currentAnikotoEmbedId) {
+        iframe.src = `https://megaplay.buzz/stream/s-2/${currentAnikotoEmbedId}/${currentLanguage}`;
+      } else if (activeSourceMode === 'mal') {
+        iframe.src = `https://megaplay.buzz/stream/mal/${window.currentMalId}/${epNum}/${currentLanguage}`;
+      } else if (activeSourceMode === 'cdn-9anime') {
+        try {
+          if (animeScraperInstance && typeof animeScraperInstance.getStreamUrl === 'function') {
+            const streamUrl = await animeScraperInstance.getStreamUrl(window.activeAnimeTitle, epNum, currentLanguage);
+            if (streamUrl) {
+              iframe.src = streamUrl;
+              return;
+            }
+          }
+          handleAutomaticFallback();
+        } catch (error) {
+          handleAutomaticFallback();
+        }
+      }
+    }
+
+    function handleAutomaticFallback() {
+      if (activeSourceMode === 'anikoto') {
+        setServerSource('mal');
+      } else if (activeSourceMode === 'mal') {
+        setServerSource('cdn-9anime');
+      } else {
+        handleStreamMissingNotice();
+      }
+    }
+
+    function setServerSource(mode) {
+      activeSourceMode = mode;
+      updateServerButtonsUI();
+      launchVideoPlayer(currentEpisodeIndex);
+    }
+
+    style = document.createElement('style');
+    function updateServerButtonsUI() {
+      ['anikoto', 'mal', 'cdn-9anime'].forEach(src => {
+        const btn = document.getElementById(`server-${src}`);
+        if (!btn) return;
+        if (activeSourceMode === src) {
+          btn.className = "bg-emerald-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold border border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.3)] transition-all";
+        } else {
+          btn.className = "bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white transition-all";
+        }
+      });
+    }
+
+    function handleStreamMissingNotice() {
+      const iframe = document.getElementById('video-iframe');
+      const noticeOverlay = document.getElementById('notice-overlay');
+      if (iframe) iframe.classList.add('hidden');
+      if (noticeOverlay) noticeOverlay.classList.remove('hidden');
+    }
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      document.getElementById('sub-btn').className = lang === 'sub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      document.getElementById('dub-btn').className = lang === 'dub' ? "bg-emerald-500 text-black text-xs font-bold px-4 py-1.5 rounded-r-md border border-emerald-500" : "bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 border border-dark hover:text-white";
+      launchVideoPlayer(currentEpisodeIndex);
+    }
+
+    window.addEventListener("message", function (event) {
+      let data = event.data;
+      if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
+      if (data && data.event === "complete") {
+        const nextEp = currentEpisodeIndex + 1;
+        if (nextEp <= window.activeMaxEpisodes) launchVideoPlayer(nextEp);
+      }
+    });
+
     window.onload = function() {
-        // Trigger initial search for popular anime
-        triggerCatalogSearch();
+      startSystemClock();
+      updateRgbMixer();
+      setTimeout(() => {
+        loadMainHubFeeds();
+      }, 150);
     };
   </script>
 </body>
