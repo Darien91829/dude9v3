@@ -222,8 +222,8 @@
   <script>
     const ANIKOTO_BASE = "https://anikotoapi.site";
     
-    // CHANGE THIS VALUE TO YOUR NEW IMAGE NAME OR URL PATH
-    const GLOBAL_LOGO_URL = "1781803910241.png"; 
+    // Updated path to fetch directly out of your main branch repository setup safely
+    const GLOBAL_LOGO_URL = "https://raw.githubusercontent.com/Darien91829/dude9v3/main/1781803910241-Photoroom.png"; 
     
     let currentEpisodeIndex = 1;
     let currentLanguage = 'sub';
@@ -244,7 +244,7 @@
       console.log("CDN Scraper config standby.");
     }
 
-    // Assign branding logo strings globally
+    // Assign branding logo links globally
     function initializeLogos() {
       const ids = ['drawer-logo', 'nav-logo', 'landing-logo'];
       ids.forEach(id => {
