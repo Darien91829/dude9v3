@@ -151,11 +151,13 @@
       <section id="releases-focus-view" class="hidden space-y-4">
         <div class="border-b border-dark pb-2">
           <h2 class="text-base font-bold uppercase tracking-wider text-white">Full Releases Feed Dashboard</h2>
-          <p class="text-xs text-gray-500">Ready to accept chronological dynamic cards API data bindings.</p>
+          <p class="text-xs text-gray-500">Displaying fresh ongoing episodic uploads fetched directly from Consumet scrape relays.</p>
         </div>
-        <div class="bg-dark-card border border-dark p-8 rounded-xl text-center text-gray-500 text-sm">
-          <i class="fa-solid fa-rocket text-2xl mb-2 text-orange-500 dynamic-accent-text block"></i>
-          Waiting for API binding structures...
+        <div id="releases-api-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
+          <div class="col-span-full bg-dark-card border border-dark p-8 rounded-xl text-center text-gray-500 text-sm">
+            <i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-orange-500 dynamic-accent-text block"></i>
+            Synchronizing live release schedules...
+          </div>
         </div>
       </section>
 
@@ -314,6 +316,15 @@
       
       const tabAct = document.getElementById(`tab-${activeScheduleDay}`);
       if(tabAct) { tabAct.style.backgroundColor = p.hex; tabAct.style.color = p.textLight ? '#ffffff' : '#000000'; }
+
+      // Dynamic patch updating the active border glow and text color states for any rendered Consumet releases cards
+      document.querySelectorAll('.consumet-card-item').forEach(card => {
+        card.addEventListener('mouseenter', () => card.style.borderColor = `${p.hex}4d`);
+        card.addEventListener('mouseleave', () => card.style.borderColor = 'transparent');
+      });
+      document.querySelectorAll('.consumet-card-title').forEach(title => {
+        title.setAttribute('data-preset-color', p.hex);
+      });
     }
 
     function toggleMainMenu() {
@@ -326,6 +337,87 @@
       } else {
         drawer.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
+      }
+    }
+
+    // Modern JavaScript Function Fetching Live Multi-Source Card Arrays from Consumet Endpoints
+    async function loadRecentReleases() {
+      const url = "https://api.consumet.org/anime/animekai/recent-episodes";
+      const targetGrid = document.getElementById("releases-api-grid");
+      if (!targetGrid) return;
+
+      try {
+        const response = await fetch(`${url}?page=1`);
+        if (!response.ok) throw new Error(`HTTP network error configuration status: ${response.status}`);
+        const data = await response.json();
+        
+        targetGrid.innerHTML = "";
+        const activeHexColor = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+
+        if (!data.results || data.results.length === 0) {
+          targetGrid.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-6">No recent episodes found from provider tracking lines.</p>`;
+          return;
+        }
+
+        data.results.forEach(anime => {
+          const cardFrame = document.createElement("div");
+          cardFrame.className = "consumet-card-item relative group aspect-[2/3] w-full rounded-2xl overflow-hidden bg-zinc-900 border border-transparent shadow-xl cursor-pointer transition-all duration-300 hover:scale-[1.02]";
+          
+          cardFrame.innerHTML = `
+            <img 
+              src="${anime.image}" 
+              alt="${anime.title}" 
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-3 sm:p-4 flex flex-col gap-1.5 justify-end h-1/2">
+              <h3 style="--hover-color: ${activeHexColor}" class="consumet-card-title text-white font-medium text-xs sm:text-sm line-clamp-2 leading-tight drop-shadow-md transition-colors duration-200">
+                ${anime.title}
+              </h3>
+              <div class="flex items-center gap-2 text-[10px] font-medium mt-0.5">
+                <span class="bg-zinc-950/90 text-zinc-200 px-2 py-0.5 rounded border border-zinc-800/60 font-mono tracking-wide">
+                  EP ${anime.episodeNumber}
+                </span>
+                <span class="uppercase text-[9px] tracking-wider bg-neutral-900/80 text-gray-300 px-1.5 py-0.5 rounded border border-zinc-800/40 font-bold">
+                  ${anime.subOrDub}
+                </span>
+              </div>
+              ${anime.releaseDate ? `
+                <p class="text-[9px] text-zinc-400 font-normal flex items-center gap-1 mt-0.5">
+                  <span class="w-1 h-1 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                  ${anime.releaseDate}
+                </p>
+              ` : ''}
+            </div>
+          `;
+
+          // Apply dynamic CSS hover interactions injection
+          cardFrame.addEventListener('mouseenter', () => {
+            const currentHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+            cardFrame.style.borderColor = `${currentHex}4d`;
+            cardFrame.querySelector('.consumet-card-title').style.color = currentHex;
+          });
+          cardFrame.addEventListener('mouseleave', () => {
+            cardFrame.style.borderColor = 'transparent';
+            cardFrame.querySelector('.consumet-card-title').style.color = '#ffffff';
+          });
+
+          // Triggers your central video rendering module directly when a release card is selected
+          cardFrame.addEventListener("click", () => {
+            loadStreamingLayout(anime.id, anime.title, anime.episodeNumber || 12);
+          });
+
+          targetGrid.appendChild(cardFrame);
+        });
+
+      } catch (error) {
+        console.error("Consumet payload handler error instance:", error);
+        targetGrid.innerHTML = `
+          <div class="col-span-full py-8 text-center text-xs">
+            <p class="text-rose-400 font-medium">Failed to synchronize active database handshakes with Consumet network arrays.</p>
+            <span class="text-gray-600 block mt-1">Check client networking parameters or connection protocols.</span>
+          </div>`;
       }
     }
 
@@ -355,6 +447,7 @@
         document.getElementById('header-search-engine')?.classList.remove('hidden');
         document.getElementById('side-nav-releases')?.classList.add('active');
         if (indicator) indicator.innerText = "Recent Time Releases Feed";
+        loadRecentReleases(); // Asynchronously calls data parser when viewing releases panel
       } else if (targetViewId === 'calendar') {
         document.getElementById('calendar-focus-view')?.classList.remove('hidden');
         document.getElementById('header-search-engine')?.classList.remove('hidden');
