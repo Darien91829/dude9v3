@@ -480,7 +480,7 @@
             const airTime = anime.broadcast?.time || "Scheduled";
 
             listHtml += `
-              <div onclick="loadStreamingLayout(${anime.mal_id}, '${title.replace(/'/g, "\\'")}', ${anime.episodes || 12})"
+              <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.mal_id}, '${title.replace(/'/g, "\\'")}', ${anime.episodes || 12})"
                    class="flex items-center justify-between p-2 rounded-xl bg-transparent hover:bg-neutral-900/40 cursor-pointer transition-all group">
                 <div class="flex items-center gap-3 min-w-0">
                   <img src="${anime.images?.jpg?.image_url}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-dark/40">
@@ -574,7 +574,7 @@
             loadStreamingLayout(anime.mal_id, anime.title_english || anime.title, anime.episodes || 12);
           });
 
-          targetGrid.appendChild(cardFrame);
+          targetGrid.appendChild(anime_card);
         });
 
       } catch (error) {
@@ -635,6 +635,7 @@
       }, 1000);
     }
 
+    // Modal menu handlers
     function openBottomSheet() {
       document.getElementById('sheet-overlay')?.classList.remove('hidden');
       document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
