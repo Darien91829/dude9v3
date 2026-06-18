@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Styling default dropdown panels to match the clean dark theme */
     select option {
       background-color: #111111 !important;
       color: #e5e7eb !important;
@@ -302,7 +301,6 @@
     let selectedGenres = [];
     let animeScraperInstance = null;
 
-    // Safety handling for third party constructor libraries
     try {
       if (typeof NineAnimeScraper !== 'undefined') {
         animeScraperInstance = new NineAnimeScraper();
@@ -508,6 +506,7 @@
       const yearFrom = yearFromVal ? parseInt(yearFromVal) : null;
       const yearTo = yearToVal ? parseInt(yearToVal) : null;
 
+      // Map Sort arguments correctly to match AniList spec arrays
       let sortArray = [selectedSort];
       if (query && (selectedSort === 'TRENDING_DESC' || selectedSort === 'POPULARITY_DESC')) {
         sortArray = ['SEARCH_MATCH'];
@@ -515,16 +514,17 @@
 
       let variables = { sort: sortArray };
 
-      if (query) variables.q = query;
-      if (selectedGenres && selectedGenres.length > 0) variables.genres = selectedGenres;
+      // FIX: Supply search variables perfectly to prevent GraphQL execution failures
+      if (query !== "") variables.search = query;
+      if (selectedGenres && selectedGenres.length > 0) variables.genre_in = selectedGenres;
       if (selectedFormat) variables.format = selectedFormat;
-      if (yearFrom) variables.startDate = parseInt(yearFrom + "0000");
-      if (yearTo) variables.endDate = parseInt(yearTo + "1231");
+      if (yearFrom) variables.startDate_greater = parseInt(yearFrom + "0000");
+      if (yearTo) variables.endDate_less = parseInt(yearTo + "1231");
 
       const aniListSearchQuery = `
-        query ($q: String, $genres: [String], $format: MediaFormat, $sort: [MediaSort], $startDate: FuzzyDateInt, $endDate: FuzzyDateInt) {
+        query ($search: String, $genre_in: [String], $format: MediaFormat, $sort: [MediaSort], $startDate_greater: FuzzyDateInt, $endDate_less: FuzzyDateInt) {
           Page(page: 1, perPage: 24) {
-            media(search: $q, genre_in: $genres, format: $format, sort: $sort, startDate_greater: $startDate, endDate_less: $endDate, type: ANIME) {
+            media(search: $search, genre_in: $genre_in, format: $format, sort: $sort, startDate_greater: $startDate_greater, endDate_less: $endDate_less, type: ANIME) {
               id
               idMal
               title { english romaji }
