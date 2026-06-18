@@ -756,7 +756,6 @@
       launchVideoPlayer(currentEpisodeIndex);
     }
 
-    UX-focused update: items like padding (`py-3.5 px-4`), wider panel widths (`w-72`), and icon alignment styles ensure buttons easily adapt to standard tap-target requirements.
     function updateServerButtonsUI() {
       const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
       const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
