@@ -3,237 +3,193 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TheDude9 Anime</title>
+  <title>Anikoto Stream Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
-    .bg-dark-card { transition: background-color 0.3s ease; }
-    .bg-dark-input { transition: background-color 0.3s ease; }
-    .border-dark { transition: border-color 0.3s ease; }
-    
-    .scroll-row::-webkit-scrollbar { height: 4px; }
-    .scroll-row::-webkit-scrollbar-track { background: #0f0f12; }
-    .scroll-row::-webkit-scrollbar-thumb { background: #3b3b4a; border-radius: 2px; }
+    /* Custom Utility Classes matching the theme setup */
+    .bg-dark-card { background-color: #16161c; }
+    .bg-dark-input { background-color: #22222a; }
+    .border-dark { border-color: #22222a; }
+    .dynamic-hover-border:hover { border-color: var(--accent-color, #f97316); }
   </style>
 </head>
-<body class="text-gray-200 min-h-screen relative overflow-x-hidden bg-[#0f0f12]">
+<body class="text-gray-200 transition-colors duration-300" style="background-color: #0f0f12;">
 
-  <div id="main-menu-drawer" class="fixed top-0 left-0 h-full w-64 bg-[#0f0f12] border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
-    <div class="p-4 flex items-center justify-between border-b border-dark">
-      <div class="flex flex-col items-start leading-none font-black select-none">
-        <span class="text-lg tracking-wide text-white">TheDude<span class="dynamic-accent-text text-orange-500">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-1.5 py-0.5 rounded ml-4 mt-1 uppercase font-bold">A N I M E</span>
-      </div>
-      <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-1">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-    </div>
-    <div class="p-4 space-y-6 text-sm">
-      <div class="space-y-3">
-        <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block">Navigation</span>
-        <a href="#" onclick="homeReturnReset(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 dynamic-hover-text py-1"><i class="fa-solid fa-house w-5"></i> <span>Home</span></a>
-        <a href="#" onclick="openExplorationHub(); toggleMainMenu();" class="flex items-center space-x-3 text-gray-300 hover:text-orange-500 dynamic-hover-text py-1"><i class="fa-solid fa-compass w-5"></i> <span>Catalog Portal</span></a>
-      </div>
-    </div>
-  </div>
-  <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40"></div>
-
-  <nav class="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur border-b border-dark px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-1">
-        <i class="fa-solid fa-bars"></i>
-      </button>
-      <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer transition-transform active:scale-95">
-        <span class="text-xl tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">TheDude<span class="dynamic-accent-text text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]">9</span></span>
-        <span class="text-[8px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-1.5 py-0.5 rounded ml-5 mt-0.5 uppercase font-bold shadow-sm">A N I M E</span>
-      </div>
-    </div>
+  <div class="min-h-screen flex flex-col">
     
-    <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
-      <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-        <i class="fa-solid fa-magnifying-glass text-sm"></i>
-      </span>
-      <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark rounded-md pl-9 pr-20 py-1.5 text-sm focus:outline-none text-gray-300 dynamic-focus-border" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
-      <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-orange-500 text-black font-bold px-3 py-0.5 rounded text-xs transition-colors">Search</button>
-    </div>
-
-    <div class="flex items-center space-x-4">
-      <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-1">
-        <i class="fa-solid fa-palette text-lg"></i>
-      </button>
-    </div>
-  </nav>
-
-  <main class="max-w-7xl mx-auto px-4 py-6">
-
-    <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl border border-dark mb-10 bg-gradient-to-b from-orange-950/10 to-transparent">
-      <div class="max-w-xl w-full space-y-6">
-        <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
-          <span class="text-5xl md:text-6xl tracking-wide text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">TheDude<span class="dynamic-accent-text text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]">9</span></span>
-          <span class="text-xs tracking-[0.3em] dynamic-accent-bg bg-orange-500 text-black px-3 py-1 rounded-md mt-2 md:mt-3 transform translate-x-8 shadow-xl uppercase font-bold">A N I M E</span>
-        </div>
-        <p class="text-sm text-gray-400">Powered by direct public Anikoto backends and fast, reliable AniList database tracking channels.</p>
-        <div class="relative">
-          <div class="flex items-center bg-dark-card p-2 rounded-xl border border-dark shadow-2xl transition-all">
-            <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-sm"></i>
-            <input type="text" id="search-input" placeholder="Search titles..." class="w-full bg-transparent pr-2 text-sm focus:outline-none text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
-            <button onclick="triggerCatalogSearch(false)" class="dynamic-accent-bg bg-orange-500 text-black font-bold px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">Search</button>
-          </div>
-        </div>
-        <div class="pt-2">
-          <button onclick="openExplorationHub()" class="dynamic-accent-bg bg-orange-500 text-black shadow-[0_4px_20px_rgba(249,115,22,0.2)] px-10 py-3.5 rounded-full font-bold text-sm uppercase tracking-widest transition-all">Watch Now</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="main-exploration-hub" class="hidden space-y-8">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div class="lg:col-span-2 space-y-8">
-          <div id="recommendations-container-block" class="space-y-3">
-            <div class="border-b border-dark pb-2">
-              <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Recently Updated Releases (Anikoto API)</h2>
-            </div>
-            <div id="recommendations-scroller" class="scroll-row flex gap-4 overflow-x-auto pb-3">
-              <p class="text-xs text-gray-500">Syncing index files...</p>
-            </div>
-          </div>
-          <div class="space-y-3">
-            <div class="border-b border-dark pb-2">
-              <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider dynamic-accent-text text-orange-500">Trending Global Media Items</h2>
-            </div>
-            <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <p class="text-xs text-gray-500">Syncing trending files...</p>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-6">
-          <div id="sidebar-container-block" class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
-            <div class="flex items-center justify-between border-b border-dark pb-2">
-              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
-              <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-neutral-900/50 text-gray-400 px-2 py-0.5 rounded border border-dark/60">00:00:00 JST</div>
-            </div>
-            <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-md text-[10px] font-bold uppercase text-center">
-              <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded text-gray-500 hover:text-white">Yesterday</button>
-              <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded dynamic-accent-bg bg-orange-500 text-black">Today</button>
-              <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded text-gray-500 hover:text-white">Tomorrow</button>
-            </div>
-            <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
-          </div>
-          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
-            <div class="border-b border-dark pb-2">
-              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Watched Globally</h3>
-            </div>
-            <div id="top10-box" class="space-y-2 text-xs"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
-      <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-dark shadow-2xl">
-        <div id="player-box" class="w-full h-full relative">
-          <div id="notice-overlay" class="absolute inset-0 flex flex-col justify-center items-center bg-neutral-900 text-center p-4 hidden z-10">
-            <p class="text-sm font-bold dynamic-accent-text text-orange-400">⚠️ Node Processing Standby</p>
-            <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
-            <button onclick="openExplorationHub()" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full">Dashboard Return</button>
-          </div>
-          <iframe id="video-iframe" class="w-full h-full relative z-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
-        </div>
-      </div>
-
-      <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark p-3 rounded-xl gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">API Server:</span>
-          <button id="server-anikoto" onclick="setServerSource('anikoto')" class="dynamic-accent-bg bg-orange-500 text-black text-[11px] font-mono py-1 px-3 rounded font-bold">Anikoto</button>
-          <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">MegaPlay MAL</button>
-          <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white">9Anime CDN</button>
-        </div>
-        <div class="flex items-center space-x-1">
-          <button id="sub-btn" onclick="setLanguage('sub')" class="dynamic-accent-bg bg-orange-500 text-black text-xs font-bold px-4 py-1.5 rounded-l-md">SUB</button>
-          <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input text-gray-400 text-xs font-bold px-4 py-1.5 rounded-r-md border border-dark hover:text-white">DUB</button>
-        </div>
-      </div>
-
-      <div class="bg-dark-card border border-dark rounded-xl p-4">
-        <h2 id="ep-title" class="text-sm font-bold text-white">Streaming Catalog Suite</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Automated episode smart switching updates natively enabled via message-channel handshakes.</p>
-      </div>
-
-      <div class="space-y-2">
-        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Available Episode Indices</span>
-        <div id="episode-buttons" class="flex flex-wrap gap-2"></div>
-      </div>
-
-      <div id="jikan-info-block" class="bg-dark-card border border-dark rounded-xl p-5 space-y-4">
-        <div class="flex gap-4 items-start">
-          <img id="detail-poster" src="" alt="Anime Poster" class="w-24 sm:w-28 rounded-lg border border-dark object-cover aspect-[2/3] bg-neutral-900 shrink-0">
-          <div class="space-y-2">
-            <h2 id="detail-title" class="text-base sm:text-lg font-bold text-white leading-tight">Loading details...</h2>
-            <div class="flex flex-wrap gap-1.5">
-              <span class="dynamic-accent-bg bg-orange-500 text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow-sm">HD</span>
-              <span class="bg-dark-input border border-dark text-gray-400 text-[10px] font-bold px-1.5 py-0.5 rounded">SD</span>
-            </div>
-            <p id="detail-synopsis" class="text-xs text-gray-400 leading-relaxed max-h-24 overflow-y-auto pr-1">Retrieving system summaries from global databases...</p>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs border-t border-dark pt-4">
-          <div><span class="text-gray-500 font-medium">Type:</span> <span id="detail-type" class="text-gray-300 ml-1">-</span></div>
-          <div><span class="text-gray-500 font-medium">Premiered:</span> <span id="detail-premiered" class="text-gray-300 ml-1">-</span></div>
-          <div><span class="text-gray-500 font-medium">Episodes:</span> <span id="detail-episodes" class="text-gray-300 ml-1">-</span></div>
-          <div><span class="text-gray-500 font-medium">Studio:</span> <span id="detail-studio" class="text-gray-300 ml-1 truncate block sm:inline">-</span></div>
-          <div><span class="text-gray-500 font-medium">Rating:</span> <span id="detail-rating" class="text-gray-300 ml-1">-</span></div>
-          <div class="col-span-2 sm:col-span-3"><span class="text-gray-500 font-medium">Genres:</span> <span id="detail-genres" class="text-gray-300 ml-1">-</span></div>
-        </div>
-
-        <div class="border-t border-dark pt-4 space-y-2">
-          <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Tracker Verification</h3>
-          <div class="grid grid-cols-3 gap-2 text-[11px] font-bold text-center">
-            <a href="#" id="tracker-mal-link" target="_blank" class="bg-dark-input border border-dark text-gray-300 p-2 rounded-lg hover:text-white transition-all">MyAnimeList <span id="tracker-mal-score" class="block text-[10px] font-normal text-gray-500 mt-0.5">-</span></a>
-            <a href="#" id="tracker-anilist-link" target="_blank" class="bg-dark-input border border-dark text-gray-300 p-2 rounded-lg hover:text-white transition-all">AniList <span id="tracker-anilist-score" class="block text-[10px] font-normal text-gray-500 mt-0.5">-</span></a>
-            <a href="#" id="tracker-kitsu-link" target="_blank" class="bg-dark-input border border-dark text-gray-300 p-2 rounded-lg hover:text-white transition-all">Kitsu <span id="tracker-kitsu-score" class="block text-[10px] font-normal text-gray-500 mt-0.5">-</span></a>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40"></div>
-  <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#16161c] border-t border-dark rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto">
-    <div class="max-w-xl mx-auto space-y-6">
-      <div class="text-center space-y-1">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">Re:Zero Character Universe Layouts</h3>
-        <p class="text-[11px] text-gray-500">Choose from 16 different character color configurations</p>
+    <header class="p-4 border-b border-dark flex items-center justify-between bg-dark-card">
+      <div class="flex items-center space-x-4">
+        <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <span onclick="homeReturnReset()" class="font-black text-xl tracking-wider cursor-pointer text-white">ANIKOTO</span>
       </div>
       
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-        <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Subaru</span><span class="w-3 h-3 rounded-full bg-orange-500 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Emilia</span><span class="w-3 h-3 rounded-full bg-purple-400 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('rem')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Rem</span><span class="w-3 h-3 rounded-full bg-sky-400 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('ram')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Ram</span><span class="w-3 h-3 rounded-full bg-rose-400 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('beatrice')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Beatrice</span><span class="w-3 h-3 rounded-full bg-amber-400 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('felt')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Felt</span><span class="w-3 h-3 rounded-full bg-yellow-500 shrink-0 ml-1"></span></button>
-        
-        <button onclick="applyCharacterPreset('reinhard')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Reinhard</span><span class="w-3 h-3 rounded-full bg-red-600 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Crusch</span><span class="w-3 h-3 rounded-full bg-emerald-600 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Felix (Ferris)</span><span class="w-3 h-3 rounded-full bg-amber-600 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('priscilla')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Priscilla</span><span class="w-3 h-3 rounded-full bg-red-500 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('anastasia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Anastasia</span><span class="w-3 h-3 rounded-full bg-pink-300 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('julius')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Julius</span><span class="w-3 h-3 rounded-full bg-indigo-400 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('wilhelm')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Wilhelm</span><span class="w-3 h-3 rounded-full bg-slate-400 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('roswaal')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Roswaal</span><span class="w-3 h-3 rounded-full bg-indigo-600 shrink-0 ml-1"></span></button>
-        
-        <button onclick="applyCharacterPreset('satella')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Satella</span><span class="w-3 h-3 rounded-full bg-violet-700 shrink-0 ml-1"></span></button>
-        <button onclick="applyCharacterPreset('echidna')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark bg-[#121216] hover:border-gray-500"><span class="text-white font-medium truncate">Echidna</span><span class="w-3 h-3 rounded-full bg-zinc-300 shrink-0 ml-1"></span></button>
-      </div>
+      <div id="live-24h-clock" class="font-mono text-xs text-gray-500 bg-dark-input px-3 py-1.5 rounded-md border border-dark">--:--:-- JST</div>
+    </header>
 
-      <button onclick="closeBottomSheet()" class="w-full bg-dark-input text-gray-300 font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider border border-dark">Close Menu</button>
+    <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/60 z-40 hidden"></div>
+    <div id="main-menu-drawer" class="fixed top-0 left-0 bottom-0 w-64 bg-dark-card border-r border-dark z-50 transform -translate-x-full transition-transform duration-300 p-4 flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-bold text-gray-400 text-xs tracking-wider uppercase">System Menu</h3>
+          <button onclick="toggleMainMenu()" class="text-gray-500 hover:text-white">&times;</button>
+        </div>
+        <nav class="space-y-2 text-sm">
+          <button onclick="homeReturnReset(); toggleMainMenu();" class="w-full text-left p-2 hover:bg-dark-input rounded text-gray-300">Home Portal</button>
+          <button onclick="openExplorationHub(); toggleMainMenu();" class="w-full text-left p-2 hover:bg-dark-input rounded text-gray-300">Exploration Hub</button>
+          <button onclick="openBottomSheet(); toggleMainMenu();" class="w-full text-left p-2 hover:bg-dark-input rounded text-gray-300">Character Themes</button>
+        </nav>
+      </div>
     </div>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 space-y-6">
+
+      <section id="header-search-engine" class="hidden">
+        <div class="flex space-x-2">
+          <input type="text" id="header-search-input" placeholder="Search across catalog entries..." class="flex-1 bg-dark-input border border-dark rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
+          <button onclick="triggerCatalogSearch(true)" class="bg-orange-500 dynamic-accent-bg text-black px-4 py-2 rounded-lg text-sm font-bold">Search</button>
+        </div>
+      </section>
+
+      <section id="landing-portal" class="space-y-6 text-center py-12 max-w-md mx-auto">
+        <h1 class="text-3xl font-black text-white">Stream Anime Directly</h1>
+        <p class="text-xs text-gray-400">Search database channels, map schedule grids, or switch skin styles immediately.</p>
+        <div class="flex space-x-2">
+          <input type="text" id="search-input" placeholder="Search titles..." class="flex-1 bg-dark-input border border-dark rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500">
+          <button onclick="triggerCatalogSearch(false)" class="bg-orange-500 dynamic-accent-bg text-black px-5 py-3 rounded-lg text-sm font-bold">Launch</button>
+        </div>
+        <button onclick="openExplorationHub()" class="text-xs text-orange-400 dynamic-accent-text underline font-medium block mx-auto">Skip directly to exploration hub</button>
+      </section>
+
+      <section id="main-exploration-hub" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <div class="lg:col-span-3 space-y-6">
+          <div id="recommendations-container-block">
+            <h3 class="text-xs font-bold tracking-wider text-gray-400 uppercase mb-3">Recent System Scrapes</h3>
+            <div id="recommendations-scroller" class="flex space-x-3 overflow-x-auto pb-2 scrollbar-thin"></div>
+          </div>
+          
+          <div>
+            <h3 id="grid-header-title" class="text-xs font-bold tracking-wider text-gray-400 uppercase mb-3">Trending Global Media Items</h3>
+            <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
+            <div class="flex items-center justify-between border-b border-dark pb-2">
+              <h3 class="text-xs font-bold tracking-wider text-gray-400 uppercase">Airing Timelines</h3>
+              <div class="flex space-x-1 text-[10px]">
+                <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="px-2 py-0.5 rounded text-gray-500 font-medium">Prev</button>
+                <button id="tab-today" onclick="changeScheduleDay('today')" class="px-2 py-0.5 rounded text-gray-500 font-medium">Today</button>
+                <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="px-2 py-0.5 rounded text-gray-500 font-medium">Next</button>
+              </div>
+            </div>
+            <div id="schedule-box" class="space-y-2 max-h-80 overflow-y-auto pr-1"></div>
+          </div>
+
+          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
+            <h3 class="text-xs font-bold tracking-wider text-gray-400 uppercase">Top Layout Activity</h3>
+            <div id="top10-box" class="space-y-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="stream-dashboard-box" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 space-y-4">
+          <div class="aspect-video bg-black rounded-xl border border-dark overflow-hidden relative shadow-2xl">
+            <iframe id="video-iframe" src="" class="w-full h-full hidden" allowfullscreen></iframe>
+            <div id="notice-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-zinc-950">
+              <p class="text-sm font-semibold text-gray-400">Stream Source Exhausted. Attempt alternate target mapping configs.</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-dark-card border border-dark p-3 rounded-xl">
+            <div class="flex space-x-2">
+              <button id="server-anikoto" onclick="setServerSource('anikoto')" class="bg-dark-input border border-dark text-xs px-3 py-2 rounded-lg font-semibold text-gray-300">Anikoto Core</button>
+              <button id="server-mal" onclick="setServerSource('mal')" class="bg-dark-input border border-dark text-xs px-3 py-2 rounded-lg font-semibold text-gray-300">MAL Proxy</button>
+              <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="bg-dark-input border border-dark text-xs px-3 py-2 rounded-lg font-semibold text-gray-300">9Anime CDN</button>
+            </div>
+            <div class="flex space-x-2">
+              <button id="sub-btn" onclick="setLanguage('sub')" class="bg-dark-input border border-dark text-xs px-3 py-2 rounded-lg font-semibold text-gray-300">SUB</button>
+              <button id="dub-btn" onclick="setLanguage('dub')" class="bg-dark-input border border-dark text-xs px-3 py-2 rounded-lg font-semibold text-gray-300">DUB</button>
+            </div>
+          </div>
+
+          <div class="bg-dark-card border border-dark p-4 rounded-xl space-y-3">
+            <h3 class="text-xs font-bold tracking-wider text-gray-400 uppercase">Index Channels</h3>
+            <div id="episode-buttons" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2"></div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-4">
+            <div class="aspect-[2/3] max-w-[180px] mx-auto bg-neutral-900 border border-dark rounded-lg overflow-hidden">
+              <img id="detail-poster" src="" class="w-full h-full object-cover">
+            </div>
+            <div class="space-y-2 text-center lg:text-left">
+              <h2 id="detail-title" class="text-lg font-bold text-white tracking-tight">---</h2>
+              <p id="detail-synopsis" class="text-xs text-gray-400 leading-relaxed max-h-36 overflow-y-auto pr-1">...</p>
+            </div>
+            <div class="border-t border-dark pt-3 grid grid-cols-2 gap-2 text-[11px]">
+              <div><span class="text-gray-500 block">Type</span><span id="detail-type" class="text-gray-300 font-medium">--</span></div>
+              <div><span class="text-gray-500 block">Premiered</span><span id="detail-premiered" class="text-gray-300 font-medium">--</span></div>
+              <div><span class="text-gray-500 block">Episodes</span><span id="detail-episodes" class="text-gray-300 font-medium">--</span></div>
+              <div><span class="text-gray-500 block">Studio</span><span id="detail-studio" class="text-gray-300 font-medium">--</span></div>
+              <div><span class="text-gray-500 block">Rating</span><span id="detail-rating" class="text-gray-300 font-medium">--</span></div>
+              <div><span class="text-gray-500 block">Genres</span><span id="detail-genres" class="text-gray-300 font-medium">--</span></div>
+            </div>
+          </div>
+
+          <div class="bg-dark-card border border-dark rounded-xl p-4 space-y-3">
+            <h3 class="text-xs font-bold tracking-wider text-gray-400 uppercase">Database Anchors</h3>
+            <div class="space-y-2">
+              <a id="tracker-mal-link" target="_blank" class="flex items-center justify-between p-2.5 bg-dark-input border border-dark rounded-lg text-xs hover:border-gray-500 transition-colors">
+                <span class="font-semibold text-gray-300">MyAnimeList</span>
+                <span id="tracker-mal-score" class="font-mono text-gray-400">-</span>
+              </a>
+              <a id="tracker-anilist-link" target="_blank" class="flex items-center justify-between p-2.5 bg-dark-input border border-dark rounded-lg text-xs hover:border-gray-500 transition-colors">
+                <span class="font-semibold text-gray-300">AniList</span>
+                <span id="tracker-anilist-score" class="font-mono text-gray-400">-</span>
+              </a>
+              <a id="tracker-kitsu-link" target="_blank" class="flex items-center justify-between p-2.5 bg-dark-input border border-dark rounded-lg text-xs hover:border-gray-500 transition-colors">
+                <span class="font-semibold text-gray-300">Kitsu Tracker</span>
+                <span id="tracker-kitsu-score" class="font-mono text-gray-400">-</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/9anime-scraper@1.1.1/index.min.js"></script>
+  <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/70 z-50 hidden transition-opacity duration-300"></div>
+  <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 right-0 bg-dark-card border-t border-dark max-h-[75vh] rounded-t-2xl z-50 transform translate-y-full transition-transform duration-300 flex flex-col">
+    <div class="p-4 border-b border-dark flex justify-between items-center shrink-0">
+      <h3 class="font-bold text-gray-400 text-xs tracking-wider uppercase">Character Configurations</h3>
+      <button onclick="closeBottomSheet()" class="text-gray-500 text-lg hover:text-white">&times;</button>
+    </div>
+    <div class="p-4 overflow-y-auto grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <button onclick="applyCharacterPreset('subaru')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-orange-400 hover:bg-neutral-800 transition-all text-left">Subaru N.</button>
+      <button onclick="applyCharacterPreset('emilia')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-purple-400 hover:bg-neutral-800 transition-all text-left">Emilia</button>
+      <button onclick="applyCharacterPreset('rem')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-sky-400 hover:bg-neutral-800 transition-all text-left">Rem</button>
+      <button onclick="applyCharacterPreset('ram')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-rose-400 hover:bg-neutral-800 transition-all text-left">Ram</button>
+      <button onclick="applyCharacterPreset('beatrice')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-amber-400 hover:bg-neutral-800 transition-all text-left">Beatrice</button>
+      <button onclick="applyCharacterPreset('felt')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-yellow-500 hover:bg-neutral-800 transition-all text-left">Felt</button>
+      <button onclick="applyCharacterPreset('reinhard')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-red-500 hover:bg-neutral-800 transition-all text-left">Reinhard</button>
+      <button onclick="applyCharacterPreset('crusch')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-emerald-500 hover:bg-neutral-800 transition-all text-left">Crusch K.</button>
+      <button onclick="applyCharacterPreset('felix')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-amber-600 hover:bg-neutral-800 transition-all text-left">Felix A.</button>
+      <button onclick="applyCharacterPreset('priscilla')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-red-600 hover:bg-neutral-800 transition-all text-left">Priscilla B.</button>
+      <button onclick="applyCharacterPreset('anastasia')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-pink-400 hover:bg-neutral-800 transition-all text-left">Anastasia H.</button>
+      <button onclick="applyCharacterPreset('julius')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-indigo-400 hover:bg-neutral-800 transition-all text-left">Julius J.</button>
+      <button onclick="applyCharacterPreset('wilhelm')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-slate-400 hover:bg-neutral-800 transition-all text-left">Wilhelm V.</button>
+      <button onclick="applyCharacterPreset('roswaal')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-indigo-600 hover:bg-neutral-800 transition-all text-left">Roswaal L.</button>
+      <button onclick="applyCharacterPreset('satella')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-violet-600 hover:bg-neutral-800 transition-all text-left">Satella</button>
+      <button onclick="applyCharacterPreset('echidna')" class="p-3 bg-dark-input rounded-xl border border-dark font-medium text-xs text-zinc-300 hover:bg-neutral-800 transition-all text-left">Echidna</button>
+    </div>
+  </div>
 
   <script>
     const ANIKOTO_BASE = "https://anikotoapi.site";
@@ -282,13 +238,17 @@
       document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = p.card);
       document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = p.input);
       document.querySelectorAll('.border-dark').forEach(el => el.style.borderColor = p.input);
+      
+      // Update custom text and backgrounds securely
       document.querySelectorAll('.dynamic-accent-text').forEach(el => el.style.color = p.hex);
       document.querySelectorAll('.dynamic-accent-bg').forEach(el => {
         el.style.backgroundColor = p.hex; el.style.color = p.textLight ? '#ffffff' : '#000000';
       });
-      updateServerButtonsUI();
       
-      // Keep selected state color match for current schedule tabs matching active theme layout
+      updateServerButtonsUI();
+      updateLanguageButtonsUI();
+      if (window.currentMalId) updateEpisodeButtonsUI();
+      
       const tabAct = document.getElementById(`tab-${activeScheduleDay}`);
       if(tabAct) { tabAct.style.backgroundColor = p.hex; tabAct.style.color = p.textLight ? '#ffffff' : '#000000'; }
     }
@@ -297,13 +257,8 @@
       const drawer = document.getElementById('main-menu-drawer');
       const overlay = document.getElementById('menu-overlay');
       if (!drawer || !overlay) return;
-      if (drawer.classList.contains('-translate-x-full')) {
-        drawer.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-      } else {
-        drawer.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-      }
+      drawer.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
     }
 
     function startSystemClock() {
@@ -533,7 +488,7 @@
         applyCharacterPreset(curPresetName);
       } catch (error) { 
         console.error(error);
-        scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>'; 
+        scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>`; 
       }
     }
 
@@ -576,16 +531,14 @@
         if (!anime.title) return;
         const title = anime.title.english || anime.title.romaji;
         const div = document.createElement('div');
-        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 transition-all";
+        div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 transition-all cursor-pointer";
         div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium">${title}</span>`;
         div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
         container.appendChild(div);
       });
     }
 
-    // NEW HELPER FUNCTION TO FETCH DETAILED METADATA VIA JIKAN v4
     async function fetchJikanMetadata(malId) {
-      // Set loaders
       document.getElementById('detail-title').innerText = "Loading details...";
       document.getElementById('detail-synopsis').innerText = "Retrieving system summaries from global databases...";
       
@@ -596,7 +549,6 @@
         const json = await response.json();
         const anime = json.data;
 
-        // Apply metadata updates
         document.getElementById('detail-title').innerText = anime.title_english || anime.title || window.activeAnimeTitle;
         document.getElementById('detail-poster').src = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || '';
         document.getElementById('detail-synopsis').innerText = anime.synopsis || "No synopsis description available.";
@@ -612,11 +564,9 @@
         const genres = anime.genres ? anime.genres.map(g => g.name).join(', ') : 'N/A';
         document.getElementById('detail-genres').innerText = genres || 'N/A';
 
-        // Update verification links
         document.getElementById('tracker-mal-score').innerText = anime.score ? `${anime.score}/10` : '-';
         document.getElementById('tracker-mal-link').href = anime.url || '#';
         
-        // Generate approximate offsets for secondary databases
         document.getElementById('tracker-anilist-score').innerText = anime.score ? `${(anime.score - 0.2).toFixed(1)}/10` : '-';
         document.getElementById('tracker-anilist-link').href = `https://anilist.co/search/anime?search=${encodeURIComponent(window.activeAnimeTitle)}`;
         
@@ -625,7 +575,6 @@
 
       } catch (err) {
         console.error("Jikan tracking error:", err);
-        // Fallback default setup using parent metadata state
         document.getElementById('detail-title').innerText = window.activeAnimeTitle;
         document.getElementById('detail-synopsis').innerText = "Meta context channels currently unreachable. Direct streaming targets remain unhindered.";
         document.getElementById('detail-episodes').innerText = window.activeMaxEpisodes;
@@ -647,9 +596,8 @@
       
       activeSourceMode = 'anikoto';
       currentAnikotoEmbedId = null;
-      updateServerButtonsUI();
+      currentEpisodeIndex = 1;
 
-      // EXECUTE THE METADATA ATTACHMENT FETCH ROUTE
       fetchJikanMetadata(malId);
 
       try {
@@ -660,7 +608,6 @@
         }
       } catch(e) {
         activeSourceMode = 'mal';
-        updateServerButtonsUI();
       }
 
       const epBox = document.getElementById('episode-buttons');
@@ -675,6 +622,9 @@
           epBox.appendChild(btn);
         }
       }
+      
+      updateServerButtonsUI();
+      updateLanguageButtonsUI();
       launchVideoPlayer(1);
     };
 
@@ -687,25 +637,7 @@
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
 
-      const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
-      const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
-
-      for (let i = 1; i <= window.activeMaxEpisodes; i++) {
-        const btn = document.getElementById(`ep-btn-${i}`);
-        if (btn) {
-          if (i === epNum) {
-            btn.style.backgroundColor = currentActiveHex;
-            btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
-            btn.style.borderColor = currentActiveHex;
-            btn.classList.add('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
-          } else {
-            btn.style.backgroundColor = '';
-            btn.style.color = '';
-            btn.style.borderColor = '';
-            btn.classList.remove('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
-          }
-        }
-      }
+      updateEpisodeButtonsUI();
 
       if (activeSourceMode === 'anikoto' && currentAnikotoEmbedId) {
         iframe.src = `https://megaplay.buzz/stream/s-2/${currentAnikotoEmbedId}/${currentLanguage}`;
@@ -723,6 +655,28 @@
           handleAutomaticFallback();
         } catch (error) {
           handleAutomaticFallback();
+        }
+      }
+    }
+
+    function updateEpisodeButtonsUI() {
+      const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+      const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
+
+      for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+        const btn = document.getElementById(`ep-btn-${i}`);
+        if (btn) {
+          if (i === currentEpisodeIndex) {
+            btn.style.backgroundColor = currentActiveHex;
+            btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+            btn.style.borderColor = currentActiveHex;
+            btn.classList.add('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
+          } else {
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+            btn.classList.remove('shadow-[0_0_10px_rgba(249,115,22,0.4)]');
+          }
         }
       }
     }
@@ -754,12 +708,10 @@
           btn.style.backgroundColor = currentActiveHex;
           btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
           btn.style.borderColor = currentActiveHex;
-          btn.className = "text-[11px] font-mono py-1 px-3 rounded font-bold border transition-all";
         } else {
           btn.style.backgroundColor = '';
           btn.style.color = '';
           btn.style.borderColor = '';
-          btn.className = "bg-dark-input text-gray-400 text-[11px] font-mono py-1 px-3 rounded border border-dark hover:text-white transition-all";
         }
       });
     }
@@ -773,6 +725,11 @@
 
     function setLanguage(lang) {
       currentLanguage = lang;
+      updateLanguageButtonsUI();
+      launchVideoPlayer(currentEpisodeIndex);
+    }
+
+    function updateLanguageButtonsUI() {
       const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
       const curPreset = Object.values(presets).find(x => x.hex === currentActiveHex) || presets.subaru;
 
@@ -789,7 +746,6 @@
           btn.style.borderColor = '';
         }
       });
-      launchVideoPlayer(currentEpisodeIndex);
     }
 
     window.addEventListener("message", function (event) {
