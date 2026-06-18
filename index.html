@@ -320,6 +320,20 @@
     // Helper to pause execution to avoid Jikan Rate-Limiting issues
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
+    // Automated Retry Logic Helper for network requests
+    async function fetchWithRetry(url, options = {}, retries = 3) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await fetch(url, options);
+          if (response.ok) return await response.json();
+          if (response.status === 429) throw new Error("Rate limited");
+        } catch (err) {
+          if (i === retries - 1) throw err;
+          await delay(2000 * (i + 1)); // Linear/exponential backoff scaling delay
+        }
+      }
+    }
+
     function applyCharacterPreset(name) {
       const p = presets[name]; if (!p) return;
       document.body.style.backgroundColor = p.bg;
@@ -427,10 +441,7 @@
       `;
 
       try {
-        const response = await fetch(`${JIKAN_BASE}/schedules`);
-        if (!response.ok) throw new Error(`HTTP error status: ${response.status}`);
-        
-        const result = await response.json();
+        const result = await fetchWithRetry(`${JIKAN_BASE}/schedules`);
         const schedules = result.data || [];
 
         if (schedules.length === 0) {
@@ -505,7 +516,11 @@
 
       } catch (err) {
         console.error(err);
-        listContainer.innerHTML = `<div class="text-xs text-rose-400 py-4 text-center">Network connectivity block syncing Jikan updates.</div>`;
+        listContainer.innerHTML = `
+          <div class="text-center py-6">
+            <p class="text-xs text-red-500 mb-3">Server temporarily busy.</p>
+            <button onclick="fetchAndRenderChronologicalList()" class="bg-orange-500 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
+          </div>`;
       }
     }
 
@@ -527,10 +542,7 @@
       if (!targetGrid) return;
 
       try {
-        const response = await fetch(`${JIKAN_BASE}/seasons/now?limit=20`);
-        if (!response.ok) throw new Error(`HTTP network error status: ${response.status}`);
-        const json = await response.json();
-        
+        const json = await fetchWithRetry(`${JIKAN_BASE}/seasons/now?limit=20`);
         targetGrid.innerHTML = "";
 
         if (!json.data || json.data.length === 0) {
@@ -574,12 +586,16 @@
             loadStreamingLayout(anime.mal_id, anime.title_english || anime.title, anime.episodes || 12);
           });
 
-          targetGrid.appendChild(anime_card);
+          targetGrid.appendChild(cardFrame);
         });
 
       } catch (error) {
         console.error("Jikan payload error:", error);
-        targetGrid.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-rose-400">Failed to synchronize active database handshakes with Jikan network arrays.</div>`;
+        targetGrid.innerHTML = `
+          <div class="col-span-full py-8 text-center">
+            <p class="text-xs text-red-500 mb-3">Server temporarily busy.</p>
+            <button onclick="loadRecentReleases()" class="bg-orange-500 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
+          </div>`;
       }
     }
 
@@ -659,8 +675,7 @@
       await delay(600);
 
       try {
-        const res = await fetch(`${JIKAN_BASE}/top/anime?limit=12`);
-        const json = await res.json();
+        const json = await fetchWithRetry(`${JIKAN_BASE}/top/anime?limit=12`);
         const dataset = json.data;
         if(Array.isArray(dataset) && dataset.length > 0) {
           displayScrollFeed(dataset, 'recommendations-scroller');
@@ -803,7 +818,7 @@
         const schedules = json.data?.Page?.airingSchedules || [];
         
         if(schedules.length === 0) {
-          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No items found for this window.</p>`;
+          scheduleBox.innerHTML = `<p class="text-gray-600 text-[11px]">No items found for this window.</p>';
           return;
         }
         
@@ -882,9 +897,7 @@
 
     async function fetchJikanMetadata(malId) {
       try {
-        const response = await fetch(`${JIKAN_BASE}/anime/${malId}`);
-        if (!response.ok) throw new Error();
-        const json = await response.json();
+        const json = await fetchWithRetry(`${JIKAN_BASE}/anime/${malId}`);
         const anime = json.data;
 
         document.getElementById('detail-title').innerText = anime.title_english || anime.title || window.activeAnimeTitle;
