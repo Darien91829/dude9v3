@@ -218,23 +218,17 @@
               <button onclick="switchToView('catalog')" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full transition-transform hover:scale-105">Dashboard Return</button>
             </div>
             
-            <!-- SERVER CONFIGURATION A: Iframe Embed for MegaPlay MAL -->
-            <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
-            
-            <!-- SERVER CONFIGURATION B: Native Stream Engine HTML5 Tag for AniVexa / Consumet Data Streams -->
-            <video id="native-video-player" class="w-full h-full absolute inset-0 z-0 hidden bg-black" controls></video>
+            <!-- Standard Video/Iframe Content Frame Placement Area -->
+            <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" src="" allowfullscreen scrolling="no"></iframe>
           </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-md">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider mr-1 select-none">API Server:</span>
-            <button id="server-mal" onclick="setServerSource('mal')" class="px-3 py-1.5 rounded-lg border border-dark-border bg-dark-input text-[11px] font-mono font-bold transition-all hover:text-white hover:border-neutral-600">MegaPlay MAL</button>
-            <button id="server-cdn-9anime" onclick="setServerSource('cdn-9anime')" class="px-3 py-1.5 rounded-lg border border-dark-border bg-dark-input text-[11px] font-mono font-bold transition-all hover:text-white hover:border-neutral-600">9Anime CDN</button>
-            <button id="server-anivexa" onclick="setServerSource('anivexa')" class="px-3 py-1.5 rounded-lg border border-dark-border bg-dark-input text-[11px] font-mono font-bold transition-all hover:text-white hover:border-neutral-600">AniVexa Streaming API</button>
-            <button id="server-consumet" onclick="setServerSource('consumet')" class="px-3 py-1.5 rounded-lg border border-dark-border bg-dark-input text-[11px] font-mono font-bold transition-all hover:text-white hover:border-neutral-600">API Consumet Stack</button>
+        <!-- 7 PROVIDERS LIVE HUD INTERFACE CONTAINER -->
+        <div class="flex flex-col md:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-md">
+          <div class="w-full md:w-auto overflow-x-auto scrollbar-none flex items-center gap-2" id="server-source-tabs-bar">
+             <!-- Script.js automatically paints AllManga, ReAnime, AniKoto, AnimeGG, etc. here -->
           </div>
-          <div class="flex items-center bg-dark-input p-0.5 rounded-lg border border-dark-border/60">
+          <div class="flex items-center bg-dark-input p-0.5 rounded-lg border border-dark-border/60 shrink-0">
             <button id="sub-btn" onclick="setLanguage('sub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">SUB</button>
             <button id="dub-btn" onclick="setLanguage('dub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">DUB</button>
           </div>
