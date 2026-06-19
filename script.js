@@ -667,7 +667,7 @@ function displayScrollFeed(animeArray, elementId) {
     div.onclick = async () => {
       let linkedAniId = anime.mal_id;
       try {
-        const lookup = await fetch(`https://graphql.anilist.co', {
+        const lookup = await fetch('https://graphql.anilist.co', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`, variables: { id: anime.mal_id } })
         });
@@ -728,7 +728,7 @@ async function fetchJikanMetadata(malId) {
   }
 }
 
-// Inject your 7 custom API server provider nodes into the stream layout
+// FIXED: Using event delegation instead of single binding, keeping innerHTML clean
 function injectProviderButtons() {
   const container = document.getElementById('server-source-tabs-bar') || document.querySelector('.server-tabs-container');
   if (!container) return;
@@ -737,9 +737,9 @@ function injectProviderButtons() {
   API_PROVIDERS.forEach(prov => {
     const btn = document.createElement('button');
     btn.id = `server-${prov.id}`;
+    btn.setAttribute('data-provider', prov.id); // FIXED: Explicitly tag the node identifier
     btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark";
     btn.innerHTML = `${prov.name} ${prov.status === 'Unstable' ? '⚠️' : ''}`;
-    btn.onclick = () => setProviderSource(prov.id);
     container.appendChild(btn);
   });
 }
@@ -768,7 +768,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
     document.getElementById('detail-title').innerText = titleName;
   }
 
-  // FIXED: Bug 1 - Query the /map/:id endpoint FIRST to populate downstream keys before drawing buttons
+  // FIXED: Query mapping endpoints first so references are immediately available
   try {
     const mappingResponse = await fetch(`${ANIVEXA_BASE_API}/map/${anilistId}`);
     if (mappingResponse.ok) {
@@ -779,7 +779,6 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
     console.error("[Anivexa Sync Standby - Using Fallbacks]:", mapErr);
   }
 
-  // Load exact available episode listing structures from your unified episodes endpoint
   await buildEpisodeButtonsGrid(anilistId);
 };
 
@@ -793,13 +792,11 @@ async function buildEpisodeButtonsGrid(anilistId) {
     const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
     epBox.innerHTML = '';
 
-    // FIXED: Bug 3 - Add safe object type tracking check constraints to handle raw backend anomalies cleanly
     let providerList = [];
     if (epData && epData[activeProviderMode]) {
       providerList = Array.isArray(epData[activeProviderMode]) ? epData[activeProviderMode] : Object.values(epData[activeProviderMode]);
     }
     
-    // If targeted provider list yields 0 items, check first valid provider payload
     if (providerList.length === 0) {
       for (const prov of API_PROVIDERS) {
         if (epData?.[prov.id]) {
@@ -831,10 +828,8 @@ async function buildEpisodeButtonsGrid(anilistId) {
 
   } catch (err) {
     console.error("Failed to map live API episodes:", err);
-    epBox.innerHTML = '<div class="text-xs text-red-500 p-2">Episode catalog track timeout. Presetting default blocks...</div>';
-    
-    window.activeMaxEpisodes = 12;
     epBox.innerHTML = '';
+    window.activeMaxEpisodes = 12;
     for (let i = 1; i <= 12; i++) {
       const btn = document.createElement('button');
       btn.id = `ep-btn-${i}`;
@@ -847,19 +842,13 @@ async function buildEpisodeButtonsGrid(anilistId) {
   }
 }
 
-// =========================================================================
-// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (7-Provider Core Logic)
-// =========================================================================
-
 async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
   try {
     const category = dubMode === 'dub' ? 'dub' : 'sub';
     const cleanProvider = activeProviderMode.toLowerCase().trim();
     
-    // FIXED: Extract mapped tracker references from global instance if available, fallback to default ID
     const routeIdentifier = window.currentMappedIds?.[cleanProvider] || window.currentMappedIds?.id || anilistId;
 
-    // 302 Route Override Exception block explicitly built for ReAnime endpoint handling
     if (cleanProvider === 'reanime') {
       const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${routeIdentifier}/${category}/${epNum}`;
       return [{
@@ -870,7 +859,6 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
       }];
     }
 
-    // Standard structured tracking watch route endpoint
     const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${routeIdentifier}/${category}/${cleanProvider}-${epNum}`;
     console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
@@ -919,7 +907,6 @@ function renderSubServerGrid(streams) {
   const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
   const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
 
-  // 1. MAIN FOCUS: HLS Streams
   if (hlsStreams.length > 0) {
     const internalGroup = document.createElement('div');
     internalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -941,7 +928,6 @@ function renderSubServerGrid(streams) {
     });
   }
 
-  // 2. SIDE FALLBACK: Embedded / Iframes Mirrors
   if (fallbackStreams.length > 0) {
     const externalGroup = document.createElement('div');
     externalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -1032,12 +1018,10 @@ function executeStreamRouting(streamUrl, streamType) {
     if (iframe) iframe.classList.add('hidden');
     injectPlyrVideoContainer(streamUrl);
   } else {
-    // If returning back to embed logic, make sure we clean up any active Plyr instances running
     let videoNode = document.getElementById('video-plyr-core');
     if (videoNode) {
       const mediaContainer = videoNode.parentElement;
       if (mediaContainer) {
-        // FIXED: Bug 2 - Maintain original Tailwind responsive design properties inside .innerHTML assignments
         mediaContainer.innerHTML = `
           <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
           <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
@@ -1059,7 +1043,6 @@ function injectPlyrVideoContainer(streamUrl) {
   const mediaContainer = standardIframe.parentElement;
   if (!mediaContainer) return;
 
-  // Clear previous contents so instance objects don't stack up inside DOM wrappers
   mediaContainer.innerHTML = '';
 
   const videoNode = document.createElement('video');
@@ -1070,15 +1053,12 @@ function injectPlyrVideoContainer(streamUrl) {
 
   mediaContainer.appendChild(videoNode);
 
-  // Setup Notice Overlay placeholder back inside wrapper alongside new element controls
   const noticeOverlay = document.createElement('div');
   noticeOverlay.id = 'notice-overlay';
   noticeOverlay.className = 'hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4';
   noticeOverlay.innerHTML = `<p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>`;
   mediaContainer.appendChild(noticeOverlay);
 
-  // Hls.js custom layout loader bindings injection
-  // Note: We always initiate Hls loader if ReAnime is targeted because it points directly to an .m3u8 302 endpoint
   if ((streamUrl.includes('.m3u8') || activeProviderMode === 'reanime') && typeof Hls !== 'undefined' && Hls.isSupported()) {
     const hlsInstance = new Hls();
     hlsInstance.loadSource(streamUrl);
@@ -1087,7 +1067,6 @@ function injectPlyrVideoContainer(streamUrl) {
       initializePlyrEngine(videoNode);
     });
   } else {
-    // Fallback directly to native system components if using raw MP4 feeds
     videoNode.src = streamUrl;
     initializePlyrEngine(videoNode);
   }
@@ -1113,11 +1092,9 @@ async function launchVideoPlayer(epNum) {
   let iframe = document.getElementById('video-iframe');
   let noticeOverlay = document.getElementById('notice-overlay');
   
-  // Re-build target elements fallback if DOM tree structural mutations happened on switching stream engines
   if (!iframe) {
     const layoutWrapper = document.getElementById('video-plyr-core')?.parentElement;
     if (layoutWrapper) {
-      // FIXED: Keep index.html layout rules intact when performing a manual recovery build
       layoutWrapper.innerHTML = `
         <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
         <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
@@ -1145,7 +1122,6 @@ async function launchVideoPlayer(epNum) {
   if (streamsList && streamsList.length > 0) {
     renderSubServerGrid(streamsList);
     
-    // Default Sorting Priority: active HLS -> any HLS -> active Embed -> first index fallback
     const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
       || streamsList.find(s => s.url.includes('.m3u8')) 
       || streamsList.find(s => s.isActive) 
@@ -1204,7 +1180,6 @@ function updateProviderButtonsUI() {
 }
 
 function handleStreamMissingNotice() {
-  // Hide current rendering visual targets to clear black video boxes
   document.getElementById('video-iframe')?.classList.add('hidden');
   const videoCore = document.getElementById('video-plyr-core');
   if (videoCore) videoCore.classList.add('hidden');
@@ -1251,8 +1226,21 @@ window.addEventListener("message", function (event) {
   }
 });
 
+// FIXED: Master listener delegation block added on load to ensure tabs update properly
 window.onload = function() {
   startSystemClock();
   applyCharacterPreset('subaru');
   switchToView('home');
+
+  // Event delegation capture layout for permanent element wrapper bars
+  const serverContainerBar = document.getElementById('server-source-tabs-bar');
+  if (serverContainerBar) {
+    serverContainerBar.addEventListener('click', function(e) {
+      const targetBtn = e.target.closest('button[data-provider]');
+      if (targetBtn) {
+        const selectedProv = targetBtn.getAttribute('data-provider');
+        setProviderSource(selectedProv);
+      }
+    });
+  }
 };
