@@ -21,6 +21,9 @@
     }
   </script>
 
+  <!-- Hls.js Streaming Engine Library Link -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
@@ -210,7 +213,12 @@
               <p class="text-[11px] text-gray-500 mt-1 max-w-xs">Double-check streaming catalogs to confirm mapping tracks match current content blocks.</p>
               <button onclick="switchToView('catalog')" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full transition-transform hover:scale-105">Dashboard Return</button>
             </div>
+            
+            <!-- SERVER CONFIGURATION A: Iframe Embed for MegaPlay MAL -->
             <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" src="" allowfullscreen scrolling="no" onerror="handleAutomaticFallback()"></iframe>
+            
+            <!-- SERVER CONFIGURATION B: Native Stream Engine HTML5 Tag for AniVexa / Consumet Data Streams -->
+            <video id="native-video-player" class="w-full h-full absolute inset-0 z-0 hidden bg-black" controls></video>
           </div>
         </div>
 
