@@ -21,10 +21,8 @@
     }
   </script>
 
-  <!-- Hls.js Streaming Engine Library Link -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-  <!-- Plyr Audio/Video Custom Player CSS Skins and Core Components Modules -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
@@ -218,18 +216,15 @@
               <button onclick="switchToView('catalog')" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full transition-transform hover:scale-105">Dashboard Return</button>
             </div>
             
-            <!-- Unified Wrapper to handle dynamic iframe vs raw HTML5 Plyr/Hls switching natively -->
             <div id="video-player-wrapper" class="w-full h-full">
               <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" src="" allowfullscreen scrolling="no"></iframe>
             </div>
           </div>
         </div>
 
-        <!-- 7 PROVIDERS LIVE HUD INTERFACE CONTAINER -->
         <div class="flex flex-col md:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-md">
           <div class="w-full md:w-auto overflow-x-auto scrollbar-none flex items-center gap-2" id="server-source-tabs-bar">
-             <!-- Script.js automatically paints AllManga, ReAnime, AniKoto, AnimeGG, etc. here -->
-          </div>
+             </div>
           <div class="flex items-center bg-dark-input p-0.5 rounded-lg border border-dark-border/60 shrink-0">
             <button id="sub-btn" onclick="setLanguage('sub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">SUB</button>
             <button id="dub-btn" onclick="setLanguage('dub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">DUB</button>
