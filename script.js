@@ -16,8 +16,7 @@ const API_PROVIDERS = [
   { id: 'animegg', name: 'AnimeGG', status: 'Active' },
   { id: 'anineko', name: 'AniNeko', status: 'Active' },
   { id: 'anidbapp', name: 'AniDB App', status: 'Active' },
-  { id: 'animepahe', name: 'AnimePahe', status: 'Unstable' },
-  { id: 'megaplay', name: 'MegaPlay', status: 'Active' }
+  { id: 'animepahe', name: 'AnimePahe', status: 'Unstable' }
 ];
 
 // Guard items to stop loop updates on view toggle
@@ -864,23 +863,6 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     const category = dubMode === 'dub' ? 'dub' : 'sub';
     const cleanProvider = activeProviderMode.toLowerCase().trim();
     
-    // MegaPlay Native Route Constructor Injection
-    if (cleanProvider === 'megaplay') {
-      const targetLang = category === 'dub' ? 'dub' : 'sub';
-      let targetEmbedUrl = `https://megaplay.buzz/stream/ani/${anilistId}/${epNum}/${targetLang}`;
-      
-      if (window.currentMalId) {
-        targetEmbedUrl = `https://megaplay.buzz/stream/mal/${window.currentMalId}/${epNum}/${targetLang}`;
-      }
-      
-      return [{
-        name: "MegaPlay Embedded Mirror",
-        type: "Embed",
-        url: targetEmbedUrl,
-        isActive: true
-      }];
-    }
-
     if (cleanProvider === 'reanime') {
       const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/reanime-${epNum}`;
       return [{
@@ -1132,7 +1114,7 @@ function executeStreamRouting(streamUrl, streamType) {
     const mediaContainer = videoElement.parentElement;
     if (mediaContainer) {
       mediaContainer.innerHTML = `
-        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0" src="${streamUrl}" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"></iframe>
+        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0" src="${streamUrl}"></iframe>
         <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
           <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
         </div>`;
@@ -1294,12 +1276,6 @@ function updateLanguageButtonsUI() {
 window.addEventListener("message", function (event) {
   let data = event.data;
   if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
-  
-  // Handshake verification for tracking watch events and automatic postMessage loops from MegaPlay frames
-  if (data && (data.channel === "megacloud" || data.type === "watching-log")) {
-     console.log("[MegaPlay Event Sync]:", data);
-  }
-
   if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
     const nextEp = currentEpisodeIndex + 1;
     if (nextEp <= window.activeMaxEpisodes) launchVideoPlayer(nextEp);
