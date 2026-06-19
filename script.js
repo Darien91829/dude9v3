@@ -28,7 +28,7 @@ const presets = {
   felt: { hex: '#eab308', bg: '#12110a', card: '#1c1a10', input: '#2a2718', textLight: false },
   reinhard: { hex: '#dc2626', bg: '#140b0b', card: '#201111', input: '#2e1919', textLight: true },
   crusch: { hex: '#059669', bg: '#0a120e', card: '#101c16', input: '#182b22', textLight: true },
-  felix: { hex: '#d97706', bg: '#14100b', card: '#201911', input: '#2e2419', textLight: false },
+  felix: { hex: '#d97706', bg: '#140b0b', card: '#201911', input: '#2e2419', textLight: false },
   priscilla: { hex: '#ef4444', bg: '#120a0a', card: '#1c1010', input: '#2a1818', textLight: true },
   anastasia: { hex: '#f472b6', bg: '#140d11', card: '#20141b', input: '#2e1d27', textLight: false },
   julius: { hex: '#818cf8', bg: '#0d0d14', card: '#141420', input: '#1e1e2e', textLight: true },
@@ -781,28 +781,78 @@ async function fetchAnivexaStream(malId, epNum, dubMode) {
   }
 }
 
+// INJECT NATIVE CUSTOM HTML5 MULTIMEDIA DOM HOOKS INSTEAD OF STRIPPED CODE TEXT PANELS
+function injectPlyrVideoContainer(streamUrl) {
+  const mediaContainer = document.getElementById('video-iframe')?.parentElement;
+  if (!mediaContainer) return;
+
+  mediaContainer.innerHTML = '';
+
+  const videoNode = document.createElement('video');
+  videoNode.id = 'video-plyr-core';
+  videoNode.className = 'w-full h-full rounded-xl bg-black border border-neutral-900';
+  videoNode.controls = true;
+  videoNode.playsInline = true;
+
+  const trackSource = document.createElement('source');
+  trackSource.src = streamUrl;
+  trackSource.type = streamUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4';
+  
+  videoNode.appendChild(trackSource);
+  mediaContainer.appendChild(videoNode);
+
+  try {
+    if (typeof Plyr !== 'undefined') {
+      new Plyr(videoNode, {
+        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'],
+        keyboard: { focused: true, global: true },
+        tooltips: { controls: true, seek: true }
+      });
+    }
+  } catch(err) {
+    console.warn("[Media Hub] Native theme bindings initial configuration standby.", err);
+  }
+}
+
 async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
-  const iframe = document.getElementById('video-iframe');
+  
+  let iframe = document.getElementById('video-iframe');
   const noticeOverlay = document.getElementById('notice-overlay');
-  if (!iframe) return;
-
-  iframe.src = 'about:blank';
-  if(noticeOverlay) {
-    noticeOverlay.classList.add('hidden');
-    noticeOverlay.querySelector('p').innerText = "🔄 Loading Stream link...";
+  
+  // Rebuild structure safely if custom HTML5 components have taken over layout elements
+  if (!iframe && noticeOverlay) {
+    const layoutWrapper = noticeOverlay.parentElement;
+    if (layoutWrapper) {
+      layoutWrapper.innerHTML = `
+        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
+        <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+          <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
+        </div>`;
+      iframe = document.getElementById('video-iframe');
+    }
   }
-  iframe.classList.remove('hidden');
+
+  if (iframe) {
+    iframe.src = 'about:blank';
+    iframe.classList.remove('hidden');
+  }
+  
+  // REMOVED INTRUSIVE BLACK BLOCKER SCREEN INJECTION TRACKS ENTIRELY
+  if (noticeOverlay) {
+    noticeOverlay.classList.add('hidden');
+  }
+  
   updateEpisodeButtonsUI();
 
   if (activeSourceMode === 'mal') {
-    iframe.src = `https://megaplay.buzz/stream/mal/${window.currentMalId}/${epNum}/${currentLanguage}`;
+    if (iframe) iframe.src = `https://megaplay.buzz/stream/mal/${window.currentMalId}/${epNum}/${currentLanguage}`;
   } else if (activeSourceMode === 'cdn-9anime') {
     try {
       if (animeScraperInstance && typeof animeScraperInstance.getStreamUrl === 'function') {
         const streamUrl = await animeScraperInstance.getStreamUrl(window.activeAnimeTitle, epNum, currentLanguage);
         if (streamUrl) {
-          iframe.src = streamUrl;
+          if (iframe) iframe.src = streamUrl;
           return;
         }
       }
@@ -811,17 +861,14 @@ async function launchVideoPlayer(epNum) {
       handleAutomaticFallback();
     }
   } else if (activeSourceMode === 'anivexa') {
-    iframe.classList.add('hidden');
-    if (noticeOverlay) noticeOverlay.classList.remove('hidden');
-    
     const aggregatedStreamUrl = await fetchAnivexaStream(window.currentMalId, epNum, currentLanguage);
     if (aggregatedStreamUrl) {
-      if(noticeOverlay) noticeOverlay.classList.add('hidden');
-      iframe.classList.remove('hidden');
-      
-      iframe.src = aggregatedStreamUrl.includes('.m3u8') 
-        ? `https://player.vdocipher.com/v2/?url=${encodeURIComponent(aggregatedStreamUrl)}`
-        : aggregatedStreamUrl;
+      // Toggle custom media container UI if layout detects an HLS stream manifest file
+      if (aggregatedStreamUrl.includes('.m3u8')) {
+        injectPlyrVideoContainer(aggregatedStreamUrl);
+      } else {
+        if (iframe) iframe.src = aggregatedStreamUrl;
+      }
     } else {
       handleAutomaticFallback();
     }
@@ -884,13 +931,8 @@ function updateServerButtonsUI() {
 }
 
 function handleStreamMissingNotice() {
-  const iframe = document.getElementById('video-iframe');
-  const noticeOverlay = document.getElementById('notice-overlay');
-  if (iframe) iframe.classList.add('hidden');
-  if (noticeOverlay) {
-    noticeOverlay.classList.remove('hidden');
-    noticeOverlay.querySelector('p').innerText = "⚠️ Node Processing Standby";
-  }
+  // Silent console verification tracking instead of deploying disruptive UI layout screens
+  console.log("[System Core] Video track resolution standby mode. No responsive streams returned from edge node endpoints.");
 }
 
 function setLanguage(lang) {
