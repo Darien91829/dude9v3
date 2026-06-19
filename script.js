@@ -30,6 +30,7 @@ window.currentAnilistId = null;
 window.currentMalId = null;
 window.activeAnimeTitle = "";
 window.activeMaxEpisodes = 12;
+window.currentMappedIds = {}; // FIXED: Global container cache storage for cross-platform mapping IDs
 
 const presets = {
   subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
@@ -666,7 +667,7 @@ function displayScrollFeed(animeArray, elementId) {
     div.onclick = async () => {
       let linkedAniId = anime.mal_id;
       try {
-        const lookup = await fetch(`https://graphql.anilist.co`, {
+        const lookup = await fetch(`https://graphql.anilist.co', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`, variables: { id: anime.mal_id } })
         });
@@ -747,6 +748,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
   window.currentAnilistId = anilistId;
   window.currentMalId = malId;
   window.activeAnimeTitle = titleName;
+  window.currentMappedIds = {}; // Reset local data scope state
 
   const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
   views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
@@ -766,6 +768,17 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
     document.getElementById('detail-title').innerText = titleName;
   }
 
+  // FIXED: Bug 1 - Query the /map/:id endpoint FIRST to populate downstream keys before drawing buttons
+  try {
+    const mappingResponse = await fetch(`${ANIVEXA_BASE_API}/map/${anilistId}`);
+    if (mappingResponse.ok) {
+      window.currentMappedIds = await mappingResponse.json();
+      console.log("[Anivexa Map Tracker Sync Successful]:", window.currentMappedIds);
+    }
+  } catch (mapErr) {
+    console.error("[Anivexa Sync Standby - Using Fallbacks]:", mapErr);
+  }
+
   // Load exact available episode listing structures from your unified episodes endpoint
   await buildEpisodeButtonsGrid(anilistId);
 };
@@ -780,16 +793,23 @@ async function buildEpisodeButtonsGrid(anilistId) {
     const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
     epBox.innerHTML = '';
 
-    let providerList = epData?.[activeProviderMode] || [];
+    // FIXED: Bug 3 - Add safe object type tracking check constraints to handle raw backend anomalies cleanly
+    let providerList = [];
+    if (epData && epData[activeProviderMode]) {
+      providerList = Array.isArray(epData[activeProviderMode]) ? epData[activeProviderMode] : Object.values(epData[activeProviderMode]);
+    }
     
     // If targeted provider list yields 0 items, check first valid provider payload
-    if (!Array.isArray(providerList) || providerList.length === 0) {
+    if (providerList.length === 0) {
       for (const prov of API_PROVIDERS) {
-        if (epData?.[prov.id] && epData[prov.id].length > 0) {
-          providerList = epData[prov.id];
-          activeProviderMode = prov.id;
-          updateProviderButtonsUI();
-          break;
+        if (epData?.[prov.id]) {
+          const checkArr = Array.isArray(epData[prov.id]) ? epData[prov.id] : Object.values(epData[prov.id]);
+          if (checkArr.length > 0) {
+            providerList = checkArr;
+            activeProviderMode = prov.id;
+            updateProviderButtonsUI();
+            break;
+          }
         }
       }
     }
@@ -836,9 +856,12 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     const category = dubMode === 'dub' ? 'dub' : 'sub';
     const cleanProvider = activeProviderMode.toLowerCase().trim();
     
+    // FIXED: Extract mapped tracker references from global instance if available, fallback to default ID
+    const routeIdentifier = window.currentMappedIds?.[cleanProvider] || window.currentMappedIds?.id || anilistId;
+
     // 302 Route Override Exception block explicitly built for ReAnime endpoint handling
     if (cleanProvider === 'reanime') {
-      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/${epNum}`;
+      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${routeIdentifier}/${category}/${epNum}`;
       return [{
         name: "ReAnime Core Stream",
         type: "HLS",
@@ -848,7 +871,7 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     }
 
     // Standard structured tracking watch route endpoint
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${cleanProvider}-${epNum}`;
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${routeIdentifier}/${category}/${cleanProvider}-${epNum}`;
     console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
     const watchRes = await fetch(watchUrl);
@@ -1014,8 +1037,9 @@ function executeStreamRouting(streamUrl, streamType) {
     if (videoNode) {
       const mediaContainer = videoNode.parentElement;
       if (mediaContainer) {
+        // FIXED: Bug 2 - Maintain original Tailwind responsive design properties inside .innerHTML assignments
         mediaContainer.innerHTML = `
-          <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
+          <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
           <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
             <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
           </div>`;
@@ -1093,8 +1117,9 @@ async function launchVideoPlayer(epNum) {
   if (!iframe) {
     const layoutWrapper = document.getElementById('video-plyr-core')?.parentElement;
     if (layoutWrapper) {
+      // FIXED: Keep index.html layout rules intact when performing a manual recovery build
       layoutWrapper.innerHTML = `
-        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
+        <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
         <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
           <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
         </div>`;
