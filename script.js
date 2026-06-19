@@ -847,8 +847,8 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
       }];
     }
 
-    // Standard structured tracking watch route endpoint (FIXED: Suffix prefix removed)
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${epNum}`;
+    // Standard structured tracking watch route endpoint
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${cleanProvider}-${epNum}`;
     console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
     const watchRes = await fetch(watchUrl);
