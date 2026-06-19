@@ -84,11 +84,14 @@
     function openBottomSheet() {
       const sheet = document.getElementById('bottom-sheet-menu');
       const overlay = document.getElementById('sheet-overlay');
-      sheet.classList.remove('translate-y-full');
-      sheet.classList.add('translate-y-0');
-      overlay.classList.remove('hidden');
+      if(sheet && overlay) {
+        sheet.classList.remove('translate-y-full');
+        sheet.classList.add('translate-y-0');
+        overlay.classList.remove('hidden');
+      }
     }
 
+    // Fixed elements safety checking selectors
     function closeBottomSheet() {
       const sheet = document.getElementById('bottom-sheet-menu');
       const overlay = document.getElementById('sheet-overlay');
@@ -102,31 +105,45 @@
     function toggleMainMenu() {
       const drawer = document.getElementById('main-menu-drawer');
       const overlay = document.getElementById('menu-overlay');
-      drawer.classList.toggle('-translate-x-full');
-      overlay.classList.toggle('hidden');
+      if(drawer && overlay) {
+        drawer.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+      }
     }
 
     function switchToView(viewId) {
       console.log("Switching structural view targeting payload context ID: " + viewId);
+      
+      // Complete mapping profile representing active layout system blocks
       const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
       views.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.classList.add('hidden');
       });
       
-      const activeNav = document.getElementById('side-nav-' + viewId);
       document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+      
+      // Normalize routing endpoints for core structural assets
+      const activeNavId = (viewId === 'catalog') ? 'side-nav-catalog' : 'side-nav-' + viewId;
+      const activeNav = document.getElementById(activeNavId);
       if(activeNav) activeNav.classList.add('active');
 
+      const headerSearch = document.getElementById('header-search-engine');
+      const titleIndicator = document.getElementById('view-indicator-title');
+
       if (viewId === 'home') {
-        document.getElementById('landing-portal').classList.remove('hidden');
-        document.getElementById('header-search-engine').classList.add('hidden');
-        document.getElementById('view-indicator-title').textContent = "Welcome Portal";
+        const landingPortal = document.getElementById('landing-portal');
+        if(landingPortal) landingPortal.classList.remove('hidden');
+        if(headerSearch) headerSearch.classList.add('hidden');
+        if(titleIndicator) titleIndicator.textContent = "Welcome Portal";
       } else {
-        const targetView = document.getElementById(viewId + '-focus-view') || document.getElementById(viewId) || document.getElementById('main-exploration-hub');
+        if(headerSearch) headerSearch.classList.remove('hidden');
+        if(titleIndicator) titleIndicator.textContent = viewId.toUpperCase() + " HUB";
+        
+        // Ensure catalog navigation accurately renders core layout elements
+        const targetViewId = (viewId === 'catalog') ? 'main-exploration-hub' : (viewId + '-focus-view');
+        const targetView = document.getElementById(targetViewId) || document.getElementById(viewId);
         if(targetView) targetView.classList.remove('hidden');
-        document.getElementById('header-search-engine').classList.remove('hidden');
-        document.getElementById('view-indicator-title').textContent = viewId.toUpperCase() + " HUB";
       }
     }
 
