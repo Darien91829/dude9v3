@@ -24,10 +24,12 @@ let hubFeedsLoaded = false;
 let recentReleasesLoaded = false;
 let calendarLoaded = false;
 let currentPresetName = 'subaru';
+let selectedDayFilter = '';
 
 window.currentAnilistId = null;
 window.currentMalId = null;
 window.activeAnimeTitle = "";
+window.activeMaxEpisodes = 12;
 
 const presets = {
   subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
@@ -364,7 +366,6 @@ async function loadRecentReleases() {
       });
 
       cardFrame.addEventListener("click", async () => {
-        // Find crossover mapping link asynchronously to find correct AniList Track
         let mappedId = anime.mal_id;
         try {
           const lookup = await fetch(`https://graphql.anilist.co`, {
@@ -779,8 +780,6 @@ async function buildEpisodeButtonsGrid(anilistId) {
     const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
     epBox.innerHTML = '';
 
-    // Extract episodes lists. Your backend aggregates providers inside single manifests.
-    // We check current active provider fallback to find item lengths dynamically.
     let providerList = epData?.[activeProviderMode] || [];
     
     // If targeted provider list yields 0 items, check first valid provider payload
@@ -814,7 +813,6 @@ async function buildEpisodeButtonsGrid(anilistId) {
     console.error("Failed to map live API episodes:", err);
     epBox.innerHTML = '<div class="text-xs text-red-500 p-2">Episode catalog track timeout. Presetting default blocks...</div>';
     
-    // Build default emergency fallback loop blocks
     window.activeMaxEpisodes = 12;
     epBox.innerHTML = '';
     for (let i = 1; i <= 12; i++) {
@@ -894,7 +892,6 @@ function renderSubServerGrid(streams) {
 
   serverGridContainer.innerHTML = '';
 
-  // Split streams based on streaming type classifications
   const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
   const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
 
@@ -1011,6 +1008,7 @@ function executeStreamRouting(streamUrl, streamType) {
     if (iframe) iframe.classList.add('hidden');
     injectPlyrVideoContainer(streamUrl);
   } else {
+    // If returning back to embed logic, make sure we clean up any active Plyr instances running
     let videoNode = document.getElementById('video-plyr-core');
     if (videoNode) {
       const mediaContainer = videoNode.parentElement;
@@ -1031,9 +1029,12 @@ function executeStreamRouting(streamUrl, streamType) {
 }
 
 function injectPlyrVideoContainer(streamUrl) {
-  const mediaContainer = document.getElementById('video-iframe')?.parentElement;
+  const standardIframe = document.getElementById('video-iframe');
+  if (!standardIframe) return;
+  const mediaContainer = standardIframe.parentElement;
   if (!mediaContainer) return;
 
+  // Clear previous contents so instance objects don't stack up inside DOM wrappers
   mediaContainer.innerHTML = '';
 
   const videoNode = document.createElement('video');
@@ -1042,16 +1043,34 @@ function injectPlyrVideoContainer(streamUrl) {
   videoNode.controls = true;
   videoNode.playsInline = true;
 
-  const trackSource = document.createElement('source');
-  trackSource.src = streamUrl;
-  trackSource.type = 'application/x-mpegURL'; // Explicit HLS mapping
-  
-  videoNode.appendChild(trackSource);
   mediaContainer.appendChild(videoNode);
 
+  // Setup Notice Overlay placeholder back inside wrapper alongside new element controls
+  const noticeOverlay = document.createElement('div');
+  noticeOverlay.id = 'notice-overlay';
+  noticeOverlay.className = 'hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4';
+  noticeOverlay.innerHTML = `<p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>`;
+  mediaContainer.appendChild(noticeOverlay);
+
+  // Hls.js custom layout loader bindings injection
+  if (streamUrl.includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
+    const hlsInstance = new Hls();
+    hlsInstance.loadSource(streamUrl);
+    hlsInstance.attachMedia(videoNode);
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+      initializePlyrEngine(videoNode);
+    });
+  } else {
+    // Fallback directly to native system components if using raw MP4 feeds
+    videoNode.src = streamUrl;
+    initializePlyrEngine(videoNode);
+  }
+}
+
+function initializePlyrEngine(videoElement) {
   try {
     if (typeof Plyr !== 'undefined') {
-      new Plyr(videoNode, {
+      new Plyr(videoElement, {
         controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'],
         keyboard: { focused: true, global: true },
         tooltips: { controls: true, seek: true }
@@ -1066,10 +1085,11 @@ async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   
   let iframe = document.getElementById('video-iframe');
-  const noticeOverlay = document.getElementById('notice-overlay');
+  let noticeOverlay = document.getElementById('notice-overlay');
   
-  if (!iframe && noticeOverlay) {
-    const layoutWrapper = noticeOverlay.parentElement;
+  // Re-build target elements fallback if DOM tree structural mutations happened on switching stream engines
+  if (!iframe) {
+    const layoutWrapper = document.getElementById('video-plyr-core')?.parentElement;
     if (layoutWrapper) {
       layoutWrapper.innerHTML = `
         <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
@@ -1077,6 +1097,7 @@ async function launchVideoPlayer(epNum) {
           <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
         </div>`;
       iframe = document.getElementById('video-iframe');
+      noticeOverlay = document.getElementById('notice-overlay');
     }
   }
 
@@ -1092,13 +1113,12 @@ async function launchVideoPlayer(epNum) {
   const oldGrid = document.getElementById('sub-server-links-grid');
   if (oldGrid) oldGrid.innerHTML = '';
 
-  // API Call directly routed to the active streaming provider link array
   const streamsList = await fetchAnivexaStreamList(window.currentAnilistId, epNum, currentLanguage);
   
   if (streamsList && streamsList.length > 0) {
     renderSubServerGrid(streamsList);
     
-    // Default Sorting Selector Priority: active HLS -> any HLS -> active Embed -> first index
+    // Default Sorting Priority: active HLS -> any HLS -> active Embed -> first index fallback
     const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
       || streamsList.find(s => s.url.includes('.m3u8')) 
       || streamsList.find(s => s.isActive) 
@@ -1157,6 +1177,11 @@ function updateProviderButtonsUI() {
 }
 
 function handleStreamMissingNotice() {
+  // Hide current rendering visual targets to clear black video boxes
+  document.getElementById('video-iframe')?.classList.add('hidden');
+  const videoCore = document.getElementById('video-plyr-core');
+  if (videoCore) videoCore.classList.add('hidden');
+
   const noticeOverlay = document.getElementById('notice-overlay');
   if (noticeOverlay) {
     noticeOverlay.classList.remove('hidden');
