@@ -6,8 +6,18 @@ const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
 let activeScheduleDay = 'today';
-let activeSourceMode = 'mal'; 
-let selectedDayFilter = ''; 
+let activeProviderMode = 'allmanga'; // Default active provider
+
+// Track all 7 available backend providers from your API manifest
+const API_PROVIDERS = [
+  { id: 'allmanga', name: 'AllManga', status: 'Active' },
+  { id: 'reanime', name: 'ReAnime', status: 'Active' },
+  { id: 'anikoto', name: 'AniKoto', status: 'Active' },
+  { id: 'animegg', name: 'AnimeGG', status: 'Active' },
+  { id: 'anineko', name: 'AniNeko', status: 'Active' },
+  { id: 'anidbapp', name: 'AniDB App', status: 'Active' },
+  { id: 'animepahe', name: 'AnimePahe', status: 'Unstable' }
+];
 
 // Guard items to stop loop updates on view toggle
 let hubFeedsLoaded = false;
@@ -15,9 +25,9 @@ let recentReleasesLoaded = false;
 let calendarLoaded = false;
 let currentPresetName = 'subaru';
 
+window.currentAnilistId = null;
 window.currentMalId = null;
 window.activeAnimeTitle = "";
-window.activeMaxEpisodes = 12;
 
 const presets = {
   subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
@@ -37,15 +47,6 @@ const presets = {
   satella: { hex: '#6d28d9', bg: '#0a0812', card: '#100c1c', input: '#18122b', textLight: true },
   echidna: { hex: '#e4e4e7', bg: '#101012', card: '#18181c', input: '#24242a', textLight: false }
 };
-
-let animeScraperInstance = null;
-try {
-  if (typeof NineAnimeScraper !== 'undefined') {
-    animeScraperInstance = new NineAnimeScraper();
-  }
-} catch(e) {
-  console.log("CDN Scraper config standby.");
-}
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -74,9 +75,9 @@ function applyCharacterPreset(name) {
   document.querySelectorAll('.dynamic-accent-bg').forEach(el => {
     el.style.backgroundColor = p.hex; el.style.color = p.textLight ? '#ffffff' : '#000000';
   });
-  updateServerButtonsUI();
+  updateProviderButtonsUI();
   updateLanguageButtonsUI();
-  if (window.currentMalId) updateEpisodeButtonsUI();
+  if (window.currentAnilistId) updateEpisodeButtonsUI();
   
   const tabAct = document.getElementById(`tab-${activeScheduleDay}`);
   if(tabAct) { tabAct.style.backgroundColor = p.hex; tabAct.style.color = p.textLight ? '#ffffff' : '#000000'; }
@@ -271,7 +272,7 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
         const scoreDisplay = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 'N/A';
 
         listHtml += `
-          <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.idMal || anime.id}, '${title.replace(/'/g, "\\'")}', ${anime.episodes || 12})"
+          <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.id}, ${anime.idMal || 'null'}, '${title.replace(/'/g, "\\'")}')"
                class="flex items-center justify-between p-2 rounded-xl bg-transparent hover:bg-neutral-900/40 cursor-pointer transition-all group">
             <div class="flex items-center gap-3 min-w-0">
               <img src="${anime.coverImage?.large}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-dark/40">
@@ -362,8 +363,22 @@ async function loadRecentReleases() {
         cardFrame.querySelector('.consumet-card-title').style.color = '#ffffff';
       });
 
-      cardFrame.addEventListener("click", () => {
-        loadStreamingLayout(anime.mal_id, anime.title_english || anime.title, anime.episodes || 12);
+      cardFrame.addEventListener("click", async () => {
+        // Find crossover mapping link asynchronously to find correct AniList Track
+        let mappedId = anime.mal_id;
+        try {
+          const lookup = await fetch(`https://graphql.anilist.co`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`,
+              variables: { id: anime.mal_id }
+            })
+          });
+          const res = await lookup.json();
+          mappedId = res?.data?.Media?.id || anime.mal_id;
+        } catch(e){}
+        loadStreamingLayout(mappedId, anime.mal_id, anime.title_english || anime.title);
       });
 
       targetGrid.appendChild(cardFrame);
@@ -627,7 +642,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
         </div>
         <span class="font-mono text-[10px] text-orange-400 dynamic-accent-text shrink-0">${timeString}</span>
       `;
-      div.onclick = () => loadStreamingLayout(item.media.idMal || item.media.id, title, item.media.episodes || 12);
+      div.onclick = () => loadStreamingLayout(item.media.id, item.media.idMal || null, title);
       scheduleBox.appendChild(div);
     });
     applyCharacterPreset(currentPresetName);
@@ -647,7 +662,18 @@ function displayScrollFeed(animeArray, elementId) {
     const div = document.createElement('div');
     div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer transition-all text-[11px]";
     div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
-    div.onclick = () => loadStreamingLayout(anime.mal_id, title, anime.episodes || 12);
+    div.onclick = async () => {
+      let linkedAniId = anime.mal_id;
+      try {
+        const lookup = await fetch(`https://graphql.anilist.co`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`, variables: { id: anime.mal_id } })
+        });
+        const res = await lookup.json();
+        linkedAniId = res?.data?.Media?.id || anime.mal_id;
+      } catch(e){}
+      loadStreamingLayout(linkedAniId, anime.mal_id, title);
+    };
     container.appendChild(div);
   });
 }
@@ -663,7 +689,7 @@ function displayGridFeed(animeArray, elementId) {
     const div = document.createElement('div');
     div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer transition-all flex flex-col justify-between text-xs";
     div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
-    div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
+    div.onclick = () => loadStreamingLayout(anime.id, anime.idMal || null, title);
     container.appendChild(div);
   });
 }
@@ -678,12 +704,13 @@ function displayTop10Sidebar(animeArray) {
     const div = document.createElement('div');
     div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 transition-all";
     div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium">${title}</span>`;
-    div.onclick = () => loadStreamingLayout(anime.idMal || anime.id, title, anime.episodes || 12);
+    div.onclick = () => loadStreamingLayout(anime.id, anime.idMal || null, title);
     container.appendChild(div);
   });
 }
 
 async function fetchJikanMetadata(malId) {
+  if (!malId) return;
   try {
     const json = await fetchWithRetry(`${JIKAN_BASE}/anime/${malId}`);
     const anime = json.data;
@@ -693,17 +720,32 @@ async function fetchJikanMetadata(malId) {
     document.getElementById('detail-synopsis').innerText = anime.synopsis || "No summary available.";
     document.getElementById('ep-synopsis-snippet').innerText = anime.synopsis || "No summary available.";
     document.getElementById('detail-type').innerText = anime.type || 'TV';
-    document.getElementById('detail-episodes').innerText = anime.episodes || window.activeMaxEpisodes || '12';
     document.getElementById('detail-rating').innerText = anime.score ? `${anime.score}/10` : 'N/A';
   } catch (err) {
     document.getElementById('detail-title').innerText = window.activeAnimeTitle;
   }
 }
 
-window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
+// Inject your 7 custom API server provider nodes into the stream layout
+function injectProviderButtons() {
+  const container = document.getElementById('server-source-tabs-bar') || document.querySelector('.server-tabs-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+  API_PROVIDERS.forEach(prov => {
+    const btn = document.createElement('button');
+    btn.id = `server-${prov.id}`;
+    btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark";
+    btn.innerHTML = `${prov.name} ${prov.status === 'Unstable' ? '⚠️' : ''}`;
+    btn.onclick = () => setProviderSource(prov.id);
+    container.appendChild(btn);
+  });
+}
+
+window.loadStreamingLayout = async function(anilistId, malId, titleName) {
+  window.currentAnilistId = anilistId;
   window.currentMalId = malId;
   window.activeAnimeTitle = titleName;
-  window.activeMaxEpisodes = totalEpisodes || 12;
 
   const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
   views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
@@ -713,15 +755,50 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
   const epTitle = document.getElementById('ep-title');
   if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
   
-  activeSourceMode = 'mal';
+  injectProviderButtons();
   updateLanguageButtonsUI();
-  updateServerButtonsUI();
-  fetchJikanMetadata(malId);
+  updateProviderButtonsUI();
+  
+  if (malId) {
+    fetchJikanMetadata(malId);
+  } else {
+    document.getElementById('detail-title').innerText = titleName;
+  }
 
+  // Load exact available episode listing structures from your unified episodes endpoint
+  await buildEpisodeButtonsGrid(anilistId);
+};
+
+async function buildEpisodeButtonsGrid(anilistId) {
   const epBox = document.getElementById('episode-buttons');
-  if(epBox) {
+  if (!epBox) return;
+
+  epBox.innerHTML = '<div class="text-xs text-gray-500 p-2 font-mono"><i class="fa-solid fa-circle-notch animate-spin mr-1.5"></i>Syncing episode feeds...</div>';
+
+  try {
+    const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
     epBox.innerHTML = '';
-    for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+
+    // Extract episodes lists. Your backend aggregates providers inside single manifests.
+    // We check current active provider fallback to find item lengths dynamically.
+    let providerList = epData?.[activeProviderMode] || [];
+    
+    // If targeted provider list yields 0 items, check first valid provider payload
+    if (!Array.isArray(providerList) || providerList.length === 0) {
+      for (const prov of API_PROVIDERS) {
+        if (epData?.[prov.id] && epData[prov.id].length > 0) {
+          providerList = epData[prov.id];
+          activeProviderMode = prov.id;
+          updateProviderButtonsUI();
+          break;
+        }
+      }
+    }
+
+    const totalEpisodesCount = providerList.length > 0 ? providerList.length : 12;
+    window.activeMaxEpisodes = totalEpisodesCount;
+
+    for (let i = 1; i <= totalEpisodesCount; i++) {
       const btn = document.createElement('button');
       btn.id = `ep-btn-${i}`;
       btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all";
@@ -729,38 +806,52 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
       btn.onclick = () => launchVideoPlayer(i);
       epBox.appendChild(btn);
     }
-  }
-  launchVideoPlayer(1);
-};
 
-// =========================================================================
-// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (ani.pm + HLS Priority)
-// =========================================================================
+    document.getElementById('detail-episodes').innerText = totalEpisodesCount;
+    launchVideoPlayer(1);
 
-async function fetchAnivexaStreamList(malId, epNum, dubMode) {
-  try {
-    console.log(`[Anivexa] Requesting conversion tracker for MAL: ${malId}`);
+  } catch (err) {
+    console.error("Failed to map live API episodes:", err);
+    epBox.innerHTML = '<div class="text-xs text-red-500 p-2">Episode catalog track timeout. Presetting default blocks...</div>';
     
-    const lookupQuery = `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`;
-    const lookupResponse = await fetch('https://graphql.anilist.co', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: lookupQuery, variables: { id: parseInt(malId) } })
-    });
-    
-    if (!lookupResponse.ok) throw new Error("GraphQL map tracking fallback offline");
-    const lookupResult = await lookupResponse.json();
-    const anilistId = lookupResult?.data?.Media?.id;
-
-    if (!anilistId) {
-      console.error(`[Anivexa] Zero crossover link paths established for MAL Reference.`);
-      return null;
+    // Build default emergency fallback loop blocks
+    window.activeMaxEpisodes = 12;
+    epBox.innerHTML = '';
+    for (let i = 1; i <= 12; i++) {
+      const btn = document.createElement('button');
+      btn.id = `ep-btn-${i}`;
+      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all";
+      btn.innerText = i;
+      btn.onclick = () => launchVideoPlayer(i);
+      epBox.appendChild(btn);
     }
-    
+    launchVideoPlayer(1);
+  }
+}
+
+// =========================================================================
+// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (7-Provider Core Logic)
+// =========================================================================
+
+async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
+  try {
     const category = dubMode === 'dub' ? 'dub' : 'sub';
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/anidbapp/${anilistId}/${category}/anidbapp-${epNum}`;
     
-    console.log(`[Anivexa] Fetching server list manifest: ${watchUrl}`);
+    // 302 Route Override Exception block explicitly built for ReAnime endpoint handling
+    if (activeProviderMode === 'reanime') {
+      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/${epNum}`;
+      return [{
+        name: "ReAnime Core Stream",
+        type: "HLS",
+        url: redirectUrl,
+        isActive: true
+      }];
+    }
+
+    // Standard structured tracking watch route endpoint
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${activeProviderMode}/${anilistId}/${category}/${activeProviderMode}-${epNum}`;
+    console.log(`[Anivexa API Request] -> ${watchUrl}`);
+
     const watchRes = await fetch(watchUrl);
     if (!watchRes.ok) return null;
 
@@ -769,10 +860,9 @@ async function fetchAnivexaStreamList(malId, epNum, dubMode) {
     if (watchData && Array.isArray(watchData.streams)) {
       return watchData.streams; 
     } else if (watchData && watchData.url) {
-      // Determine stream type explicitly from URL format rules
       const isHLS = watchData.url.includes('.m3u8');
       return [{ 
-        name: isHLS ? "Primary Stream" : "Default Server", 
+        name: "Primary Feed Mirror", 
         type: isHLS ? "HLS" : "Embed", 
         url: watchData.url, 
         isActive: true 
@@ -781,7 +871,7 @@ async function fetchAnivexaStreamList(malId, epNum, dubMode) {
     
     return null;
   } catch (e) {
-    console.warn(`[Anivexa] Stream processing structure failure:`, e);
+    console.warn(`[Anivexa Stream Router Exception]:`, e);
     return null;
   }
 }
@@ -808,7 +898,7 @@ function renderSubServerGrid(streams) {
   const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
   const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
 
-  // 1. Build Internal Native HLS Section Layout Container
+  // 1. MAIN FOCUS: HLS Streams
   if (hlsStreams.length > 0) {
     const internalGroup = document.createElement('div');
     internalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -816,7 +906,7 @@ function renderSubServerGrid(streams) {
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-bolt text-xs text-purple-400"></i>
-          <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">HLS Streams (Internal)</h3>
+          <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">HLS Streams (Internal Player)</h3>
         </div>
         <span class="text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">${hlsStreams.length} Available</span>
       </div>
@@ -830,7 +920,7 @@ function renderSubServerGrid(streams) {
     });
   }
 
-  // 2. Build External Embedded Fallback Link Layout Container
+  // 2. SIDE FALLBACK: Embedded / Iframes Mirrors
   if (fallbackStreams.length > 0) {
     const externalGroup = document.createElement('div');
     externalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -838,7 +928,7 @@ function renderSubServerGrid(streams) {
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-link text-xs text-zinc-400"></i>
-          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Alternative Mirrors (External)</h3>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Iframe Embed Mirrors (Side Content)</h3>
         </div>
         <span class="text-[10px] font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700/60 px-2 py-0.5 rounded-full">${fallbackStreams.length} Links</span>
       </div>
@@ -856,8 +946,6 @@ function renderSubServerGrid(streams) {
 function createStreamPillElement(stream, uniquelyIdentifiedId, parentGridContainer, masterStreamsArray) {
   const pill = document.createElement('div');
   pill.id = `stream-link-pill-${uniquelyIdentifiedId}`;
-  
-  // Custom design style layout mapping mirroring structural tabs from design updates
   pill.className = "bg-[#16161c] border border-zinc-800/80 rounded-xl p-3 flex flex-col justify-between cursor-pointer select-none transition-all hover:scale-[1.01] group";
   
   const labelType = stream.url.includes('.m3u8') ? 'HLS' : (stream.type || 'Embed');
@@ -881,7 +969,6 @@ function createStreamPillElement(stream, uniquelyIdentifiedId, parentGridContain
   }
 
   pill.onclick = () => {
-    // Clear active UI visual indicators globally from all active grid item selectors
     masterStreamsArray.forEach((_, idx) => {
       const p1 = document.getElementById(`stream-link-pill-hls-${idx}`);
       const p2 = document.getElementById(`stream-link-pill-fallback-${idx}`);
@@ -957,7 +1044,7 @@ function injectPlyrVideoContainer(streamUrl) {
 
   const trackSource = document.createElement('source');
   trackSource.src = streamUrl;
-  trackSource.type = streamUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4';
+  trackSource.type = 'application/x-mpegURL'; // Explicit HLS mapping
   
   videoNode.appendChild(trackSource);
   mediaContainer.appendChild(videoNode);
@@ -971,7 +1058,7 @@ function injectPlyrVideoContainer(streamUrl) {
       });
     }
   } catch(err) {
-    console.warn("[Media Hub] Native theme bindings initial configuration standby.", err);
+    console.warn("[Media Hub] Native Plyr binding initialization standby.", err);
   }
 }
 
@@ -1005,37 +1092,22 @@ async function launchVideoPlayer(epNum) {
   const oldGrid = document.getElementById('sub-server-links-grid');
   if (oldGrid) oldGrid.innerHTML = '';
 
-  if (activeSourceMode === 'mal') {
-    if (iframe) iframe.src = `https://megaplay.buzz/stream/mal/${window.currentMalId}/${epNum}/${currentLanguage}`;
-  } else if (activeSourceMode === 'cdn-9anime') {
-    try {
-      if (animeScraperInstance && typeof animeScraperInstance.getStreamUrl === 'function') {
-        const streamUrl = await animeScraperInstance.getStreamUrl(window.activeAnimeTitle, epNum, currentLanguage);
-        if (streamUrl) {
-          if (iframe) iframe.src = streamUrl;
-          return;
-        }
-      }
-      handleAutomaticFallback();
-    } catch (error) {
-      handleAutomaticFallback();
-    }
-  } else if (activeSourceMode === 'anivexa') {
-    const streamsList = await fetchAnivexaStreamList(window.currentMalId, epNum, currentLanguage);
-    if (streamsList && streamsList.length > 0) {
-      renderSubServerGrid(streamsList);
+  // API Call directly routed to the active streaming provider link array
+  const streamsList = await fetchAnivexaStreamList(window.currentAnilistId, epNum, currentLanguage);
+  
+  if (streamsList && streamsList.length > 0) {
+    renderSubServerGrid(streamsList);
+    
+    // Default Sorting Selector Priority: active HLS -> any HLS -> active Embed -> first index
+    const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
+      || streamsList.find(s => s.url.includes('.m3u8')) 
+      || streamsList.find(s => s.isActive) 
+      || streamsList[0];
       
-      // Auto-prioritize structural initialization to look for active HLS streams first, falling back to basic array item targets safely
-      const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
-        || streamsList.find(s => s.url.includes('.m3u8')) 
-        || streamsList.find(s => s.isActive) 
-        || streamsList[0];
-        
-      const calculatedType = defaultStream.url.includes('.m3u8') ? 'HLS' : (defaultStream.type || 'Embed');
-      executeStreamRouting(defaultStream.url, calculatedType);
-    } else {
-      handleAutomaticFallback();
-    }
+    const calculatedType = defaultStream.url.includes('.m3u8') ? 'HLS' : (defaultStream.type || 'Embed');
+    executeStreamRouting(defaultStream.url, calculatedType);
+  } else {
+    handleStreamMissingNotice();
   }
 }
 
@@ -1059,30 +1131,20 @@ function updateEpisodeButtonsUI() {
   }
 }
 
-function handleAutomaticFallback() {
-  if (activeSourceMode === 'mal') {
-    setServerSource('cdn-9anime');
-  } else if (activeSourceMode === 'cdn-9anime') {
-    setServerSource('anivexa');
-  } else {
-    handleStreamMissingNotice();
-  }
-}
-
-function setServerSource(mode) {
-  activeSourceMode = mode;
-  updateServerButtonsUI();
+function setProviderSource(providerId) {
+  activeProviderMode = providerId;
+  updateProviderButtonsUI();
   launchVideoPlayer(currentEpisodeIndex);
 }
 
-function updateServerButtonsUI() {
+function updateProviderButtonsUI() {
   const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
   const curPreset = presets[currentPresetName] || presets.subaru;
   
-  ['mal', 'cdn-9anime', 'anivexa'].forEach(src => {
-    const btn = document.getElementById(`server-${src}`);
+  API_PROVIDERS.forEach(prov => {
+    const btn = document.getElementById(`server-${prov.id}`);
     if (!btn) return;
-    if (activeSourceMode === src) {
+    if (activeProviderMode === prov.id) {
       btn.style.backgroundColor = currentActiveHex;
       btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
       btn.style.borderColor = currentActiveHex;
@@ -1095,7 +1157,12 @@ function updateServerButtonsUI() {
 }
 
 function handleStreamMissingNotice() {
-  console.log("[System Core] Video track resolution standby mode. No responsive streams returned from edge node endpoints.");
+  const noticeOverlay = document.getElementById('notice-overlay');
+  if (noticeOverlay) {
+    noticeOverlay.classList.remove('hidden');
+    const txt = noticeOverlay.querySelector('p');
+    if (txt) txt.innerText = `Source empty on provider: "${activeProviderMode.toUpperCase()}". Try switching tabs above.`;
+  }
 }
 
 function setLanguage(lang) {
