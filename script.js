@@ -728,7 +728,6 @@ async function fetchJikanMetadata(malId) {
   }
 }
 
-// FIXED: Using event delegation instead of single binding, keeping innerHTML clean
 function injectProviderButtons() {
   const container = document.getElementById('server-source-tabs-bar') || document.querySelector('.server-tabs-container');
   if (!container) return;
@@ -737,7 +736,7 @@ function injectProviderButtons() {
   API_PROVIDERS.forEach(prov => {
     const btn = document.createElement('button');
     btn.id = `server-${prov.id}`;
-    btn.setAttribute('data-provider', prov.id); // FIXED: Explicitly tag the node identifier
+    btn.setAttribute('data-provider', prov.id); // Tag provider identifier explicitly
     btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark";
     btn.innerHTML = `${prov.name} ${prov.status === 'Unstable' ? '⚠️' : ''}`;
     container.appendChild(btn);
@@ -768,7 +767,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
     document.getElementById('detail-title').innerText = titleName;
   }
 
-  // FIXED: Query mapping endpoints first so references are immediately available
+  // Query mapping endpoints first so references are immediately available
   try {
     const mappingResponse = await fetch(`${ANIVEXA_BASE_API}/map/${anilistId}`);
     if (mappingResponse.ok) {
@@ -977,8 +976,8 @@ function createStreamPillElement(stream, uniquelyIdentifiedId, parentGridContain
 
   pill.onclick = () => {
     masterStreamsArray.forEach((_, idx) => {
-      const p1 = document.getElementById(`stream-link-pill-hls-${idx}`);
-      const p2 = document.getElementById(`stream-link-pill-fallback-${idx}`);
+      const p1 = document.getElementById('stream-link-pill-hls-' + idx);
+      const p2 = document.getElementById('stream-link-pill-fallback-' + idx);
       if (p1) removeActivePillStyles(p1);
       if (p2) removeActivePillStyles(p2);
     });
@@ -1024,7 +1023,7 @@ function executeStreamRouting(streamUrl, streamType) {
       if (mediaContainer) {
         mediaContainer.innerHTML = `
           <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
-          <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+          <div id="player-notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
             <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
           </div>`;
       }
@@ -1054,7 +1053,7 @@ function injectPlyrVideoContainer(streamUrl) {
   mediaContainer.appendChild(videoNode);
 
   const noticeOverlay = document.createElement('div');
-  noticeOverlay.id = 'notice-overlay';
+  noticeOverlay.id = 'player-notice-overlay';
   noticeOverlay.className = 'hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4';
   noticeOverlay.innerHTML = `<p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>`;
   mediaContainer.appendChild(noticeOverlay);
@@ -1090,18 +1089,18 @@ async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   
   let iframe = document.getElementById('video-iframe');
-  let noticeOverlay = document.getElementById('notice-overlay');
+  let noticeOverlay = document.getElementById('player-notice-overlay');
   
   if (!iframe) {
     const layoutWrapper = document.getElementById('video-plyr-core')?.parentElement;
     if (layoutWrapper) {
       layoutWrapper.innerHTML = `
         <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
-        <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+        <div id="player-notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
           <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
         </div>`;
       iframe = document.getElementById('video-iframe');
-      noticeOverlay = document.getElementById('notice-overlay');
+      noticeOverlay = document.getElementById('player-notice-overlay');
     }
   }
 
@@ -1154,6 +1153,7 @@ function updateEpisodeButtonsUI() {
   }
 }
 
+// FIXED: Converted system over to direct execution method via event delegation lookup parameters
 function setProviderSource(providerId) {
   activeProviderMode = providerId;
   updateProviderButtonsUI();
@@ -1184,7 +1184,7 @@ function handleStreamMissingNotice() {
   const videoCore = document.getElementById('video-plyr-core');
   if (videoCore) videoCore.classList.add('hidden');
 
-  const noticeOverlay = document.getElementById('notice-overlay');
+  const noticeOverlay = document.getElementById('player-notice-overlay');
   if (noticeOverlay) {
     noticeOverlay.classList.remove('hidden');
     const txt = noticeOverlay.querySelector('p');
@@ -1226,7 +1226,7 @@ window.addEventListener("message", function (event) {
   }
 });
 
-// FIXED: Master listener delegation block added on load to ensure tabs update properly
+// FIXED: Implemented event delegation matching systems during application window loading
 window.onload = function() {
   startSystemClock();
   applyCharacterPreset('subaru');
