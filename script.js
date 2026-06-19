@@ -8,7 +8,7 @@ let currentLanguage = 'sub';
 let activeScheduleDay = 'today';
 let activeProviderMode = 'allmanga'; // Default active provider
 
-// Track all 7 available backend providers from your API manifest
+// Track all 8 available backend providers from your API manifest (MegaPlay Restored)
 const API_PROVIDERS = [
   { id: 'allmanga', name: 'AllManga', status: 'Active' },
   { id: 'reanime', name: 'ReAnime', status: 'Active' },
@@ -16,7 +16,8 @@ const API_PROVIDERS = [
   { id: 'animegg', name: 'AnimeGG', status: 'Active' },
   { id: 'anineko', name: 'AniNeko', status: 'Active' },
   { id: 'anidbapp', name: 'AniDB App', status: 'Active' },
-  { id: 'animepahe', name: 'AnimePahe', status: 'Unstable' }
+  { id: 'animepahe', name: 'AnimePahe', status: 'Unstable' },
+  { id: 'megaplay', name: 'MegaPlay', status: 'Active' }
 ];
 
 // Guard items to stop loop updates on view toggle
@@ -733,7 +734,7 @@ async function fetchJikanMetadata(malId) {
   }
 }
 
-// Inject your 7 custom API server provider nodes into the stream layout
+// Inject your 8 custom API server provider nodes into the stream layout
 function injectProviderButtons() {
   const container = document.getElementById('server-source-tabs-bar') || document.querySelector('.server-tabs-container');
   if (!container) return;
@@ -776,6 +777,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
   await buildEpisodeButtonsGrid(anilistId);
 };
 
+// CALCULATES LIVE MAXIMUM EPISODES AUTOMATICALLY WITHOUT HARD LOCKS
 async function buildEpisodeButtonsGrid(anilistId) {
   const epBox = document.getElementById('episode-buttons');
   if (!epBox) return;
@@ -787,16 +789,17 @@ async function buildEpisodeButtonsGrid(anilistId) {
     console.log("Episodes Response:", epData);
     globalEpisodeDataCache = epData; // Cache response data structure globally
 
-    // Target active format layout arrays
     let providerList = [];
+    const cleanProvider = activeProviderMode.toLowerCase().trim();
+
     if (epData) {
       if (Array.isArray(epData)) {
-        const block = epData.find(item => item.provider === activeProviderMode);
+        const block = epData.find(item => item.provider === cleanProvider);
         providerList = block ? block.episodes : [];
       } else if (epData.episodes && Array.isArray(epData.episodes)) {
         providerList = epData.episodes;
       } else {
-        providerList = epData[activeProviderMode] || [];
+        providerList = epData[cleanProvider] || [];
       }
     }
     
@@ -820,7 +823,7 @@ async function buildEpisodeButtonsGrid(anilistId) {
       }
     }
 
-    const totalEpisodesCount = providerList && providerList.length > 0 ? providerList.length : 12;
+    let totalEpisodesCount = providerList && providerList.length > 0 ? providerList.length : 12;
     window.activeMaxEpisodes = totalEpisodesCount;
     epBox.innerHTML = '';
 
@@ -855,7 +858,7 @@ async function buildEpisodeButtonsGrid(anilistId) {
 }
 
 // =========================================================================
-// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (7-Provider Core Logic)
+// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (8-Provider Core Logic)
 // =========================================================================
 
 async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
