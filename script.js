@@ -636,7 +636,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
     applyCharacterPreset(currentPresetName);
   } catch (error) { 
     console.error(error);
-    scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>'; 
+    scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>`; 
   }
 }
 
@@ -717,6 +717,7 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
   if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
   
   activeSourceMode = 'mal';
+  updateLanguageButtonsUI();
   updateServerButtonsUI();
   fetchJikanMetadata(malId);
 
