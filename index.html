@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TheDude9 Anime</title>
   
+  <!-- Tailwind CSS Core -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,11 +22,12 @@
     }
   </script>
 
+  <!-- Video Engine Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
+  <!-- Google Typography & Vector Frameworks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
@@ -34,6 +36,7 @@
 </head>
 <body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex font-['Inter',sans-serif]">
 
+  <!-- Primary Application Sidebar Drawer -->
   <aside id="main-menu-drawer" class="fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5 bg-dark-bg border-r border-dark-border flex flex-col justify-between">
     <div>
       <div class="pb-5 flex items-center justify-between border-b border-dark-border mb-6">
@@ -41,7 +44,7 @@
           <span class="text-xl tracking-wide text-white transition-colors duration-200">TheDude<span class="dynamic-accent-text text-orange-500">9</span></span>
           <span class="text-[9px] tracking-[0.2em] dynamic-accent-bg bg-orange-500 text-black px-2 py-0.5 rounded ml-4 mt-1 uppercase font-bold shadow-sm">A N I M E</span>
         </div>
-        <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors">
+        <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors" aria-label="Close menu">
           <i class="fa-solid fa-xmark text-xl"></i>
         </button>
       </div>
@@ -72,18 +75,22 @@
     </div>
   </aside>
 
+  <!-- Responsive Drawer Backdrop Overlay -->
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden backdrop-blur-sm transition-opacity"></div>
 
+  <!-- Primary Application Content Base -->
   <div class="flex-1 flex flex-col min-w-0">
     
+    <!-- Application Global Top Utility Bar -->
     <nav class="sticky top-0 z-30 bg-dark-bg/95 backdrop-blur border-b border-dark-border px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors">
+        <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors" aria-label="Open menu">
           <i class="fa-solid fa-bars"></i>
         </button>
         <div id="view-indicator-title" class="text-xs font-bold uppercase tracking-widest text-gray-400 hidden md:block select-none">Welcome Portal</div>
       </div>
       
+      <!-- Sticky Navigation Header Search Module -->
       <div id="header-search-engine" class="flex-1 max-w-md mx-4 relative hidden">
         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
           <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -99,8 +106,10 @@
       </div>
     </nav>
 
+    <!-- Main View Display Mount -->
     <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1">
 
+      <!-- View Space: Index Landing Dashboard Portal -->
       <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-2xl border border-dark-border mb-10 bg-gradient-to-b from-orange-950/10 to-transparent shadow-xl">
         <div class="max-w-xl w-full space-y-6">
           <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
@@ -122,6 +131,7 @@
         </div>
       </section>
 
+      <!-- View Space: Exploration Grid & Global Discovery Metrics -->
       <section id="main-exploration-hub" class="hidden space-y-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div class="lg:col-span-2 space-y-8">
@@ -143,6 +153,7 @@
             </div>
           </div>
           
+          <!-- Secondary Utility Panel Sidebar Block -->
           <div class="space-y-6">
             <div id="sidebar-container-block" class="bg-dark-card border border-dark-border rounded-xl p-4 space-y-4 shadow-md">
               <div class="flex items-center justify-between border-b border-dark-border pb-2">
@@ -167,6 +178,7 @@
         </div>
       </section>
 
+      <!-- View Space: Live Airing Releases Dashboard Feed -->
       <section id="releases-focus-view" class="hidden space-y-4">
         <div class="border-b border-dark-border pb-2">
           <h2 class="text-base font-bold uppercase tracking-wider text-white">Full Releases Feed Dashboard</h2>
@@ -180,6 +192,7 @@
         </div>
       </section>
 
+      <!-- View Space: Interactive Chronological Airing Calendar -->
       <section id="calendar-focus-view" class="w-full max-w-2xl mx-auto px-2 hidden space-y-4">
         <div class="flex items-center justify-between">
           <h1 class="text-xl font-bold tracking-tight">Airing this week</h1>
@@ -207,6 +220,7 @@
         <div id="airing-chronological-list" class="space-y-6 pt-2"></div>
       </section>
 
+      <!-- View Space: Core Video Playback Engine Suite Dashboard -->
       <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
         <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-dark-border shadow-2xl">
           <div id="player-box" class="w-full h-full relative">
@@ -222,15 +236,16 @@
           </div>
         </div>
 
+        <!-- Track & Language Audio Configuration Handles -->
         <div class="flex flex-col md:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-md">
-          <div class="w-full md:w-auto overflow-x-auto scrollbar-none flex items-center gap-2" id="server-source-tabs-bar">
-             </div>
+          <div class="w-full md:w-auto overflow-x-auto scrollbar-none flex items-center gap-2" id="server-source-tabs-bar"></div>
           <div class="flex items-center bg-dark-input p-0.5 rounded-lg border border-dark-border/60 shrink-0">
             <button id="sub-btn" onclick="setLanguage('sub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">SUB</button>
             <button id="dub-btn" onclick="setLanguage('dub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">DUB</button>
           </div>
         </div>
 
+        <!-- Resource Context Summary Panel -->
         <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4 shadow-md">
           <div class="w-32 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-lg overflow-hidden shadow-md shrink-0">
             <img id="detail-poster" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='150' viewBox='0 0 100 150'><rect width='100%' height='100%' fill='%23121216'/></svg>" class="w-full h-full object-cover" alt="Anime Poster">
@@ -246,6 +261,7 @@
           </div>
         </div>
 
+        <!-- Resource Tracking & Catalog Episode Indices -->
         <div class="bg-dark-card border border-dark-border rounded-xl p-4 space-y-3 shadow-md">
           <div>
             <h2 id="ep-title" class="text-sm font-bold text-white">Streaming Catalog Suite</h2>
@@ -260,6 +276,7 @@
     </main>
   </div>
 
+  <!-- Bottom Sheet Drawer Framework UI -->
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm transition-opacity"></div>
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#131318] border-t border-dark-border rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 ease-out max-h-[85vh] overflow-y-auto shadow-2xl">
     <div class="max-w-xl mx-auto space-y-6">
@@ -268,6 +285,7 @@
         <p class="text-[11px] text-gray-500">Choose from 16 different character color configurations</p>
       </div>
       
+      <!-- Character Accent Injection Matrix Engine -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
         <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-orange-500/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Subaru</span><span class="w-3 h-3 rounded-full bg-orange-500 shrink-0 ml-1 shadow-[0_0_8px_rgba(249,115,22,0.4)]"></span></button>
         <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-purple-400/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Emilia</span><span class="w-3 h-3 rounded-full bg-purple-400 shrink-0 ml-1 shadow-[0_0_8px_rgba(192,132,252,0.4)]"></span></button>
