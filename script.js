@@ -26,6 +26,9 @@ let calendarLoaded = false;
 let currentPresetName = 'subaru';
 let selectedDayFilter = '';
 
+// Store the fetched server episode mapping objects globally so we can access real API data IDs
+let globalEpisodeDataCache = null;
+
 window.currentAnilistId = null;
 window.currentMalId = null;
 window.activeAnimeTitle = "";
@@ -778,24 +781,49 @@ async function buildEpisodeButtonsGrid(anilistId) {
 
   try {
     const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
-    epBox.innerHTML = '';
+    console.log("Episodes Response:", epData);
+    globalEpisodeDataCache = epData; // Cache response data structure globally
 
-    let providerList = epData?.[activeProviderMode] || [];
+    // Target active format layout arrays
+    let providerList = [];
+    if (epData) {
+      if (Array.isArray(epData)) {
+        // Format layout B: [{ provider: 'allmanga', episodes: [...] }]
+        const block = epData.find(item => item.provider === activeProviderMode);
+        providerList = block ? block.episodes : [];
+      } else if (epData.episodes && Array.isArray(epData.episodes)) {
+        // Format layout C: { episodes: [...] }
+        providerList = epData.episodes;
+      } else {
+        // Format layout A: { allmanga: [...], reanime: [...] }
+        providerList = epData[activeProviderMode] || [];
+      }
+    }
     
-    // If targeted provider list yields 0 items, check first valid provider payload
+    // If targeted provider list yields 0 items, check first valid provider payload WITHOUT altering activeProviderMode state
     if (!Array.isArray(providerList) || providerList.length === 0) {
-      for (const prov of API_PROVIDERS) {
-        if (epData?.[prov.id] && epData[prov.id].length > 0) {
-          providerList = epData[prov.id];
-          activeProviderMode = prov.id;
-          updateProviderButtonsUI();
-          break;
+      const fallbackProvider = API_PROVIDERS.find(p => {
+        if (!epData) return false;
+        if (Array.isArray(epData)) {
+          const b = epData.find(item => item.provider === p.id);
+          return b && b.episodes && b.episodes.length > 0;
+        } else {
+          return epData[p.id] && epData[p.id].length > 0;
+        }
+      });
+
+      if (fallbackProvider) {
+        if (Array.isArray(epData)) {
+          providerList = epData.find(item => item.provider === fallbackProvider.id).episodes;
+        } else {
+          providerList = epData[fallbackProvider.id];
         }
       }
     }
 
-    const totalEpisodesCount = providerList.length > 0 ? providerList.length : 12;
+    const totalEpisodesCount = providerList && providerList.length > 0 ? providerList.length : 12;
     window.activeMaxEpisodes = totalEpisodesCount;
+    epBox.innerHTML = '';
 
     for (let i = 1; i <= totalEpisodesCount; i++) {
       const btn = document.createElement('button');
@@ -838,7 +866,7 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     
     // 302 Route Override Exception block explicitly built for ReAnime endpoint handling
     if (cleanProvider === 'reanime') {
-      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/${epNum}`;
+      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/reanime-${epNum}`;
       return [{
         name: "ReAnime Core Stream",
         type: "HLS",
@@ -847,13 +875,40 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
       }];
     }
 
+    // Determine specific dynamic episode ID from cached /episodes response if available
+    let computedEpId = `${cleanProvider}-${epNum}`;
+    if (globalEpisodeDataCache) {
+      let targetList = [];
+      if (Array.isArray(globalEpisodeDataCache)) {
+        const block = globalEpisodeDataCache.find(item => item.provider === cleanProvider);
+        if (block) targetList = block.episodes || [];
+      } else if (globalEpisodeDataCache.episodes && Array.isArray(globalEpisodeDataCache.episodes)) {
+        targetList = globalEpisodeDataCache.episodes;
+      } else {
+        targetList = globalEpisodeDataCache[cleanProvider] || [];
+      }
+
+      // Look for custom tracking ID inside target episode matching current index
+      if (targetList && targetList.length > 0) {
+        const matchedEpisodeObj = targetList.find(e => e.number == epNum || e.episode == epNum);
+        if (matchedEpisodeObj && matchedEpisodeObj.id) {
+          computedEpId = matchedEpisodeObj.id;
+        }
+      }
+    }
+
     // Standard structured tracking watch route endpoint
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${cleanProvider}-${epNum}`;
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${computedEpId}`;
     console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
-    const watchRes = await fetch(watchUrl);
-    if (!watchRes.ok) return null;
+    // Implemented AbortController to handle fetch timeouts gracefully
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+    const watchRes = await fetch(watchUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!watchRes.ok) return null;
     const watchData = await watchRes.json();
     
     if (watchData && Array.isArray(watchData.streams)) {
@@ -1009,7 +1064,12 @@ function executeStreamRouting(streamUrl, streamType) {
     if (iframe) iframe.classList.add('hidden');
     injectPlyrVideoContainer(streamUrl);
   } else {
-    // If returning back to embed logic, make sure we clean up any active Plyr instances running
+    // Before switching to embed logic, make sure to destroy current active Plyr instance safely to avoid memory leak
+    if (window.currentPlyr) {
+      window.currentPlyr.destroy();
+      window.currentPlyr = null;
+    }
+
     let videoNode = document.getElementById('video-plyr-core');
     if (videoNode) {
       const mediaContainer = videoNode.parentElement;
@@ -1034,6 +1094,12 @@ function injectPlyrVideoContainer(streamUrl) {
   if (!standardIframe) return;
   const mediaContainer = standardIframe.parentElement;
   if (!mediaContainer) return;
+
+  // Before rewriting DOM structure inner HTML elements, eliminate existing engine reference tracks
+  if (window.currentPlyr) {
+    window.currentPlyr.destroy();
+    window.currentPlyr = null;
+  }
 
   // Clear previous contents so instance objects don't stack up inside DOM wrappers
   mediaContainer.innerHTML = '';
@@ -1071,7 +1137,12 @@ function injectPlyrVideoContainer(streamUrl) {
 function initializePlyrEngine(videoElement) {
   try {
     if (typeof Plyr !== 'undefined') {
-      new Plyr(videoElement, {
+      // Safely cleanup old Plyr instance before tracking a new one
+      if (window.currentPlyr) {
+        window.currentPlyr.destroy();
+      }
+      
+      window.currentPlyr = new Plyr(videoElement, {
         controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'],
         keyboard: { focused: true, global: true },
         tooltips: { controls: true, seek: true }
