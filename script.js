@@ -733,12 +733,14 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
   launchVideoPlayer(1);
 };
 
-// FETCH STREAMS NATIVELY FROM THE MULTI-PROVIDER AGGREGATOR VERCEL SERVER
-async function fetchAnivexaStream(malId, epNum, dubMode) {
+// =========================================================================
+// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (ani.pm + HLS Priority)
+// =========================================================================
+
+async function fetchAnivexaStreamList(malId, epNum, dubMode) {
   try {
     console.log(`[Anivexa] Requesting conversion tracker for MAL: ${malId}`);
     
-    // Core Correction: Convert MAL ID to an actual AniList ID using GraphQL first
     const lookupQuery = `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`;
     const lookupResponse = await fetch('https://graphql.anilist.co', {
       method: 'POST',
@@ -755,32 +757,26 @@ async function fetchAnivexaStream(malId, epNum, dubMode) {
       return null;
     }
     
-    // Now pass the proper AniList ID into your verified /map/ backend endpoint layout
-    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${anilistId}`);
-    if (!mapRes.ok) {
-      console.error(`[Anivexa] Mapping configuration failed at edge node server.`);
-      return null;
-    }
-    
-    // Extract routing configuration parameters matching your API routes array layout
-    const provider = "anidbapp";
     const category = dubMode === 'dub' ? 'dub' : 'sub';
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/anidbapp/${anilistId}/${category}/anidbapp-${epNum}`;
     
-    // Match pattern precisely: /watch/:provider/:id/:translation/:provider-:ep
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/${provider}/${anilistId}/${category}/${provider}-${epNum}`;
-    console.log(`[Anivexa] Streaming payload request target: ${watchUrl}`);
-    
+    console.log(`[Anivexa] Fetching server list manifest: ${watchUrl}`);
     const watchRes = await fetch(watchUrl);
     if (!watchRes.ok) return null;
 
     const watchData = await watchRes.json();
     
-    // Extract the stream file safely from the dynamic backend array layers
     if (watchData && Array.isArray(watchData.streams)) {
-      const activeStream = watchData.streams.find(s => s.isActive === true) || watchData.streams[0];
-      return activeStream ? activeStream.url : null;
+      return watchData.streams; 
     } else if (watchData && watchData.url) {
-      return watchData.url;
+      // Determine stream type explicitly from URL format rules
+      const isHLS = watchData.url.includes('.m3u8');
+      return [{ 
+        name: isHLS ? "Primary Stream" : "Default Server", 
+        type: isHLS ? "HLS" : "Embed", 
+        url: watchData.url, 
+        isActive: true 
+      }];
     }
     
     return null;
@@ -790,7 +786,163 @@ async function fetchAnivexaStream(malId, epNum, dubMode) {
   }
 }
 
-// INJECT NATIVE CUSTOM HTML5 MULTIMEDIA DOM HOOKS INSTEAD OF STRIPPED CODE TEXT PANELS
+function renderSubServerGrid(streams) {
+  let serverGridContainer = document.getElementById('sub-server-links-grid');
+  
+  if (!serverGridContainer) {
+    const targetParent = document.getElementById('episode-buttons')?.parentElement;
+    if (!targetParent) return;
+    
+    const sectionWrapper = document.createElement('div');
+    sectionWrapper.className = "mt-6";
+    sectionWrapper.innerHTML = `
+      <div id="sub-server-links-grid" class="space-y-4 mb-6"></div>
+    `;
+    targetParent.appendChild(sectionWrapper);
+    serverGridContainer = document.getElementById('sub-server-links-grid');
+  }
+
+  serverGridContainer.innerHTML = '';
+
+  // Split streams based on streaming type classifications
+  const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
+  const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
+
+  // 1. Build Internal Native HLS Section Layout Container
+  if (hlsStreams.length > 0) {
+    const internalGroup = document.createElement('div');
+    internalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
+    internalGroup.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-xs text-purple-400"></i>
+          <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">HLS Streams (Internal)</h3>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">${hlsStreams.length} Available</span>
+      </div>
+      <div id="hls-links-subgrid" class="grid grid-cols-2 gap-2.5"></div>
+    `;
+    serverGridContainer.appendChild(internalGroup);
+    
+    const hlsGrid = document.getElementById('hls-links-subgrid');
+    hlsStreams.forEach((stream, idx) => {
+      createStreamPillElement(stream, `hls-${idx}`, hlsGrid, streams);
+    });
+  }
+
+  // 2. Build External Embedded Fallback Link Layout Container
+  if (fallbackStreams.length > 0) {
+    const externalGroup = document.createElement('div');
+    externalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
+    externalGroup.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-link text-xs text-zinc-400"></i>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Alternative Mirrors (External)</h3>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700/60 px-2 py-0.5 rounded-full">${fallbackStreams.length} Links</span>
+      </div>
+      <div id="fallback-links-subgrid" class="grid grid-cols-2 gap-2.5"></div>
+    `;
+    serverGridContainer.appendChild(externalGroup);
+    
+    const fallbackGrid = document.getElementById('fallback-links-subgrid');
+    fallbackStreams.forEach((stream, idx) => {
+      createStreamPillElement(stream, `fallback-${idx}`, fallbackGrid, streams);
+    });
+  }
+}
+
+function createStreamPillElement(stream, uniquelyIdentifiedId, parentGridContainer, masterStreamsArray) {
+  const pill = document.createElement('div');
+  pill.id = `stream-link-pill-${uniquelyIdentifiedId}`;
+  
+  // Custom design style layout mapping mirroring structural tabs from design updates
+  pill.className = "bg-[#16161c] border border-zinc-800/80 rounded-xl p-3 flex flex-col justify-between cursor-pointer select-none transition-all hover:scale-[1.01] group";
+  
+  const labelType = stream.url.includes('.m3u8') ? 'HLS' : (stream.type || 'Embed');
+  const typeBadgeStyles = labelType === 'HLS' 
+    ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+    : 'bg-zinc-800 text-zinc-400 border-zinc-700/50';
+
+  pill.innerHTML = `
+    <div class="flex items-start justify-between gap-2">
+      <h4 class="text-xs font-bold text-gray-200 transition-colors server-name-text truncate">${stream.name || 'Mirror Source'}</h4>
+      <span class="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded border tracking-wide uppercase shrink-0 ${typeBadgeStyles}">${labelType}</span>
+    </div>
+    <div class="flex items-center gap-3 text-[10px] text-gray-500 font-mono mt-2.5 pt-2 border-t border-zinc-800/40 group-hover:text-gray-400">
+      <span class="hover:text-white"><i class="fa-regular fa-thumbs-up mr-1.5"></i>--</span>
+      <span class="hover:text-white"><i class="fa-regular fa-thumbs-down mr-1.5"></i>--</span>
+    </div>
+  `;
+
+  if (stream.isActive) {
+    applyActivePillStyles(pill);
+  }
+
+  pill.onclick = () => {
+    // Clear active UI visual indicators globally from all active grid item selectors
+    masterStreamsArray.forEach((_, idx) => {
+      const p1 = document.getElementById(`stream-link-pill-hls-${idx}`);
+      const p2 = document.getElementById(`stream-link-pill-fallback-${idx}`);
+      if (p1) removeActivePillStyles(p1);
+      if (p2) removeActivePillStyles(p2);
+    });
+
+    applyActivePillStyles(pill);
+    executeStreamRouting(stream.url, labelType);
+  };
+
+  parentGridContainer.appendChild(pill);
+}
+
+function applyActivePillStyles(element) {
+  element.style.backgroundColor = '#ffffff';
+  element.style.borderColor = '#ffffff';
+  const nameTxt = element.querySelector('.server-name-text');
+  if (nameTxt) nameTxt.style.color = '#000000';
+  element.querySelectorAll('span, i').forEach(el => {
+    if (!el.classList.contains('border')) el.style.color = '#4b5563';
+  });
+}
+
+function removeActivePillStyles(element) {
+  element.style.backgroundColor = '';
+  element.style.borderColor = '';
+  const nameTxt = element.querySelector('.server-name-text');
+  if (nameTxt) nameTxt.style.color = '';
+  element.querySelectorAll('span, i').forEach(el => {
+    if (!el.classList.contains('border')) el.style.color = '';
+  });
+}
+
+function executeStreamRouting(streamUrl, streamType) {
+  const iframe = document.getElementById('video-iframe');
+  const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8');
+  
+  if (isHLSSource) {
+    if (iframe) iframe.classList.add('hidden');
+    injectPlyrVideoContainer(streamUrl);
+  } else {
+    let videoNode = document.getElementById('video-plyr-core');
+    if (videoNode) {
+      const mediaContainer = videoNode.parentElement;
+      if (mediaContainer) {
+        mediaContainer.innerHTML = `
+          <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
+          <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+            <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
+          </div>`;
+      }
+    }
+    const standardIframe = document.getElementById('video-iframe');
+    if (standardIframe) {
+      standardIframe.classList.remove('hidden');
+      standardIframe.src = streamUrl;
+    }
+  }
+}
+
 function injectPlyrVideoContainer(streamUrl) {
   const mediaContainer = document.getElementById('video-iframe')?.parentElement;
   if (!mediaContainer) return;
@@ -829,7 +981,6 @@ async function launchVideoPlayer(epNum) {
   let iframe = document.getElementById('video-iframe');
   const noticeOverlay = document.getElementById('notice-overlay');
   
-  // Rebuild structure safely if custom HTML5 components have taken over layout elements
   if (!iframe && noticeOverlay) {
     const layoutWrapper = noticeOverlay.parentElement;
     if (layoutWrapper) {
@@ -847,11 +998,12 @@ async function launchVideoPlayer(epNum) {
     iframe.classList.remove('hidden');
   }
   
-  if (noticeOverlay) {
-    noticeOverlay.classList.add('hidden');
-  }
+  if (noticeOverlay) noticeOverlay.classList.add('hidden');
   
   updateEpisodeButtonsUI();
+
+  const oldGrid = document.getElementById('sub-server-links-grid');
+  if (oldGrid) oldGrid.innerHTML = '';
 
   if (activeSourceMode === 'mal') {
     if (iframe) iframe.src = `https://megaplay.buzz/stream/mal/${window.currentMalId}/${epNum}/${currentLanguage}`;
@@ -869,14 +1021,18 @@ async function launchVideoPlayer(epNum) {
       handleAutomaticFallback();
     }
   } else if (activeSourceMode === 'anivexa') {
-    const aggregatedStreamUrl = await fetchAnivexaStream(window.currentMalId, epNum, currentLanguage);
-    if (aggregatedStreamUrl) {
-      // Toggle custom media container UI if layout detects an HLS stream manifest file
-      if (aggregatedStreamUrl.includes('.m3u8')) {
-        injectPlyrVideoContainer(aggregatedStreamUrl);
-      } else {
-        if (iframe) iframe.src = aggregatedStreamUrl;
-      }
+    const streamsList = await fetchAnivexaStreamList(window.currentMalId, epNum, currentLanguage);
+    if (streamsList && streamsList.length > 0) {
+      renderSubServerGrid(streamsList);
+      
+      // Auto-prioritize structural initialization to look for active HLS streams first, falling back to basic array item targets safely
+      const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
+        || streamsList.find(s => s.url.includes('.m3u8')) 
+        || streamsList.find(s => s.isActive) 
+        || streamsList[0];
+        
+      const calculatedType = defaultStream.url.includes('.m3u8') ? 'HLS' : (defaultStream.type || 'Embed');
+      executeStreamRouting(defaultStream.url, calculatedType);
     } else {
       handleAutomaticFallback();
     }
