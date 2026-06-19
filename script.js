@@ -3,6 +3,9 @@ const JIKAN_BASE = "https://api.jikan.moe/v4";
 const CONSUMET_BASE_API = "https://api.consumet.org/anime"; 
 const CONSUMET_STACK = ['animekai', 'gogoanime', 'hianime'];
 
+// YOUR CUSTOM SELF-HOSTED API ENDPOINT
+const ANIVEXA_BASE_API = "https://anivexa-9f5dq1thm-darien91829s-projects.vercel.app";
+
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
 let activeScheduleDay = 'today';
@@ -780,6 +783,33 @@ async function fetchConsumetStreamWithStack(animeTitle, epNum, dubMode) {
   return null;
 }
 
+// FETCH STREAMS NATIVELY FROM ANIDBAPP COUPLING ON YOUR VERCEL SERVER
+async function fetchAnidbAppStream(malId, epNum, dubMode) {
+  try {
+    console.log(`[AnidbApp] Fetching watch layout for ID: ${malId}, Ep: ${epNum}`);
+    // Map Mal ID to get the AniList ID context needed for your API route structure
+    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
+    if (!mapRes.ok) return null;
+    
+    const mapData = await mapRes.json();
+    const anilistId = mapData.mappings?.aniId;
+    if (!anilistId) return null;
+
+    // Call the watch route endpoint configured on your Vercel project
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/anidbapp/${anilistId}/${dubMode}/anidbapp-${epNum}`;
+    const watchRes = await fetch(watchUrl);
+    if (!watchRes.ok) return null;
+
+    const watchData = await watchRes.json();
+    const activeStream = watchData.streams?.find(s => s.isActive === true) || watchData.streams?.[0];
+    
+    return activeStream ? activeStream.url : null;
+  } catch (e) {
+    console.warn(`[AnidbApp] Extraction route standby fallback mode triggered.`, e);
+    return null;
+  }
+}
+
 async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   const iframe = document.getElementById('video-iframe');
@@ -812,6 +842,18 @@ async function launchVideoPlayer(epNum) {
       noticeOverlay.querySelector('p').innerText = "🔄 Parsing API Stack Links...";
     }
     
+    // Attempt parsing streams from your custom self-hosted proxy stack first
+    const anidbStreamUrl = await fetchAnidbAppStream(window.currentMalId, epNum, currentLanguage);
+    if (anidbStreamUrl) {
+      if(noticeOverlay) noticeOverlay.classList.add('hidden');
+      iframe.classList.remove('hidden');
+      iframe.src = anidbStreamUrl.includes('.m3u8') 
+        ? `https://player.vdocipher.com/v2/?url=${encodeURIComponent(anidbStreamUrl)}`
+        : anidbStreamUrl;
+      return;
+    }
+
+    // Secondary fallback back into standard Consumet arrays if your API is missing the asset link
     const backupStreamUrl = await fetchConsumetStreamWithStack(window.activeAnimeTitle, epNum, currentLanguage);
     if (backupStreamUrl) {
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
