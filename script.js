@@ -1,10 +1,7 @@
 const JIKAN_BASE = "https://api.jikan.moe/v4";
-// CHANGE THIS TO YOUR ACTIVE/SELF-HOSTED CONSUMET API ROUTE ENDPOINT URL STRING
-const CONSUMET_BASE_API = "https://api.consumet.org/anime"; 
-const CONSUMET_STACK = ['animekai', 'gogoanime', 'hianime'];
 
-// YOUR STANDALONE STREAMING API 
-const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
+// YOUR STANDALONE STREAMING API HOSTED ON VERCEL
+const ANIVEXA_BASE_API = "https://anivexa-9f5dq1thm-darien91829s-projects.vercel.app";
 
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
@@ -736,53 +733,12 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
   launchVideoPlayer(1);
 };
 
-// Stacking Fallback Loop Engine for the Consumet API routes
-async function fetchConsumetStreamWithStack(animeTitle, epNum, dubMode) {
-  const cleanTitle = encodeURIComponent(animeTitle.toLowerCase().replace(/[^a-z0-9\s]/g, ''));
-  const isDub = dubMode === 'dub';
-
-  for (const provider of CONSUMET_STACK) {
-    try {
-      console.log(`[Stack] Attempting fetch stream on provider: ${provider}`);
-      
-      const searchUrl = `${CONSUMET_BASE_API}/${provider}/${cleanTitle}`;
-      const searchRes = await fetch(searchUrl);
-      if (!searchRes.ok) continue;
-      
-      const searchData = await searchRes.json();
-      const targetAnime = searchData.results?.[0];
-      if (!targetAnime || !targetAnime.id) continue;
-
-      const infoUrl = `${CONSUMET_BASE_API}/${provider}/info?id=${targetAnime.id}`;
-      const infoRes = await fetch(infoUrl);
-      if (!infoRes.ok) continue;
-      
-      const infoData = await infoRes.json();
-      const epObject = infoData.episodes?.find(e => e.number == epNum);
-      if (!epObject || !epObject.id) continue;
-
-      const watchUrl = `${CONSUMET_BASE_API}/${provider}/watch/${epObject.id}?dub=${isDub}`;
-      const watchRes = await fetch(watchUrl);
-      if (!watchRes.ok) continue;
-
-      const watchData = await watchRes.json();
-      const primaryStream = watchData.sources?.find(s => s.quality === 'default' || s.quality === 'auto') || watchData.sources?.[0];
-      
-      if (primaryStream && primaryStream.url) {
-        console.log(`[Stack] Stream tracking payload matched via: ${provider}`);
-        return primaryStream.url; 
-      }
-    } catch (e) {
-      console.warn(`[Stack] Provider engine step fail: ${provider}`, e);
-    }
-  }
-  return null;
-}
-
-// FETCH STREAMS NATIVELY FROM ANIDBAPP COUPLING ON YOUR VERCEL SERVER
-async function fetchAnidbAppStream(malId, epNum, dubMode) {
+// FETCH STREAMS NATIVELY FROM THE MULTI-PROVIDER AGGREGATOR VERCEL SERVER
+async function fetchAnivexaStream(malId, epNum, dubMode) {
   try {
-    console.log(`[AnidbApp] Fetching watch layout for ID: ${malId}, Ep: ${epNum}`);
+    console.log(`[Anivexa] Fetching direct stream layout for MAL ID: ${malId}, Ep: ${epNum}`);
+    
+    // Step 1: Query the map tracking to resolve the required AniList ID reference
     const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
     if (!mapRes.ok) return null;
     
@@ -790,6 +746,7 @@ async function fetchAnidbAppStream(malId, epNum, dubMode) {
     const anilistId = mapData.mappings?.aniId;
     if (!anilistId) return null;
 
+    // Step 2: Extract the active provider tracking data
     const watchUrl = `${ANIVEXA_BASE_API}/watch/anidbapp/${anilistId}/${dubMode}/anidbapp-${epNum}`;
     const watchRes = await fetch(watchUrl);
     if (!watchRes.ok) return null;
@@ -799,7 +756,7 @@ async function fetchAnidbAppStream(malId, epNum, dubMode) {
     
     return activeStream ? activeStream.url : null;
   } catch (e) {
-    console.warn(`[AnidbApp] Extraction route standby fallback mode triggered.`, e);
+    console.warn(`[Anivexa] Internal mapping tracking standby mode.`, e);
     return null;
   }
 }
@@ -810,7 +767,6 @@ async function launchVideoPlayer(epNum) {
   const noticeOverlay = document.getElementById('notice-overlay');
   if (!iframe) return;
 
-  // Clear previous source content so raw text errors don't hang around
   iframe.src = 'about:blank';
   if(noticeOverlay) {
     noticeOverlay.classList.add('hidden');
@@ -838,26 +794,14 @@ async function launchVideoPlayer(epNum) {
     iframe.classList.add('hidden');
     if (noticeOverlay) noticeOverlay.classList.remove('hidden');
     
-    const anidbStreamUrl = await fetchAnidbAppStream(window.currentMalId, epNum, currentLanguage);
-    if (anidbStreamUrl) {
+    const aggregatedStreamUrl = await fetchAnivexaStream(window.currentMalId, epNum, currentLanguage);
+    if (aggregatedStreamUrl) {
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
       
-      iframe.src = anidbStreamUrl.includes('.m3u8') 
-        ? `https://player.vdocipher.com/v2/?url=${encodeURIComponent(anidbStreamUrl)}`
-        : anidbStreamUrl;
-    } else {
-      handleAutomaticFallback();
-    }
-  } else if (activeSourceMode === 'consumet') {
-    iframe.classList.add('hidden');
-    if (noticeOverlay) noticeOverlay.classList.remove('hidden');
-    
-    const backupStreamUrl = await fetchConsumetStreamWithStack(window.activeAnimeTitle, epNum, currentLanguage);
-    if (backupStreamUrl) {
-      if(noticeOverlay) noticeOverlay.classList.add('hidden');
-      iframe.classList.remove('hidden');
-      iframe.src = `https://player.vdocipher.com/v2/?url=${encodeURIComponent(backupStreamUrl)}`; 
+      iframe.src = aggregatedStreamUrl.includes('.m3u8') 
+        ? `https://player.vdocipher.com/v2/?url=${encodeURIComponent(aggregatedStreamUrl)}`
+        : aggregatedStreamUrl;
     } else {
       handleAutomaticFallback();
     }
@@ -889,8 +833,6 @@ function handleAutomaticFallback() {
     setServerSource('cdn-9anime');
   } else if (activeSourceMode === 'cdn-9anime') {
     setServerSource('anivexa');
-  } else if (activeSourceMode === 'anivexa') {
-    setServerSource('consumet');
   } else {
     handleStreamMissingNotice();
   }
@@ -906,7 +848,7 @@ function updateServerButtonsUI() {
   const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
   const curPreset = presets[currentPresetName] || presets.subaru;
   
-  ['mal', 'cdn-9anime', 'anivexa', 'consumet'].forEach(src => {
+  ['mal', 'cdn-9anime', 'anivexa'].forEach(src => {
     const btn = document.getElementById(`server-${src}`);
     if (!btn) return;
     if (activeSourceMode === src) {
@@ -914,7 +856,6 @@ function updateServerButtonsUI() {
       btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
       btn.style.borderColor = currentActiveHex;
     } else {
-      // Clear style definitions entirely on unselected configurations
       btn.style.backgroundColor = '';
       btn.style.color = '';
       btn.style.borderColor = '';
