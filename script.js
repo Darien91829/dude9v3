@@ -834,9 +834,10 @@ async function buildEpisodeButtonsGrid(anilistId) {
 async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
   try {
     const category = dubMode === 'dub' ? 'dub' : 'sub';
+    const cleanProvider = activeProviderMode.toLowerCase().trim();
     
     // 302 Route Override Exception block explicitly built for ReAnime endpoint handling
-    if (activeProviderMode === 'reanime') {
+    if (cleanProvider === 'reanime') {
       const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/${epNum}`;
       return [{
         name: "ReAnime Core Stream",
@@ -847,7 +848,7 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     }
 
     // Standard structured tracking watch route endpoint
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/${activeProviderMode}/${anilistId}/${category}/${activeProviderMode}-${epNum}`;
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${cleanProvider}-${epNum}`;
     console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
     const watchRes = await fetch(watchUrl);
@@ -860,7 +861,7 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     } else if (watchData && watchData.url) {
       const isHLS = watchData.url.includes('.m3u8');
       return [{ 
-        name: "Primary Feed Mirror", 
+        name: `${activeProviderMode.toUpperCase()} Mirror`, 
         type: isHLS ? "HLS" : "Embed", 
         url: watchData.url, 
         isActive: true 
@@ -1002,7 +1003,7 @@ function removeActivePillStyles(element) {
 
 function executeStreamRouting(streamUrl, streamType) {
   const iframe = document.getElementById('video-iframe');
-  const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8');
+  const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8') || activeProviderMode === 'reanime';
   
   if (isHLSSource) {
     if (iframe) iframe.classList.add('hidden');
@@ -1053,7 +1054,8 @@ function injectPlyrVideoContainer(streamUrl) {
   mediaContainer.appendChild(noticeOverlay);
 
   // Hls.js custom layout loader bindings injection
-  if (streamUrl.includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
+  // Note: We always initiate Hls loader if ReAnime is targeted because it points directly to an .m3u8 302 endpoint
+  if ((streamUrl.includes('.m3u8') || activeProviderMode === 'reanime') && typeof Hls !== 'undefined' && Hls.isSupported()) {
     const hlsInstance = new Hls();
     hlsInstance.loadSource(streamUrl);
     hlsInstance.attachMedia(videoNode);
@@ -1124,7 +1126,7 @@ async function launchVideoPlayer(epNum) {
       || streamsList.find(s => s.isActive) 
       || streamsList[0];
       
-    const calculatedType = defaultStream.url.includes('.m3u8') ? 'HLS' : (defaultStream.type || 'Embed');
+    const calculatedType = (defaultStream.url.includes('.m3u8') || activeProviderMode === 'reanime') ? 'HLS' : (defaultStream.type || 'Embed');
     executeStreamRouting(defaultStream.url, calculatedType);
   } else {
     handleStreamMissingNotice();
