@@ -1,7 +1,7 @@
 const JIKAN_BASE = "https://api.jikan.moe/v4";
 
-// YOUR STANDALONE STREAMING API HOSTED ON VERCEL
-const ANIVEXA_BASE_API = "https://anivexa-9f5dq1thm-darien91829s-projects.vercel.app";
+// YOUR STANDALONE STREAMING API HOSTED ON VERCEL (UPDATED TO THE ACTIVE DOMAIN)
+const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
 
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
@@ -448,6 +448,11 @@ function openBottomSheet() {
   document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
 }
 
+function openBottomSheet() {
+  document.getElementById('sheet-overlay')?.classList.remove('hidden');
+  document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
+}
+
 function closeBottomSheet() {
   document.getElementById('sheet-overlay')?.classList.add('hidden');
   document.getElementById('bottom-sheet-menu')?.classList.add('translate-y-full');
@@ -745,28 +750,30 @@ async function fetchAnivexaStream(malId, epNum, dubMode) {
       return null;
     }
     const mapData = await mapRes.json();
-    const anilistId = mapData.mappings?.aniId;
+    
+    // Support multiple fallback wrappings depending on your map endpoint structure
+    const anilistId = mapData.mappings?.aniId || mapData.anilistId || mapData.id;
     
     if (!anilistId) {
       console.error(`[Anivexa] No AniList ID mapping found in response.`);
       return null;
     }
 
-    // Step 2: Use resolved AniList ID to query your route structure:
-    // /watch/{provider}/{anilist_id}/{category}/{slug}
+    // Step 2: Extract routing parameters based directly on your API routes array
     const provider = "anidbapp";
     const category = dubMode === 'dub' ? 'dub' : 'sub';
-    const slug = `${provider}-${epNum}`;
     
-    console.log(`[Anivexa] Querying stream: /watch/${provider}/${anilistId}/${category}/${slug}`);
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/${provider}/${anilistId}/${category}/${slug}`;
+    // Step 3: Match the exact pattern from your screenshot schema layout track:
+    // /watch/:provider/:id/:translation/:provider-:ep
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${provider}/${anilistId}/${category}/${provider}-${epNum}`;
+    console.log(`[Anivexa] Querying stream: ${watchUrl}`);
     
     const watchRes = await fetch(watchUrl);
     if (!watchRes.ok) return null;
 
     const watchData = await watchRes.json();
     
-    // Step 3: Extract the stream url safely from the dynamic backend object parameters
+    // Step 4: Extract the stream url safely from the dynamic backend object parameters
     if (watchData && Array.isArray(watchData.streams)) {
       const activeStream = watchData.streams.find(s => s.isActive === true) || watchData.streams[0];
       return activeStream ? activeStream.url : null;
@@ -838,7 +845,6 @@ async function launchVideoPlayer(epNum) {
     iframe.classList.remove('hidden');
   }
   
-  // REMOVED INTRUSIVE BLACK BLOCKER SCREEN INJECTION TRACKS ENTIRELY
   if (noticeOverlay) {
     noticeOverlay.classList.add('hidden');
   }
@@ -931,7 +937,6 @@ function updateServerButtonsUI() {
 }
 
 function handleStreamMissingNotice() {
-  // Silent console verification tracking instead of deploying disruptive UI layout screens
   console.log("[System Core] Video track resolution standby mode. No responsive streams returned from edge node endpoints.");
 }
 
