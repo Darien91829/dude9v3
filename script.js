@@ -30,11 +30,10 @@ window.currentAnilistId = null;
 window.currentMalId = null;
 window.activeAnimeTitle = "";
 window.activeMaxEpisodes = 12;
-window.currentMappedIds = {}; // FIXED: Global container cache storage for cross-platform mapping IDs
 
 const presets = {
   subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
-  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14141c', input: '#1e182a', textLight: true },
+  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true },
   rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false },
   ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false },
   beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', textLight: false },
@@ -558,13 +557,13 @@ async function triggerCatalogSearch(fromHeader = false) {
       body: JSON.stringify({ query: aniListSearchQuery, variables: variables })
     });
     const json = await graphRes.json();
-    const results = json.data?.Page?.media || [];
+    const fontItems = json.data?.Page?.media || [];
     
     if (gridResults) {
-      if(results.length === 0) {
+      if(fontItems.length === 0) {
         gridResults.innerHTML = "<p class='text-xs text-gray-500'>No anime matches found.</p>";
       } else {
-        displayGridFeed(results, 'results-grid');
+        displayGridFeed(fontItems, 'results-grid');
       }
     }
   } catch (e) {
@@ -667,7 +666,7 @@ function displayScrollFeed(animeArray, elementId) {
     div.onclick = async () => {
       let linkedAniId = anime.mal_id;
       try {
-        const lookup = await fetch('https://graphql.anilist.co', {
+        const lookup = await fetch(`https://graphql.anilist.co`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`, variables: { id: anime.mal_id } })
         });
@@ -728,6 +727,7 @@ async function fetchJikanMetadata(malId) {
   }
 }
 
+// Inject your 7 custom API server provider nodes into the stream layout
 function injectProviderButtons() {
   const container = document.getElementById('server-source-tabs-bar') || document.querySelector('.server-tabs-container');
   if (!container) return;
@@ -736,9 +736,9 @@ function injectProviderButtons() {
   API_PROVIDERS.forEach(prov => {
     const btn = document.createElement('button');
     btn.id = `server-${prov.id}`;
-    btn.setAttribute('data-provider', prov.id); // Tag provider identifier explicitly
     btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark";
     btn.innerHTML = `${prov.name} ${prov.status === 'Unstable' ? '⚠️' : ''}`;
+    btn.onclick = () => setProviderSource(prov.id);
     container.appendChild(btn);
   });
 }
@@ -747,7 +747,6 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
   window.currentAnilistId = anilistId;
   window.currentMalId = malId;
   window.activeAnimeTitle = titleName;
-  window.currentMappedIds = {}; // Reset local data scope state
 
   const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
   views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
@@ -767,21 +766,10 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
     document.getElementById('detail-title').innerText = titleName;
   }
 
-  // Query mapping endpoints first so references are immediately available
-  try {
-    const mappingResponse = await fetch(`${ANIVEXA_BASE_API}/map/${anilistId}`);
-    if (mappingResponse.ok) {
-      window.currentMappedIds = await mappingResponse.json();
-      console.log("[Anivexa Map Tracker Sync Successful]:", window.currentMappedIds);
-    }
-  } catch (mapErr) {
-    console.error("[Anivexa Sync Standby - Using Fallbacks]:", mapErr);
-  }
-
+  // Load exact available episode listing structures from your unified episodes endpoint
   await buildEpisodeButtonsGrid(anilistId);
 };
 
-// FIXED: Cleaned extraction layers to accurately map returned structures
 async function buildEpisodeButtonsGrid(anilistId) {
   const epBox = document.getElementById('episode-buttons');
   if (!epBox) return;
@@ -792,40 +780,27 @@ async function buildEpisodeButtonsGrid(anilistId) {
     const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
     epBox.innerHTML = '';
 
-    let providerList = [];
+    let providerList = epData?.[activeProviderMode] || [];
     
-    // Check if the structure contains the specified provider key directly
-    if (epData && epData[activeProviderMode]) {
-      providerList = Array.isArray(epData[activeProviderMode]) ? epData[activeProviderMode] : Object.values(epData[activeProviderMode]);
-    }
-    
-    // Fallback: search general root array arrays if structured differently
-    if (providerList.length === 0 && Array.isArray(epData)) {
-      providerList = epData;
-    }
-
-    if (providerList.length === 0) {
+    // If targeted provider list yields 0 items, check first valid provider payload
+    if (!Array.isArray(providerList) || providerList.length === 0) {
       for (const prov of API_PROVIDERS) {
-        if (epData?.[prov.id]) {
-          const checkArr = Array.isArray(epData[prov.id]) ? epData[prov.id] : Object.values(epData[prov.id]);
-          if (checkArr.length > 0) {
-            providerList = checkArr;
-            activeProviderMode = prov.id;
-            updateProviderButtonsUI();
-            break;
-          }
+        if (epData?.[prov.id] && epData[prov.id].length > 0) {
+          providerList = epData[prov.id];
+          activeProviderMode = prov.id;
+          updateProviderButtonsUI();
+          break;
         }
       }
     }
 
-    // FIXED: Ensure total counts mirror the list accurately or extract lengths if elements exist
     const totalEpisodesCount = providerList.length > 0 ? providerList.length : 12;
     window.activeMaxEpisodes = totalEpisodesCount;
 
     for (let i = 1; i <= totalEpisodesCount; i++) {
       const btn = document.createElement('button');
       btn.id = `ep-btn-${i}`;
-      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all";
+      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-sm cursor-pointer";
       btn.innerText = i;
       btn.onclick = () => launchVideoPlayer(i);
       epBox.appendChild(btn);
@@ -836,12 +811,14 @@ async function buildEpisodeButtonsGrid(anilistId) {
 
   } catch (err) {
     console.error("Failed to map live API episodes:", err);
-    epBox.innerHTML = '';
+    epBox.innerHTML = '<div class="text-xs text-red-500 p-2">Episode catalog track timeout. Presetting default blocks...</div>';
+    
     window.activeMaxEpisodes = 12;
+    epBox.innerHTML = '';
     for (let i = 1; i <= 12; i++) {
       const btn = document.createElement('button');
       btn.id = `ep-btn-${i}`;
-      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all";
+      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all cursor-pointer";
       btn.innerText = i;
       btn.onclick = () => launchVideoPlayer(i);
       epBox.appendChild(btn);
@@ -850,15 +827,18 @@ async function buildEpisodeButtonsGrid(anilistId) {
   }
 }
 
+// =========================================================================
+// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (7-Provider Core Logic)
+// =========================================================================
+
 async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
   try {
     const category = dubMode === 'dub' ? 'dub' : 'sub';
     const cleanProvider = activeProviderMode.toLowerCase().trim();
     
-    const routeIdentifier = window.currentMappedIds?.[cleanProvider] || window.currentMappedIds?.id || anilistId;
-
+    // 302 Route Override Exception block explicitly built for ReAnime endpoint handling
     if (cleanProvider === 'reanime') {
-      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${routeIdentifier}/${category}/${epNum}`;
+      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/${epNum}`;
       return [{
         name: "ReAnime Core Stream",
         type: "HLS",
@@ -867,7 +847,8 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
       }];
     }
 
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${routeIdentifier}/${category}/${cleanProvider}-${epNum}`;
+    // Standard structured tracking watch route endpoint
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${cleanProvider}-${epNum}`;
     console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
     const watchRes = await fetch(watchUrl);
@@ -915,6 +896,7 @@ function renderSubServerGrid(streams) {
   const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
   const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
 
+  // 1. MAIN FOCUS: HLS Streams
   if (hlsStreams.length > 0) {
     const internalGroup = document.createElement('div');
     internalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -922,7 +904,7 @@ function renderSubServerGrid(streams) {
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-bolt text-xs text-purple-400"></i>
-          <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">HLS Streams (Internal Player)</h3>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">HLS Streams (Internal Player)</h3>
         </div>
         <span class="text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">${hlsStreams.length} Available</span>
       </div>
@@ -936,6 +918,7 @@ function renderSubServerGrid(streams) {
     });
   }
 
+  // 2. SIDE FALLBACK: Embedded / Iframes Mirrors
   if (fallbackStreams.length > 0) {
     const externalGroup = document.createElement('div');
     externalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -985,8 +968,8 @@ function createStreamPillElement(stream, uniquelyIdentifiedId, parentGridContain
 
   pill.onclick = () => {
     masterStreamsArray.forEach((_, idx) => {
-      const p1 = document.getElementById('stream-link-pill-hls-' + idx);
-      const p2 = document.getElementById('stream-link-pill-fallback-' + idx);
+      const p1 = document.getElementById(`stream-link-pill-hls-${idx}`);
+      const p2 = document.getElementById(`stream-link-pill-fallback-${idx}`);
       if (p1) removeActivePillStyles(p1);
       if (p2) removeActivePillStyles(p2);
     });
@@ -1026,13 +1009,14 @@ function executeStreamRouting(streamUrl, streamType) {
     if (iframe) iframe.classList.add('hidden');
     injectPlyrVideoContainer(streamUrl);
   } else {
+    // If returning back to embed logic, make sure we clean up any active Plyr instances running
     let videoNode = document.getElementById('video-plyr-core');
     if (videoNode) {
       const mediaContainer = videoNode.parentElement;
       if (mediaContainer) {
         mediaContainer.innerHTML = `
-          <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
-          <div id="player-notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+          <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
+          <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
             <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
           </div>`;
       }
@@ -1051,6 +1035,7 @@ function injectPlyrVideoContainer(streamUrl) {
   const mediaContainer = standardIframe.parentElement;
   if (!mediaContainer) return;
 
+  // Clear previous contents so instance objects don't stack up inside DOM wrappers
   mediaContainer.innerHTML = '';
 
   const videoNode = document.createElement('video');
@@ -1061,12 +1046,14 @@ function injectPlyrVideoContainer(streamUrl) {
 
   mediaContainer.appendChild(videoNode);
 
+  // Setup Notice Overlay placeholder back inside wrapper alongside new element controls
   const noticeOverlay = document.createElement('div');
-  noticeOverlay.id = 'player-notice-overlay';
+  noticeOverlay.id = 'notice-overlay';
   noticeOverlay.className = 'hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4';
   noticeOverlay.innerHTML = `<p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>`;
   mediaContainer.appendChild(noticeOverlay);
 
+  // Hls.js custom layout loader bindings injection
   if ((streamUrl.includes('.m3u8') || activeProviderMode === 'reanime') && typeof Hls !== 'undefined' && Hls.isSupported()) {
     const hlsInstance = new Hls();
     hlsInstance.loadSource(streamUrl);
@@ -1075,6 +1062,7 @@ function injectPlyrVideoContainer(streamUrl) {
       initializePlyrEngine(videoNode);
     });
   } else {
+    // Fallback directly to native system components if using raw MP4 feeds
     videoNode.src = streamUrl;
     initializePlyrEngine(videoNode);
   }
@@ -1098,20 +1086,23 @@ async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   
   let iframe = document.getElementById('video-iframe');
-  let noticeOverlay = document.getElementById('player-notice-overlay');
+  let noticeOverlay = document.getElementById('notice-overlay');
   
+  // Re-build target elements fallback if DOM tree structural mutations happened on switching stream engines
   if (!iframe) {
     const layoutWrapper = document.getElementById('video-plyr-core')?.parentElement;
     if (layoutWrapper) {
       layoutWrapper.innerHTML = `
-        <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" allowfullscreen scrolling="no" frameborder="0"></iframe>
-        <div id="player-notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
+        <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
           <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
         </div>`;
       iframe = document.getElementById('video-iframe');
-      noticeOverlay = document.getElementById('player-notice-overlay');
     }
   }
+
+  // Safely find the notice overlay whether it's within the inner wrappers or global structure
+  noticeOverlay = document.getElementById('notice-overlay');
 
   if (iframe) {
     iframe.src = 'about:blank';
@@ -1130,6 +1121,7 @@ async function launchVideoPlayer(epNum) {
   if (streamsList && streamsList.length > 0) {
     renderSubServerGrid(streamsList);
     
+    // Default Sorting Priority: active HLS -> any HLS -> active Embed -> first index fallback
     const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
       || streamsList.find(s => s.url.includes('.m3u8')) 
       || streamsList.find(s => s.isActive) 
@@ -1168,7 +1160,6 @@ function setProviderSource(providerId) {
   launchVideoPlayer(currentEpisodeIndex);
 }
 
-// FIXED: Clear style caching loops correctly on switch triggers
 function updateProviderButtonsUI() {
   const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
   const curPreset = presets[currentPresetName] || presets.subaru;
@@ -1193,7 +1184,7 @@ function handleStreamMissingNotice() {
   const videoCore = document.getElementById('video-plyr-core');
   if (videoCore) videoCore.classList.add('hidden');
 
-  const noticeOverlay = document.getElementById('player-notice-overlay');
+  const noticeOverlay = document.getElementById('notice-overlay');
   if (noticeOverlay) {
     noticeOverlay.classList.remove('hidden');
     const txt = noticeOverlay.querySelector('p');
@@ -1239,15 +1230,4 @@ window.onload = function() {
   startSystemClock();
   applyCharacterPreset('subaru');
   switchToView('home');
-
-  const serverContainerBar = document.getElementById('server-source-tabs-bar');
-  if (serverContainerBar) {
-    serverContainerBar.addEventListener('click', function(e) {
-      const targetBtn = e.target.closest('button[data-provider]');
-      if (targetBtn) {
-        const selectedProv = targetBtn.getAttribute('data-provider');
-        setProviderSource(selectedProv);
-      }
-    });
-  }
 };
