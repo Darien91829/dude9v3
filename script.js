@@ -789,29 +789,36 @@ async function buildEpisodeButtonsGrid(anilistId) {
 
     // Target active format layout arrays
     let providerList = [];
+    
+    // Hardened Payload Sanitization
     if (epData) {
       if (Array.isArray(epData)) {
-        const block = epData.find(item => item.provider === activeProviderMode);
+        const block = epData.find(item => item && item.provider === activeProviderMode);
         providerList = block ? block.episodes : [];
       } else if (epData.episodes && Array.isArray(epData.episodes)) {
         providerList = epData.episodes;
-      } else {
+      } else if (typeof epData === 'object') {
         providerList = epData[activeProviderMode] || [];
       }
     }
     
+    // Robust Fallback: Switch active mode if current provider has 0 items
     if (!Array.isArray(providerList) || providerList.length === 0) {
       const fallbackProvider = API_PROVIDERS.find(p => {
         if (!epData) return false;
         if (Array.isArray(epData)) {
-          const b = epData.find(item => item.provider === p.id);
+          const b = epData.find(item => item && item.provider === p.id);
           return b && b.episodes && b.episodes.length > 0;
-        } else {
+        } else if (typeof epData === 'object') {
           return epData[p.id] && epData[p.id].length > 0;
         }
+        return false;
       });
 
       if (fallbackProvider) {
+        activeProviderMode = fallbackProvider.id;
+        updateProviderButtonsUI();
+        
         if (Array.isArray(epData)) {
           providerList = epData.find(item => item.provider === fallbackProvider.id).episodes;
         } else {
@@ -820,7 +827,7 @@ async function buildEpisodeButtonsGrid(anilistId) {
       }
     }
 
-    const totalEpisodesCount = providerList && providerList.length > 0 ? providerList.length : 12;
+    const totalEpisodesCount = (Array.isArray(providerList) && providerList.length > 0) ? providerList.length : 12;
     window.activeMaxEpisodes = totalEpisodesCount;
     epBox.innerHTML = '';
 
@@ -833,7 +840,9 @@ async function buildEpisodeButtonsGrid(anilistId) {
       epBox.appendChild(btn);
     }
 
-    document.getElementById('detail-episodes').innerText = totalEpisodesCount;
+    const detailEpEl = document.getElementById('detail-episodes');
+    if (detailEpEl) detailEpEl.innerText = totalEpisodesCount;
+    
     launchVideoPlayer(1);
 
   } catch (err) {
@@ -1053,20 +1062,18 @@ function removeActivePillStyles(element) {
 // =========================================================================
 
 function executeStreamRouting(streamUrl, streamType) {
-  const videoElement = document.getElementById('video-iframe'); // This is the <video> tag now
+  const videoElement = document.getElementById('video-iframe'); 
   const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8') || activeProviderMode === 'reanime';
   
-  // Clean up any ongoing Hls.js instance before opening a new link
   if (window.currentHlsInstance) {
     window.currentHlsInstance.destroy();
     window.currentHlsInstance = null;
   }
 
   if (isHLSSource) {
-    // 1. Execute HLS Native Stream Routing Engine
     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
       window.currentHlsInstance = new Hls({
-        maxMaxBufferLength: 30, // Keep streams highly responsive
+        maxMaxBufferLength: 30, 
         enableWorker: true
       });
       window.currentHlsInstance.loadSource(streamUrl);
@@ -1077,7 +1084,6 @@ function executeStreamRouting(streamUrl, streamType) {
         videoElement.play().catch(() => console.log("Autoplay blocked by browser policy"));
       });
 
-      // Handle stream network errors gracefully without crashing the UI
       window.currentHlsInstance.on(Hls.Events.ERROR, function (event, data) {
         if (data.fatal) {
           switch (data.type) {
@@ -1096,22 +1102,19 @@ function executeStreamRouting(streamUrl, streamType) {
         }
       });
 
-    } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-      // Native fallback handling (Safari / iOS Safari)
+    } else if (videoElement && videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = streamUrl;
       initializePlyrEngine(videoElement);
     } else {
       handleStreamMissingNotice();
     }
   } else {
-    // 2. Execute Extracted/Iframe Embed Fallback Routing Engine
-    // Destroy Plyr instance since we need the video layout container to adapt to an iframe element
     if (window.currentPlyr) {
       window.currentPlyr.destroy();
       window.currentPlyr = null;
     }
 
-    const mediaContainer = videoElement.parentElement;
+    const mediaContainer = videoElement ? videoElement.parentElement : null;
     if (mediaContainer) {
       mediaContainer.innerHTML = `
         <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0" src="${streamUrl}"></iframe>
@@ -1124,8 +1127,7 @@ function executeStreamRouting(streamUrl, streamType) {
 
 function initializePlyrEngine(videoElement) {
   try {
-    if (typeof Plyr !== 'undefined') {
-      // If Plyr is already attached to this specific element, do not initialize it a second time
+    if (typeof Plyr !== 'undefined' && videoElement) {
       if (window.currentPlyr) return;
       
       const currentActivePreset = presets[currentPresetName] || presets.subaru;
@@ -1136,7 +1138,6 @@ function initializePlyrEngine(videoElement) {
         tooltips: { controls: true, seek: true }
       });
 
-      // Automatically inject your custom neon colors directly into Plyr properties on creation
       document.documentElement.style.setProperty('--plyr-color-main', currentActivePreset.hex);
     }
   } catch(err) {
@@ -1150,11 +1151,9 @@ async function launchVideoPlayer(epNum) {
   let videoElement = document.getElementById('video-iframe');
   let noticeOverlay = document.getElementById('notice-overlay');
   
-  // If we came from an Iframe Embed view, structural mutation occurred. Re-build HTML5 video layout block.
   if (!videoElement || videoElement.tagName.toLowerCase() === 'iframe') {
     const layoutWrapper = document.getElementById('video-player-wrapper');
     if (layoutWrapper) {
-      // Safely kill Plyr reference tracking tags
       if (window.currentPlyr) {
         window.currentPlyr.destroy();
         window.currentPlyr = null;
@@ -1177,7 +1176,6 @@ async function launchVideoPlayer(epNum) {
   if (streamsList && streamsList.length > 0) {
     renderSubServerGrid(streamsList);
     
-    // Default Sorting Priority: active HLS -> any HLS -> active Embed -> first index fallback
     const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
       || streamsList.find(s => s.url.includes('.m3u8')) 
       || streamsList.find(s => s.isActive) 
