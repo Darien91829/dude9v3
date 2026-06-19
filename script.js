@@ -736,27 +736,24 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
 // FETCH STREAMS NATIVELY FROM THE MULTI-PROVIDER AGGREGATOR VERCEL SERVER
 async function fetchAnivexaStream(malId, epNum, dubMode) {
   try {
-    console.log(`[Anivexa] Fetching direct stream layout for MAL ID: ${malId}, Ep: ${epNum}`);
+    console.log(`[Anivexa] Querying aggregator tracking pipelines for MAL ID: ${malId}, Episode: ${epNum}`);
     
-    // Step 1: Query the map tracking to resolve the required AniList ID reference
-    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
-    if (!mapRes.ok) return null;
+    // Resolve internal track coordinates via metadata parser routing
+    const category = dubMode === 'dub' ? 'dub' : 'sub';
+    const targetUrl = `${ANIVEXA_BASE_API}/watch/anidbapp/${malId}/${category}/anidbapp-${epNum}`;
     
-    const mapData = await mapRes.json();
-    const anilistId = mapData.mappings?.aniId;
-    if (!anilistId) return null;
+    const response = await fetch(targetUrl);
+    if (!response.ok) return null;
 
-    // Step 2: Extract the active provider tracking data
-    const watchUrl = `${ANIVEXA_BASE_API}/watch/anidbapp/${anilistId}/${dubMode}/anidbapp-${epNum}`;
-    const watchRes = await fetch(watchUrl);
-    if (!watchRes.ok) return null;
-
-    const watchData = await watchRes.json();
-    const activeStream = watchData.streams?.find(s => s.isActive === true) || watchData.streams?.[0];
-    
-    return activeStream ? activeStream.url : null;
+    const streamPayload = await response.json();
+    // Scan dynamic structural parameters for live stream items
+    if (streamPayload && Array.isArray(streamPayload.streams)) {
+      const liveStream = streamPayload.streams.find(s => s.isActive || s.isBackup) || streamPayload.streams[0];
+      return liveStream ? liveStream.url : null;
+    }
+    return null;
   } catch (e) {
-    console.warn(`[Anivexa] Internal mapping tracking standby mode.`, e);
+    console.warn(`[Anivexa] Internal mapping pipeline proxy standby mode.`, e);
     return null;
   }
 }
@@ -901,7 +898,7 @@ function updateLanguageButtonsUI() {
 window.addEventListener("message", function (event) {
   let data = event.data;
   if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
-  if (data && data.event === "complete") {
+  if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
     const nextEp = currentEpisodeIndex + 1;
     if (nextEp <= window.activeMaxEpisodes) launchVideoPlayer(nextEp);
   }
