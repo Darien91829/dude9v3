@@ -1,24 +1,71 @@
+/* Core Application & Layout Configuration */
 body { 
   font-family: 'Inter', sans-serif; 
-  transition: background-color 0.3s ease; 
+  transition: background-color 0.3s ease, color 0.3s ease; 
 }
+
 .bg-dark-card { 
-  transition: background-color 0.3s ease; 
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; 
 }
+
 .bg-dark-input { 
-  transition: background-color 0.3s ease; 
+  transition: background-color 0.3s ease, border-color 0.3s ease; 
 }
+
 .border-dark { 
   transition: border-color 0.3s ease; 
 }
 
-.scroll-row::-webkit-scrollbar { 
-  height: 4px; 
+/* Dynamic Interactive Transitions */
+.dynamic-accent-text {
+  transition: color 0.2s ease, text-shadow 0.2s ease;
 }
+
+.dynamic-accent-bg {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Fluid Horizontal Media Scrolling Containers */
+.scroll-row {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-row::-webkit-scrollbar { 
+  height: 5px; 
+}
+
 .scroll-row::-webkit-scrollbar-track { 
   background: #0f0f12; 
+  border-radius: 10px;
 }
+
 .scroll-row::-webkit-scrollbar-thumb { 
-  background: #3b3b4a; 
-  border-radius: 2px; 
+  background: var(--character-accent, #3b3b4a); 
+  border-radius: 10px; 
+  transition: background-color 0.2s ease;
+}
+
+.scroll-row::-webkit-scrollbar-thumb:hover {
+  background: var(--character-accent-hover, #4e4e63);
+}
+
+/* Custom Thin Vertical Track Scrollbars */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #22222a;
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--character-accent, #f97316);
 }
