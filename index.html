@@ -15,7 +15,6 @@
             'dark-card': '#16161c',
             'dark-input': '#121216',
             'dark-border': '#22222a',
-            // Map character accent tokens to dynamic CSS custom properties
             'accent': 'var(--character-accent, #f97316)',
             'accent-hover': 'var(--character-accent-hover, #ea580c)'
           }
@@ -28,11 +27,11 @@
     :root {
       --character-accent: #f97316;
       --character-accent-hover: #ea580c;
+      --character-accent-rgb: 249, 115, 22;
     }
     .scrollbar-none::-webkit-scrollbar { display: none; }
     .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
     
-    /* Dynamic active sidebar navigation accent tracking */
     .sidebar-item.active {
       background-color: rgba(var(--character-accent-rgb, 249, 115, 22), 0.1);
       color: var(--character-accent);
@@ -49,7 +48,103 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
+  
+  <script>
+    // Theme Palette Configurations Mapping
+    const characterColors = {
+      subaru:    { hex: '#f97316', hover: '#ea580c', rgb: '249, 115, 22' },
+      emilia:    { hex: '#c084fc', hover: '#a855f7', rgb: '192, 132, 252' },
+      rem:       { hex: '#38bdf8', hover: '#0ea5e9', rgb: '56, 189, 248' },
+      ram:       { hex: '#fb7187', hover: '#f43f5e', rgb: '251, 113, 133' },
+      beatrice:  { hex: '#fbbf24', hover: '#f59e0b', rgb: '251, 191, 36' },
+      felt:      { hex: '#eab308', hover: '#ca8a04', rgb: '234, 179, 8' },
+      reinhard:  { hex: '#dc2626', hover: '#b91c1c', rgb: '220, 38, 38' },
+      crusch:    { hex: '#059669', hover: '#047857', rgb: '5, 150, 105' },
+      felix:     { hex: '#d97706', hover: '#b45309', rgb: '217, 119, 6' },
+      priscilla: { hex: '#ef4444', hover: '#dc2626', rgb: '239, 68, 68' },
+      anastasia: { hex: '#f48fb1', hover: '#f06292', rgb: '244, 143, 177' },
+      julius:    { hex: '#818cf8', hover: '#6366f1', rgb: '129, 140, 248' },
+      wilhelm:   { hex: '#94a6b8', hover: '#64748b', rgb: '148, 163, 184' },
+      roswaal:   { hex: '#4f46e5', hover: '#4338ca', rgb: '79, 70, 229' },
+      satella:   { hex: '#6d28d9', hover: '#5b21b6', rgb: '109, 40, 217' },
+      echidna:   { hex: '#d4d4d8', hover: '#a1a1aa', rgb: '212, 212, 216' }
+    };
+
+    function applyCharacterPreset(character) {
+      const preset = characterColors[character];
+      if (!preset) return;
+      document.documentElement.style.setProperty('--character-accent', preset.hex);
+      document.documentElement.style.setProperty('--character-accent-hover', preset.hover);
+      document.documentElement.style.setProperty('--character-accent-rgb', preset.rgb);
+      localStorage.setItem('selectedCharacterTheme', character);
+      closeBottomSheet();
+    }
+
+    // Interactive Layout Component Controls
+    function openBottomSheet() {
+      const sheet = document.getElementById('bottom-sheet-menu');
+      const overlay = document.getElementById('sheet-overlay');
+      sheet.classList.remove('translate-y-full');
+      sheet.classList.add('translate-y-0');
+      overlay.classList.remove('hidden');
+    }
+
+    function closeBottomSheet() {
+      const sheet = document.getElementById('bottom-sheet-menu');
+      const overlay = document.getElementById('sheet-overlay');
+      if(sheet && overlay) {
+        sheet.classList.remove('translate-y-0');
+        sheet.classList.add('translate-y-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function toggleMainMenu() {
+      const drawer = document.getElementById('main-menu-drawer');
+      const overlay = document.getElementById('menu-overlay');
+      drawer.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
+    function switchToView(viewId) {
+      console.log("Switching structural view targeting payload context ID: " + viewId);
+      const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
+      views.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.add('hidden');
+      });
+      
+      const activeNav = document.getElementById('side-nav-' + viewId);
+      document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+      if(activeNav) activeNav.classList.add('active');
+
+      if (viewId === 'home') {
+        document.getElementById('landing-portal').classList.remove('hidden');
+        document.getElementById('header-search-engine').classList.add('hidden');
+        document.getElementById('view-indicator-title').textContent = "Welcome Portal";
+      } else {
+        const targetView = document.getElementById(viewId + '-focus-view') || document.getElementById(viewId) || document.getElementById('main-exploration-hub');
+        if(targetView) targetView.classList.remove('hidden');
+        document.getElementById('header-search-engine').classList.remove('hidden');
+        document.getElementById('view-indicator-title').textContent = viewId.toUpperCase() + " HUB";
+      }
+    }
+
+    function homeReturnReset() {
+      switchToView('home');
+    }
+
+    function triggerCatalogSearch(isHeader) {
+      const query = isHeader ? document.getElementById('header-search-input').value : document.getElementById('search-input').value;
+      console.log("Executing catalog search tracking parameters for query token: ", query);
+      switchToView('catalog');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('selectedCharacterTheme') || 'subaru';
+      applyCharacterPreset(savedTheme);
+    });
+  </script>
 </head>
 <body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex font-['Inter',sans-serif]">
 
@@ -169,9 +264,9 @@
                 <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-neutral-900/50 text-gray-400 px-2 py-0.5 rounded border border-dark-border/60">00:00:00 JST</div>
               </div>
               <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-lg text-[10px] font-bold uppercase text-center border border-dark-border/40">
-                <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1.5 rounded-md text-gray-500 hover:text-white transition-colors">Yesterday</button>
-                <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1.5 rounded-md dynamic-accent-bg bg-accent text-black shadow-sm">Today</button>
-                <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1.5 rounded-md text-gray-500 hover:text-white transition-colors">Tomorrow</button>
+                <button id="tab-yesterday" class="py-1.5 rounded-md text-gray-500 hover:text-white transition-colors">Yesterday</button>
+                <button id="tab-today" class="py-1.5 rounded-md dynamic-accent-bg bg-accent text-black shadow-sm">Today</button>
+                <button id="tab-tomorrow" class="py-1.5 rounded-md text-gray-500 hover:text-white transition-colors">Tomorrow</button>
               </div>
               <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
             </div>
@@ -244,8 +339,8 @@
         <div class="flex flex-col md:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-md">
           <div class="w-full md:w-auto overflow-x-auto scrollbar-none flex items-center gap-2" id="server-source-tabs-bar"></div>
           <div class="flex items-center bg-dark-input p-0.5 rounded-lg border border-dark-border/60 shrink-0">
-            <button id="sub-btn" onclick="setLanguage('sub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">SUB</button>
-            <button id="dub-btn" onclick="setLanguage('dub')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">DUB</button>
+            <button id="sub-btn" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">SUB</button>
+            <button id="dub-btn" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">DUB</button>
           </div>
         </div>
 
@@ -279,6 +374,7 @@
   </div>
 
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm transition-opacity"></div>
+  
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#131318] border-t border-dark-border rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 ease-out max-h-[85vh] overflow-y-auto shadow-2xl">
     <div class="max-w-xl mx-auto space-y-6">
       <div class="text-center space-y-1">
@@ -309,6 +405,5 @@
     </div>
   </div>
 
-  <script src="script.js" defer></script>
 </body>
 </html>
