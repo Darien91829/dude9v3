@@ -3,7 +3,7 @@ const JIKAN_BASE = "https://api.jikan.moe/v4";
 const CONSUMET_BASE_API = "https://api.consumet.org/anime"; 
 const CONSUMET_STACK = ['animekai', 'gogoanime', 'hianime'];
 
-// YOUR STANDALONE STREAMING API - UPDATED DOMAIN
+// YOUR STANDALONE STREAMING API 
 const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
 
 let currentEpisodeIndex = 1;
@@ -809,6 +809,8 @@ async function launchVideoPlayer(epNum) {
   const noticeOverlay = document.getElementById('notice-overlay');
   if (!iframe) return;
 
+  // Clear previous player frame to prevent displaying text or error remnants during loads
+  iframe.src = 'about:blank';
   if(noticeOverlay) noticeOverlay.classList.add('hidden');
   iframe.classList.remove('hidden');
   updateEpisodeButtonsUI();
@@ -829,13 +831,25 @@ async function launchVideoPlayer(epNum) {
       handleAutomaticFallback();
     }
   } else if (activeSourceMode === 'anivexa') {
-    // FIXED: Skip loop checks to keep the UI active source highlighted
-    if (noticeOverlay) noticeOverlay.classList.add('hidden');
-    iframe.classList.remove('hidden');
+    iframe.classList.add('hidden');
+    if (noticeOverlay) {
+      noticeOverlay.classList.remove('hidden');
+      noticeOverlay.querySelector('p').innerText = "🔄 Loading Custom AniVexa Stream Link...";
+    }
     
-    // Mount player iframe string pointing to your deployment route layout cleanly
-    iframe.src = `${ANIVEXA_BASE_API}/watch/anidbapp/${window.currentMalId}/${currentLanguage}/anidbapp-${epNum}`;
-    console.log(`[Testing Active Route Configuration]: ${iframe.src}`);
+    // Resolve the JSON endpoint in background instead of pasting it directly inside the iframe src
+    const anidbStreamUrl = await fetchAnidbAppStream(window.currentMalId, epNum, currentLanguage);
+    if (anidbStreamUrl) {
+      if(noticeOverlay) noticeOverlay.classList.add('hidden');
+      iframe.classList.remove('hidden');
+      
+      // Use standard player wrapper if it's an m3u8 file link, otherwise load directly
+      iframe.src = anidbStreamUrl.includes('.m3u8') 
+        ? `https://player.vdocipher.com/v2/?url=${encodeURIComponent(anidbStreamUrl)}`
+        : anidbStreamUrl;
+    } else {
+      handleAutomaticFallback();
+    }
   } else if (activeSourceMode === 'consumet') {
     iframe.classList.add('hidden');
     if (noticeOverlay) {
@@ -904,6 +918,7 @@ function updateServerButtonsUI() {
       btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
       btn.style.borderColor = currentActiveHex;
     } else {
+      // CLEAR all style overwrites entirely so unselected choices unhighlight cleanly
       btn.style.backgroundColor = '';
       btn.style.color = '';
       btn.style.borderColor = '';
