@@ -40,6 +40,7 @@
     }
   </style>
 
+  <!-- External Player Engines -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
@@ -49,301 +50,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <script>
-    const characterColors = {
-      subaru:    { hex: '#f97316', hover: '#ea580c', rgb: '249, 115, 22' },
-      emilia:    { hex: '#c084fc', hover: '#a855f7', rgb: '192, 132, 252' },
-      rem:       { hex: '#38bdf8', hover: '#0ea5e9', rgb: '56, 189, 248' },
-      ram:       { hex: '#fb7187', hover: '#f43f5e', rgb: '251, 113, 133' },
-      beatrice:  { hex: '#fbbf24', hover: '#f59e0b', rgb: '251, 191, 36' },
-      felt:      { hex: '#eab308', hover: '#ca8a04', rgb: '234, 179, 8' },
-      reinhard:  { hex: '#dc2626', hover: '#b91c1c', rgb: '220, 38, 38' },
-      crusch:    { hex: '#059669', hover: '#047857', rgb: '5, 150, 105' },
-      felix:     { hex: '#d97706', hover: '#b45309', rgb: '217, 119, 6' },
-      priscilla: { hex: '#ef4444', hover: '#dc2626', rgb: '239, 68, 68' },
-      anastasia: { hex: '#f48fb1', hover: '#f06292', rgb: '244, 143, 177' },
-      julius:    { hex: '#818cf8', hover: '#6366f1', rgb: '129, 140, 248' },
-      wilhelm:   { hex: '#94a6b8', hover: '#64748b', rgb: '148, 163, 184' },
-      roswaal:   { hex: '#4f46e5', hover: '#4338ca', rgb: '79, 70, 229' },
-      satella:   { hex: '#6d28d9', hover: '#5b21b6', rgb: '109, 40, 217' },
-      echidna:   { hex: '#d4d4d8', hover: '#a1a1aa', rgb: '212, 212, 216' }
-    };
-
-    function applyCharacterPreset(character) {
-      const preset = characterColors[character];
-      if (!preset) return;
-      document.documentElement.style.setProperty('--character-accent', preset.hex);
-      document.documentElement.style.setProperty('--character-accent-hover', preset.hover);
-      document.documentElement.style.setProperty('--character-accent-rgb', preset.rgb);
-      localStorage.setItem('selectedCharacterTheme', character);
-      closeBottomSheet();
-    }
-
-    function openBottomSheet() {
-      const sheet = document.getElementById('bottom-sheet-menu');
-      const overlay = document.getElementById('sheet-overlay');
-      sheet.classList.remove('translate-y-full');
-      sheet.classList.add('translate-y-0');
-      overlay.classList.remove('hidden');
-    }
-
-    function closeBottomSheet() {
-      const sheet = document.getElementById('bottom-sheet-menu');
-      const overlay = document.getElementById('sheet-overlay');
-      if(sheet && overlay) {
-        sheet.classList.remove('translate-y-0');
-        sheet.classList.add('translate-y-full');
-        overlay.classList.add('hidden');
-      }
-    }
-
-    function toggleMainMenu() {
-      const drawer = document.getElementById('main-menu-drawer');
-      const overlay = document.getElementById('menu-overlay');
-      drawer.classList.toggle('-translate-x-full');
-      overlay.classList.toggle('hidden');
-    }
-
-    function switchToView(viewId) {
-      const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
-      views.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.classList.add('hidden');
-      });
-      
-      document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-      const activeNav = document.getElementById('side-nav-' + viewId);
-      if(activeNav) activeNav.classList.add('active');
-
-      if (viewId === 'home') {
-        document.getElementById('landing-portal').classList.remove('hidden');
-        document.getElementById('header-search-engine').classList.add('hidden');
-        document.getElementById('view-indicator-title').textContent = "Welcome Portal";
-      } else if (viewId === 'catalog') {
-        document.getElementById('main-exploration-hub').classList.remove('hidden');
-        document.getElementById('header-search-engine').classList.remove('hidden');
-        document.getElementById('view-indicator-title').textContent = "CATALOG HUB";
-      } else {
-        const targetView = document.getElementById(viewId + '-focus-view') || document.getElementById(viewId) || document.getElementById(viewId + '-dashboard-box');
-        if(targetView) targetView.classList.remove('hidden');
-        document.getElementById('header-search-engine').classList.remove('hidden');
-        document.getElementById('view-indicator-title').textContent = viewId.toUpperCase() + " HUB";
-      }
-    }
-
-    function homeReturnReset() {
-      switchToView('home');
-    }
-
-    const JIKAN_BASE = "https://api.jikan.moe/v4";
-    const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
-    async function initJikanDataSync() {
-      try {
-        await fetchRecentlyUpdated();
-        await delay(400); 
-        await fetchTrendingGlobal();
-        await delay(400);
-        await fetchSchedules();
-      } catch (err) {
-        console.error("Data tracking channel failure:", err);
-      }
-    }
-
-    async function fetchRecentlyUpdated() {
-      const target = document.getElementById('recommendations-scroller');
-      try {
-        const res = await fetch(`${JIKAN_BASE}/seasons/now?limit=8`);
-        const json = await res.json();
-        if (!json.data || json.data.length === 0) throw new Error("Empty index payload");
-        
-        target.innerHTML = json.data.map(anime => {
-          const safeTitle = anime.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
-          return `
-            <div class="w-32 sm:w-36 shrink-0 bg-dark-card border border-dark-border rounded-xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform shadow-md" onclick="loadVideoWorkspace('${safeTitle}', '${anime.images.jpg.large_image_url}', \`${anime.synopsis ? anime.synopsis.replace(/`/g, '\\`') : ''}\`, '${anime.type}', '${anime.episodes || '??'}', '${anime.score || '--'}')">
-              <div class="aspect-[2/3] w-full bg-neutral-900">
-                <img src="${anime.images.jpg.image_url}" class="w-full h-full object-cover" alt="Poster" loading="lazy">
-              </div>
-              <div class="p-2">
-                <h4 class="text-[11px] font-bold text-white truncate">${anime.title}</h4>
-                <p class="text-[9px] text-gray-500 truncate mt-0.5">${anime.type} • Ep ${anime.episodes || '?'}</p>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } catch (err) {
-        target.innerHTML = `<p class="text-xs text-rose-500/80">Index sync failed.</p>`;
-      }
-    }
-
-    async function fetchTrendingGlobal() {
-      const target = document.getElementById('results-grid');
-      try {
-        const res = await fetch(`${JIKAN_BASE}/top/anime?filter=airing&limit=8`);
-        const json = await res.json();
-        if (!json.data || json.data.length === 0) throw new Error("Empty trending payload");
-
-        target.innerHTML = json.data.map(anime => {
-          const safeTitle = anime.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
-          return `
-            <div class="bg-dark-card border border-dark-border rounded-xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform shadow-md" onclick="loadVideoWorkspace('${safeTitle}', '${anime.images.jpg.large_image_url}', \`${anime.synopsis ? anime.synopsis.replace(/`/g, '\\`') : ''}\`, '${anime.type}', '${anime.episodes || '??'}', '${anime.score || '--'}')">
-              <div class="aspect-[2/3] w-full bg-neutral-900 relative">
-                <img src="${anime.images.jpg.image_url}" class="w-full h-full object-cover" alt="Poster" loading="lazy">
-                <span class="absolute top-1.5 right-1.5 bg-black/70 text-accent text-[9px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs border border-dark-border/40">★ ${anime.score || '--'}</span>
-              </div>
-              <div class="p-2.5">
-                <h4 class="text-xs font-bold text-white truncate">${anime.title}</h4>
-                <p class="text-[10px] text-gray-500 mt-0.5 truncate">${anime.genres.map(g => g.name).slice(0, 2).join(', ')}</p>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } catch (err) {
-        target.innerHTML = `<p class="text-xs text-rose-500/80 col-span-full">Trending sync failed.</p>`;
-      }
-    }
-
-    async function fetchSchedules() {
-      const targetGrid = document.getElementById('releases-api-grid');
-      const targetBox = document.getElementById('schedule-box');
-      try {
-        const res = await fetch(`${JIKAN_BASE}/schedules?limit=15`);
-        const json = await res.json();
-        if (!json.data || json.data.length === 0) throw new Error("Empty schedule payload");
-
-        targetGrid.innerHTML = json.data.map(anime => {
-          const safeTitle = anime.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
-          return `
-            <div class="bg-dark-card border border-dark-border rounded-xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform shadow-md" onclick="loadVideoWorkspace('${safeTitle}', '${anime.images.jpg.large_image_url}', \`${anime.synopsis ? anime.synopsis.replace(/`/g, '\\`') : ''}\`, '${anime.type}', '${anime.episodes || '??'}', '${anime.score || '--'}')">
-              <div class="aspect-[2/3] w-full bg-neutral-900">
-                <img src="${anime.images.jpg.image_url}" class="w-full h-full object-cover" alt="Poster" loading="lazy">
-              </div>
-              <div class="p-2">
-                <h4 class="text-xs font-bold text-white truncate">${anime.title}</h4>
-                <p class="text-[10px] text-accent font-semibold mt-0.5">${anime.broadcast.string || 'Airing Stream'}</p>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        targetBox.innerHTML = json.data.slice(0, 5).map(anime => {
-          const safeTitle = anime.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
-          return `
-            <div class="flex items-center gap-2.5 bg-dark-input p-2 rounded-lg border border-dark-border/40 cursor-pointer hover:border-dark-border" onclick="loadVideoWorkspace('${safeTitle}', '${anime.images.jpg.small_image_url}', \`${anime.synopsis ? anime.synopsis.replace(/`/g, '\\`') : ''}\`, '${anime.type}', '${anime.episodes || '??'}', '${anime.score || '--'}')">
-              <img src="${anime.images.jpg.small_image_url}" class="w-8 h-10 object-cover rounded bg-neutral-900 shrink-0">
-              <div class="min-w-0 flex-1">
-                <h4 class="text-[11px] font-bold text-white truncate">${anime.title}</h4>
-                <p class="text-[9px] text-gray-500 mt-0.5 truncate">${anime.broadcast.time || '00:00'} JST • ${anime.broadcast.day || 'Weekly'}</p>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } catch (err) {
-        targetGrid.innerHTML = `<div class="col-span-full bg-dark-card border border-dark-border p-8 rounded-xl text-center text-rose-500/80 text-xs">Live schedule sync offline.</div>`;
-        targetBox.innerHTML = `<p class="text-[11px] text-gray-600 text-center py-2">Schedule sync failed.</p>`;
-      }
-    }
-
-    async function triggerCatalogSearch(isHeader) {
-      const query = isHeader ? document.getElementById('header-search-input').value : document.getElementById('search-input').value;
-      if (!query.trim()) return;
-      
-      switchToView('catalog');
-      const target = document.getElementById('results-grid');
-      document.getElementById('grid-header-title').textContent = `Search Query: "${query}"`;
-      target.innerHTML = `<div class="col-span-full text-center py-6"><i class="fa-solid fa-spinner animate-spin text-xl text-accent block mb-2"></i>Searching index entries...</div>`;
-      
-      try {
-        const res = await fetch(`${JIKAN_BASE}/anime?q=${encodeURIComponent(query)}&limit=12`);
-        const json = await res.json();
-        if (!json.data || json.data.length === 0) {
-          target.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-6">No anime found matching tracking indexes.</p>`;
-          return;
-        }
-        
-        target.innerHTML = json.data.map(anime => {
-          const safeTitle = anime.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
-          return `
-            <div class="bg-dark-card border border-dark-border rounded-xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform shadow-md" onclick="loadVideoWorkspace('${safeTitle}', '${anime.images.jpg.large_image_url}', \`${anime.synopsis ? anime.synopsis.replace(/`/g, '\\`') : ''}\`, '${anime.type}', '${anime.episodes || '??'}', '${anime.score || '--'}')">
-              <div class="aspect-[2/3] w-full bg-neutral-900 relative">
-                <img src="${anime.images.jpg.image_url}" class="w-full h-full object-cover" alt="Poster" loading="lazy">
-                <span class="absolute top-1.5 right-1.5 bg-black/70 text-accent text-[9px] font-black px-1.5 py-0.5 rounded border border-dark-border/40">★ ${anime.score || '--'}</span>
-              </div>
-              <div class="p-2.5">
-                <h4 class="text-xs font-bold text-white truncate">${anime.title}</h4>
-                <p class="text-[10px] text-gray-500 mt-0.5 truncate">${anime.type} • Ep ${anime.episodes || '?'}</p>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } catch (err) {
-        target.innerHTML = `<p class="text-xs text-rose-500/80 col-span-full text-center py-6">Search route lookup blocked.</p>`;
-      }
-    }
-
-    function loadVideoWorkspace(title, poster, synopsis, type, episodes, rating) {
-      switchToView('stream');
-      document.getElementById('detail-title').textContent = title;
-      document.getElementById('detail-poster').src = poster;
-      document.getElementById('detail-synopsis').textContent = synopsis || "No summary tracking overview details provided.";
-      document.getElementById('detail-type').textContent = type;
-      document.getElementById('detail-episodes').textContent = episodes;
-      document.getElementById('detail-rating').textContent = rating;
-
-      const serverBar = document.getElementById('server-source-tabs-bar');
-      serverBar.innerHTML = `
-        <button class="bg-accent text-black font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-sm">Server Alpha</button>
-        <button class="bg-dark-input hover:bg-neutral-800 text-gray-400 hover:text-white text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-lg border border-dark-border/60 transition-colors">Backup Node</button>
-      `;
-
-      const epBox = document.getElementById('episode-buttons');
-      let epsCount = parseInt(episodes) || 12;
-      if (epsCount > 50) epsCount = 24; 
-      
-      let epButtonsHTML = '';
-      for (let i = 1; i <= epsCount; i++) {
-        epButtonsHTML += `
-          <button class="w-10 h-10 rounded-lg text-xs font-bold border transition-all ${i === 1 ? 'bg-accent text-black border-accent shadow-md' : 'bg-dark-input text-gray-400 border-dark-border hover:border-gray-600 hover:text-white'}" onclick="activateEpisodeTab(this, ${i})">
-            ${i}
-          </button>
-        `;
-      }
-      epBox.innerHTML = epButtonsHTML;
-      
-      // Default placeholder link to load inside video player container
-      document.getElementById('video-iframe').src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0";
-    }
-
-    function activateEpisodeTab(btn, num) {
-      document.querySelectorAll('#episode-buttons button').forEach(b => {
-        b.className = "w-10 h-10 rounded-lg text-xs font-bold border transition-all bg-dark-input text-gray-400 border-dark-border hover:border-gray-600 hover:text-white";
-      });
-      btn.className = "w-10 h-10 rounded-lg text-xs font-bold border transition-all bg-accent text-black border-accent shadow-md";
-    }
-
-    function clockHeartbeatSync() {
-      const clock = document.getElementById('live-24h-clock');
-      if (!clock) return;
-      const now = new Date();
-      const jstOffset = 9 * 60 * 60 * 1000;
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const jstTime = new Date(utc + jstOffset);
-      clock.textContent = jstTime.toTimeString().split(' ')[0] + " JST";
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = localStorage.getItem('selectedCharacterTheme') || 'subaru';
-      applyCharacterPreset(savedTheme);
-      
-      initJikanDataSync();
-      setInterval(clockHeartbeatSync, 1000);
-      clockHeartbeatSync();
-    });
-  </script>
+  <!-- Core script link hookup location -->
+  <script src="script.js" defer></script>
 </head>
 <body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex font-['Inter',sans-serif]">
 
-  <aside id="main-menu-drawer" class="fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5 bg-dark-bg border-r border-dark-border flex flex-col justify-between">
+  <!-- Sidebar Component Navigation Navigation Panel -->
+  <aside id="main-menu-drawer" class="fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5 bg-[#0f0f12] sidebar border-r border-dark-border flex flex-col justify-between">
     <div>
       <div class="pb-5 flex items-center justify-between border-b border-dark-border mb-6">
         <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer group">
@@ -358,22 +71,22 @@
       <nav class="nav-menu text-base space-y-2">
         <span class="text-xs text-gray-500 font-bold tracking-widest uppercase block mb-2 px-2">Navigation</span>
         
-        <div id="side-nav-home" class="sidebar-item active py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('home'); toggleMainMenu();">
+        <div id="side-nav-home" class="sidebar-item active py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('home');">
           <span class="icon text-lg"><i class="fa-solid fa-house"></i></span> 
           <span class="label font-medium">Home</span>
         </div>
         
-        <div id="side-nav-catalog" class="sidebar-item py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('catalog'); toggleMainMenu();">
+        <div id="side-nav-catalog" class="sidebar-item py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('catalog');">
           <span class="icon text-lg"><i class="fa-solid fa-compass"></i></span> 
           <span class="label font-medium">Catalog Portal</span>
         </div>
 
-        <div id="side-nav-releases" class="sidebar-item py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('releases'); toggleMainMenu();">
+        <div id="side-nav-releases" class="sidebar-item py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('releases');">
           <span class="icon text-lg"><i class="fa-solid fa-rocket"></i></span> 
           <span class="label font-medium">Releases</span>
         </div>
 
-        <div id="side-nav-calendar" class="sidebar-item py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('calendar'); toggleMainMenu();">
+        <div id="side-nav-calendar" class="sidebar-item py-3 px-4 rounded-xl flex items-center space-x-4 cursor-pointer min-h-[48px] transition-all hover:bg-neutral-800/40" onclick="switchToView('calendar');">
           <span class="icon text-lg"><i class="fa-solid fa-calendar-days"></i></span> 
           <span class="label font-medium">Calendar</span>
         </div>
@@ -383,6 +96,7 @@
 
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden backdrop-blur-sm transition-opacity"></div>
 
+  <!-- Main View Container Block Frame -->
   <div class="flex-1 flex flex-col min-w-0">
     
     <nav class="sticky top-0 z-30 bg-dark-bg/95 backdrop-blur border-b border-dark-border px-4 py-3 flex items-center justify-between">
@@ -410,6 +124,7 @@
 
     <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1">
 
+      <!-- View 1: Home Landing Portal -->
       <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-16 px-4 rounded-2xl border border-dark-border mb-10 bg-gradient-to-b from-neutral-900/40 to-transparent shadow-xl">
         <div class="max-w-xl w-full space-y-6">
           <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
@@ -431,6 +146,7 @@
         </div>
       </section>
 
+      <!-- View 2: Exploration Catalog Hub Layout -->
       <section id="main-exploration-hub" class="hidden space-y-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div class="lg:col-span-2 space-y-8">
@@ -442,6 +158,7 @@
                 <p class="text-xs text-gray-500">Syncing index files...</p>
               </div>
             </div>
+            
             <div class="space-y-3">
               <div class="border-b border-dark-border pb-2">
                 <h2 id="grid-header-title" class="text-xs font-bold uppercase tracking-wider dynamic-accent-text text-accent">Trending Global Media Items</h2>
@@ -452,18 +169,36 @@
             </div>
           </div>
           
+          <!-- Quick Timing Sidebar Layout -->
           <div class="space-y-6">
             <div id="sidebar-container-block" class="bg-dark-card border border-dark-border rounded-xl p-4 space-y-4 shadow-md">
               <div class="flex items-center justify-between border-b border-dark-border pb-2">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
                 <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-neutral-900/50 text-gray-400 px-2 py-0.5 rounded border border-dark-border/60">00:00:00 JST</div>
               </div>
+              
+              <!-- Tab Grid Layout Map Hooks -->
+              <div class="grid grid-cols-3 gap-1 bg-dark-input p-0.5 rounded-lg border border-dark-border/40 text-[10px] font-bold text-center">
+                <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1 rounded transition-all">YEST</button>
+                <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1 rounded transition-all">TODAY</button>
+                <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1 rounded transition-all">TOMW</button>
+              </div>
+              
               <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
+            </div>
+
+            <!-- Top 10 Rating Index Frame -->
+            <div class="bg-dark-card border border-dark-border rounded-xl p-4 space-y-3 shadow-md">
+              <div class="border-b border-dark-border pb-1.5">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Chart Hotlist</h3>
+              </div>
+              <div id="top10-box" class="space-y-2 text-xs"></div>
             </div>
           </div>
         </div>
       </section>
 
+      <!-- View 3: Full Releases Timeline Feed Grid -->
       <section id="releases-focus-view" class="hidden space-y-4">
         <div class="border-b border-dark-border pb-2">
           <h2 class="text-base font-bold uppercase tracking-wider text-white">Full Releases Feed Dashboard</h2>
@@ -472,33 +207,48 @@
         <div id="releases-api-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full"></div>
       </section>
 
-      <section id="calendar-focus-view" class="w-full max-w-2xl mx-auto px-2 hidden space-y-4">
-        <div class="flex items-center justify-between">
-          <h1 class="text-xl font-bold tracking-tight">Airing this week</h1>
+      <!-- View 4: Airing Calendar Weekly Grid Matrix Section -->
+      <section id="calendar-focus-view" class="w-full max-w-4xl mx-auto px-2 hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-dark-border pb-3">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-white">Airing Schedule Matrix</h1>
+            <p class="text-xs text-gray-500 mt-0.5">Chronological global track layouts synced straight with Live AniList tracking IDs</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative max-w-xs">
+              <i class="fa-solid fa-magnifying-glass text-gray-500 absolute left-3 top-2.5 text-xs"></i>
+              <input type="text" id="calendar-search" placeholder="Filter tracked entries..." class="bg-dark-card border border-dark-border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:outline-none w-44 text-gray-300 focus:border-accent/40">
+            </div>
+            <button id="jump-today-btn" class="bg-dark-card border border-dark-border text-gray-400 hover:text-white px-3 py-1.5 rounded-xl text-xs font-medium transition-colors">Reset</button>
+          </div>
         </div>
-        <div class="bg-dark-card border border-dark-border rounded-2xl p-4 text-center shadow-md">
-          <h2 class="text-sm font-bold uppercase tracking-wider text-gray-400">Live Airing Status</h2>
-        </div>
+        
+        <div id="calendar-days-matrix" class="grid grid-cols-4 sm:grid-cols-7 gap-2 w-full"></div>
+        <div id="airing-chronological-list" class="space-y-6 pt-2"></div>
       </section>
 
-      <!-- Fixed Streaming Dashboard Box ID Hook mapping -->
+      <!-- View 5: Enhanced Stream Video Controller Workspace Platform -->
       <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-6">
         <div class="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-dark-border shadow-2xl">
           <div id="player-box" class="w-full h-full relative">
             <div id="video-player-wrapper" class="w-full h-full">
-              <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" src="" allowfullscreen scrolling="no"></iframe>
+              <!-- Handled internally by script video rendering router structures -->
+              <video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>
             </div>
           </div>
         </div>
 
+        <!-- Provider Sources and Sub/Dub Toggle System Panel Links -->
         <div class="flex flex-col md:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-md">
-          <div class="w-full md:w-auto overflow-x-auto scrollbar-none flex items-center gap-2" id="server-source-tabs-bar"></div>
+          <div class="w-full md:w-auto overflow-x-auto scrollbar-none flex items-center gap-2 server-tabs-container" id="server-source-tabs-bar"></div>
+          
           <div class="flex items-center bg-dark-input p-0.5 rounded-lg border border-dark-border/60 shrink-0">
-            <button class="bg-accent text-black px-4 py-1.5 text-xs font-bold rounded-md transition-all">SUB</button>
-            <button class="px-4 py-1.5 text-xs font-bold text-gray-400 rounded-md transition-all">DUB</button>
+            <button id="sub-btn" onclick="setLanguage('sub')" class="bg-accent text-black px-4 py-1.5 text-xs font-bold rounded-md transition-all">SUB</button>
+            <button id="dub-btn" onclick="setLanguage('dub')" class="px-4 py-1.5 text-xs font-bold text-gray-400 rounded-md transition-all">DUB</button>
           </div>
         </div>
 
+        <!-- Metadata Tracking Informational Box Details Panel -->
         <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4 shadow-md">
           <div class="w-32 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-lg overflow-hidden shadow-md shrink-0">
             <img id="detail-poster" src="" class="w-full h-full object-cover" alt="Anime Poster">
@@ -514,9 +264,14 @@
           </div>
         </div>
 
+        <!-- Dedicated Multi-Mirror Server List Sub-Grid Container Hook Location -->
+        <div id="sub-server-links-grid" class="space-y-4 mb-4"></div>
+
+        <!-- Episode Selection Grid System Workspace -->
         <div class="bg-dark-card border border-dark-border rounded-xl p-4 space-y-3 shadow-md">
-          <div>
+          <div class="flex items-center justify-between">
             <h2 class="text-sm font-bold text-white">Streaming Catalog Suite</h2>
+            <p id="ep-synopsis-snippet" class="text-[10px] text-gray-500 italic max-w-xs truncate hidden sm:block"></p>
           </div>
           <div class="border-t border-dark-border/50 pt-2">
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Available Episode Indices</span>
@@ -527,18 +282,36 @@
     </main>
   </div>
 
+  <!-- Layer Theme Layout Customizer Sheet Dropdown System -->
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm transition-opacity"></div>
   
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#131318] border-t border-dark-border rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 ease-out max-h-[85vh] overflow-y-auto shadow-2xl">
     <div class="max-w-xl mx-auto space-y-6">
       <div class="text-center space-y-1">
         <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">Character Layout Config</h3>
+        <p class="text-xs text-gray-600">Select an active style profile theme to apply across accents and player styles.</p>
       </div>
-      <div class="grid grid-cols-2 gap-2 text-xs">
-        <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input"><span class="text-gray-300">Subaru</span><span class="w-3 h-3 rounded-full bg-orange-500"></span></button>
-        <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input"><span class="text-gray-300">Emilia</span><span class="w-3 h-3 rounded-full bg-purple-400"></span></button>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-medium">
+        <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Subaru N.</span><span class="w-3 h-3 rounded-full bg-[#f97316]"></span></button>
+        <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Emilia</span><span class="w-3 h-3 rounded-full bg-[#c084fc]"></span></button>
+        <button onclick="applyCharacterPreset('rem')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Rem</span><span class="w-3 h-3 rounded-full bg-[#38bdf8]"></span></button>
+        <button onclick="applyCharacterPreset('ram')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Ram</span><span class="w-3 h-3 rounded-full bg-[#fb7185]"></span></button>
+        <button onclick="applyCharacterPreset('beatrice')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Beatrice</span><span class="w-3 h-3 rounded-full bg-[#fbbf24]"></span></button>
+        <button onclick="applyCharacterPreset('felt')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Felt</span><span class="w-3 h-3 rounded-full bg-[#eab308]"></span></button>
+        <button onclick="applyCharacterPreset('reinhard')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Reinhard v.A.</span><span class="w-3 h-3 rounded-full bg-[#dc2626]"></span></button>
+        <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Crusch K.</span><span class="w-3 h-3 rounded-full bg-[#059669]"></span></button>
+        <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Felix A.</span><span class="w-3 h-3 rounded-full bg-[#d97706]"></span></button>
+        <button onclick="applyCharacterPreset('priscilla')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Priscilla B.</span><span class="w-3 h-3 rounded-full bg-[#ef4444]"></span></button>
+        <button onclick="applyCharacterPreset('anastasia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Anastasia H.</span><span class="w-3 h-3 rounded-full bg-[#f472b6]"></span></button>
+        <button onclick="applyCharacterPreset('julius')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Julius J.</span><span class="w-3 h-3 rounded-full bg-[#818cf8]"></span></button>
+        <button onclick="applyCharacterPreset('wilhelm')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Wilhelm v.A.</span><span class="w-3 h-3 rounded-full bg-[#94a3b8]"></span></button>
+        <button onclick="applyCharacterPreset('roswaal')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Roswaal L.M.</span><span class="w-3 h-3 rounded-full bg-[#4f46e5]"></span></button>
+        <button onclick="applyCharacterPreset('satella')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Satella</span><span class="w-3 h-3 rounded-full bg-[#6d28d9]"></span></button>
+        <button onclick="applyCharacterPreset('echidna')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-300">Echidna</span><span class="w-3 h-3 rounded-full bg-[#e4e4e7]"></span></button>
       </div>
-      <button onclick="closeBottomSheet()" class="w-full bg-dark-input text-gray-300 font-bold py-2.5 rounded-xl text-xs uppercase border border-dark-border">Close</button>
+      
+      <button onclick="closeBottomSheet()" class="w-full bg-dark-input text-gray-300 font-bold py-2.5 rounded-xl text-xs uppercase border border-dark-border hover:bg-neutral-800 transition-colors">Close</button>
     </div>
   </div>
 
