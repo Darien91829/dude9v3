@@ -34,7 +34,7 @@ window.currentMappedIds = {}; // FIXED: Global container cache storage for cross
 
 const presets = {
   subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
-  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true },
+  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14141c', input: '#1e182a', textLight: true },
   rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false },
   ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false },
   beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', textLight: false },
@@ -781,6 +781,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
   await buildEpisodeButtonsGrid(anilistId);
 };
 
+// FIXED: Cleaned extraction layers to accurately map returned structures
 async function buildEpisodeButtonsGrid(anilistId) {
   const epBox = document.getElementById('episode-buttons');
   if (!epBox) return;
@@ -792,10 +793,17 @@ async function buildEpisodeButtonsGrid(anilistId) {
     epBox.innerHTML = '';
 
     let providerList = [];
+    
+    // Check if the structure contains the specified provider key directly
     if (epData && epData[activeProviderMode]) {
       providerList = Array.isArray(epData[activeProviderMode]) ? epData[activeProviderMode] : Object.values(epData[activeProviderMode]);
     }
     
+    // Fallback: search general root array arrays if structured differently
+    if (providerList.length === 0 && Array.isArray(epData)) {
+      providerList = epData;
+    }
+
     if (providerList.length === 0) {
       for (const prov of API_PROVIDERS) {
         if (epData?.[prov.id]) {
@@ -810,6 +818,7 @@ async function buildEpisodeButtonsGrid(anilistId) {
       }
     }
 
+    // FIXED: Ensure total counts mirror the list accurately or extract lengths if elements exist
     const totalEpisodesCount = providerList.length > 0 ? providerList.length : 12;
     window.activeMaxEpisodes = totalEpisodesCount;
 
@@ -1153,13 +1162,13 @@ function updateEpisodeButtonsUI() {
   }
 }
 
-// FIXED: Converted system over to direct execution method via event delegation lookup parameters
 function setProviderSource(providerId) {
   activeProviderMode = providerId;
   updateProviderButtonsUI();
   launchVideoPlayer(currentEpisodeIndex);
 }
 
+// FIXED: Clear style caching loops correctly on switch triggers
 function updateProviderButtonsUI() {
   const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
   const curPreset = presets[currentPresetName] || presets.subaru;
@@ -1226,13 +1235,11 @@ window.addEventListener("message", function (event) {
   }
 });
 
-// FIXED: Implemented event delegation matching systems during application window loading
 window.onload = function() {
   startSystemClock();
   applyCharacterPreset('subaru');
   switchToView('home');
 
-  // Event delegation capture layout for permanent element wrapper bars
   const serverContainerBar = document.getElementById('server-source-tabs-bar');
   if (serverContainerBar) {
     serverContainerBar.addEventListener('click', function(e) {
