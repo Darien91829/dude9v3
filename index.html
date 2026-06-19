@@ -108,7 +108,7 @@
           <i class="fa-solid fa-magnifying-glass text-sm"></i>
         </span>
         <input type="text" id="header-search-input" placeholder="Search anime titles..." class="w-full bg-dark-input border border-dark-border rounded-xl pl-9 pr-20 py-2 text-sm focus:outline-none text-gray-300 transition-colors focus:border-accent/50" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
-        <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-accent text-black font-bold px-3 py-1 rounded-lg text-xs transition-colors hover:bg-accent-hover">Search</button>
+        <button id="side-nav-search-trigger" onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-accent text-black font-bold px-3 py-1 rounded-lg text-xs transition-colors hover:bg-accent-hover">Search</button>
       </div>
 
       <div class="flex items-center space-x-4">
