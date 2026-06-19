@@ -34,6 +34,9 @@ window.currentMalId = null;
 window.activeAnimeTitle = "";
 window.activeMaxEpisodes = 12;
 
+// Store global hls.js reference to destroy it during stream context switching
+window.currentHlsInstance = null;
+
 const presets = {
   subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
   emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true },
@@ -788,19 +791,15 @@ async function buildEpisodeButtonsGrid(anilistId) {
     let providerList = [];
     if (epData) {
       if (Array.isArray(epData)) {
-        // Format layout B: [{ provider: 'allmanga', episodes: [...] }]
         const block = epData.find(item => item.provider === activeProviderMode);
         providerList = block ? block.episodes : [];
       } else if (epData.episodes && Array.isArray(epData.episodes)) {
-        // Format layout C: { episodes: [...] }
         providerList = epData.episodes;
       } else {
-        // Format layout A: { allmanga: [...], reanime: [...] }
         providerList = epData[activeProviderMode] || [];
       }
     }
     
-    // If targeted provider list yields 0 items, check first valid provider payload WITHOUT altering activeProviderMode state
     if (!Array.isArray(providerList) || providerList.length === 0) {
       const fallbackProvider = API_PROVIDERS.find(p => {
         if (!epData) return false;
@@ -864,7 +863,6 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     const category = dubMode === 'dub' ? 'dub' : 'sub';
     const cleanProvider = activeProviderMode.toLowerCase().trim();
     
-    // 302 Route Override Exception block explicitly built for ReAnime endpoint handling
     if (cleanProvider === 'reanime') {
       const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/reanime-${epNum}`;
       return [{
@@ -875,7 +873,6 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
       }];
     }
 
-    // Determine specific dynamic episode ID from cached /episodes response if available
     let computedEpId = `${cleanProvider}-${epNum}`;
     if (globalEpisodeDataCache) {
       let targetList = [];
@@ -888,7 +885,6 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
         targetList = globalEpisodeDataCache[cleanProvider] || [];
       }
 
-      // Look for custom tracking ID inside target episode matching current index
       if (targetList && targetList.length > 0) {
         const matchedEpisodeObj = targetList.find(e => e.number == epNum || e.episode == epNum);
         if (matchedEpisodeObj && matchedEpisodeObj.id) {
@@ -897,11 +893,9 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
       }
     }
 
-    // Standard structured tracking watch route endpoint
     const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${computedEpId}`;
     console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
-    // Implemented AbortController to handle fetch timeouts gracefully
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -951,7 +945,6 @@ function renderSubServerGrid(streams) {
   const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
   const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
 
-  // 1. MAIN FOCUS: HLS Streams
   if (hlsStreams.length > 0) {
     const internalGroup = document.createElement('div');
     internalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -973,7 +966,6 @@ function renderSubServerGrid(streams) {
     });
   }
 
-  // 2. SIDE FALLBACK: Embedded / Iframes Mirrors
   if (fallbackStreams.length > 0) {
     const externalGroup = document.createElement('div');
     externalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
@@ -1056,97 +1048,96 @@ function removeActivePillStyles(element) {
   });
 }
 
+// =========================================================================
+// REWRITTEN PLAYBACK ENGINE LOGIC (Native Hls.js + Plyr Support)
+// =========================================================================
+
 function executeStreamRouting(streamUrl, streamType) {
-  const iframe = document.getElementById('video-iframe');
+  const videoElement = document.getElementById('video-iframe'); // This is the <video> tag now
   const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8') || activeProviderMode === 'reanime';
   
+  // Clean up any ongoing Hls.js instance before opening a new link
+  if (window.currentHlsInstance) {
+    window.currentHlsInstance.destroy();
+    window.currentHlsInstance = null;
+  }
+
   if (isHLSSource) {
-    if (iframe) iframe.classList.add('hidden');
-    injectPlyrVideoContainer(streamUrl);
+    // 1. Execute HLS Native Stream Routing Engine
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+      window.currentHlsInstance = new Hls({
+        maxMaxBufferLength: 30, // Keep streams highly responsive
+        enableWorker: true
+      });
+      window.currentHlsInstance.loadSource(streamUrl);
+      window.currentHlsInstance.attachMedia(videoElement);
+      
+      window.currentHlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+        initializePlyrEngine(videoElement);
+        videoElement.play().catch(() => console.log("Autoplay blocked by browser policy"));
+      });
+
+      // Handle stream network errors gracefully without crashing the UI
+      window.currentHlsInstance.on(Hls.Events.ERROR, function (event, data) {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.log("Fatal network error encountered, attempting retry...");
+              window.currentHlsInstance.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log("Fatal media error, attempting recovery...");
+              window.currentHlsInstance.recoverMediaError();
+              break;
+            default:
+              handleStreamMissingNotice();
+              break;
+          }
+        }
+      });
+
+    } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+      // Native fallback handling (Safari / iOS Safari)
+      videoElement.src = streamUrl;
+      initializePlyrEngine(videoElement);
+    } else {
+      handleStreamMissingNotice();
+    }
   } else {
-    // Before switching to embed logic, make sure to destroy current active Plyr instance safely to avoid memory leak
+    // 2. Execute Extracted/Iframe Embed Fallback Routing Engine
+    // Destroy Plyr instance since we need the video layout container to adapt to an iframe element
     if (window.currentPlyr) {
       window.currentPlyr.destroy();
       window.currentPlyr = null;
     }
 
-    let videoNode = document.getElementById('video-plyr-core');
-    if (videoNode) {
-      const mediaContainer = videoNode.parentElement;
-      if (mediaContainer) {
-        mediaContainer.innerHTML = `
-          <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
-          <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
-            <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
-          </div>`;
-      }
+    const mediaContainer = videoElement.parentElement;
+    if (mediaContainer) {
+      mediaContainer.innerHTML = `
+        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0" src="${streamUrl}"></iframe>
+        <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+          <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
+        </div>`;
     }
-    const standardIframe = document.getElementById('video-iframe');
-    if (standardIframe) {
-      standardIframe.classList.remove('hidden');
-      standardIframe.src = streamUrl;
-    }
-  }
-}
-
-function injectPlyrVideoContainer(streamUrl) {
-  const standardIframe = document.getElementById('video-iframe');
-  if (!standardIframe) return;
-  const mediaContainer = standardIframe.parentElement;
-  if (!mediaContainer) return;
-
-  // Before rewriting DOM structure inner HTML elements, eliminate existing engine reference tracks
-  if (window.currentPlyr) {
-    window.currentPlyr.destroy();
-    window.currentPlyr = null;
-  }
-
-  // Clear previous contents so instance objects don't stack up inside DOM wrappers
-  mediaContainer.innerHTML = '';
-
-  const videoNode = document.createElement('video');
-  videoNode.id = 'video-plyr-core';
-  videoNode.className = 'w-full h-full rounded-xl bg-black border border-neutral-900';
-  videoNode.controls = true;
-  videoNode.playsInline = true;
-
-  mediaContainer.appendChild(videoNode);
-
-  // Setup Notice Overlay placeholder back inside wrapper alongside new element controls
-  const noticeOverlay = document.createElement('div');
-  noticeOverlay.id = 'notice-overlay';
-  noticeOverlay.className = 'hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4';
-  noticeOverlay.innerHTML = `<p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>`;
-  mediaContainer.appendChild(noticeOverlay);
-
-  // Hls.js custom layout loader bindings injection
-  if ((streamUrl.includes('.m3u8') || activeProviderMode === 'reanime') && typeof Hls !== 'undefined' && Hls.isSupported()) {
-    const hlsInstance = new Hls();
-    hlsInstance.loadSource(streamUrl);
-    hlsInstance.attachMedia(videoNode);
-    hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
-      initializePlyrEngine(videoNode);
-    });
-  } else {
-    // Fallback directly to native system components if using raw MP4 feeds
-    videoNode.src = streamUrl;
-    initializePlyrEngine(videoNode);
   }
 }
 
 function initializePlyrEngine(videoElement) {
   try {
     if (typeof Plyr !== 'undefined') {
-      // Safely cleanup old Plyr instance before tracking a new one
-      if (window.currentPlyr) {
-        window.currentPlyr.destroy();
-      }
+      // If Plyr is already attached to this specific element, do not initialize it a second time
+      if (window.currentPlyr) return;
       
+      const currentActivePreset = presets[currentPresetName] || presets.subaru;
+
       window.currentPlyr = new Plyr(videoElement, {
-        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'],
+        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen'],
         keyboard: { focused: true, global: true },
         tooltips: { controls: true, seek: true }
       });
+
+      // Automatically inject your custom neon colors directly into Plyr properties on creation
+      document.documentElement.style.setProperty('--plyr-color-main', currentActivePreset.hex);
     }
   } catch(err) {
     console.warn("[Media Hub] Native Plyr binding initialization standby.", err);
@@ -1156,30 +1147,24 @@ function initializePlyrEngine(videoElement) {
 async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   
-  let iframe = document.getElementById('video-iframe');
+  let videoElement = document.getElementById('video-iframe');
   let noticeOverlay = document.getElementById('notice-overlay');
   
-  // Re-build target elements fallback if DOM tree structural mutations happened on switching stream engines
-  if (!iframe) {
-    const layoutWrapper = document.getElementById('video-plyr-core')?.parentElement;
+  // If we came from an Iframe Embed view, structural mutation occurred. Re-build HTML5 video layout block.
+  if (!videoElement || videoElement.tagName.toLowerCase() === 'iframe') {
+    const layoutWrapper = document.getElementById('video-player-wrapper');
     if (layoutWrapper) {
-      layoutWrapper.innerHTML = `
-        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0"></iframe>
-        <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
-          <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
-        </div>`;
-      iframe = document.getElementById('video-iframe');
+      // Safely kill Plyr reference tracking tags
+      if (window.currentPlyr) {
+        window.currentPlyr.destroy();
+        window.currentPlyr = null;
+      }
+      layoutWrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+      videoElement = document.getElementById('video-iframe');
     }
   }
 
-  // Safely find the notice overlay whether it's within the inner wrappers or global structure
   noticeOverlay = document.getElementById('notice-overlay');
-
-  if (iframe) {
-    iframe.src = 'about:blank';
-    iframe.classList.remove('hidden');
-  }
-  
   if (noticeOverlay) noticeOverlay.classList.add('hidden');
   
   updateEpisodeButtonsUI();
@@ -1251,8 +1236,7 @@ function updateProviderButtonsUI() {
 }
 
 function handleStreamMissingNotice() {
-  document.getElementById('video-iframe')?.classList.add('hidden');
-  const videoCore = document.getElementById('video-plyr-core');
+  const videoCore = document.getElementById('video-iframe');
   if (videoCore) videoCore.classList.add('hidden');
 
   const noticeOverlay = document.getElementById('notice-overlay');
@@ -1288,6 +1272,7 @@ function updateLanguageButtonsUI() {
   });
 }
 
+// Autoplay Event Handshake Interceptor
 window.addEventListener("message", function (event) {
   let data = event.data;
   if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
