@@ -636,7 +636,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
     applyCharacterPreset(currentPresetName);
   } catch (error) { 
     console.error(error);
-    scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>`; 
+    scheduleBox.innerHTML = `<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>'; 
   }
 }
 
@@ -809,9 +809,12 @@ async function launchVideoPlayer(epNum) {
   const noticeOverlay = document.getElementById('notice-overlay');
   if (!iframe) return;
 
-  // Clear previous player frame to prevent displaying text or error remnants during loads
+  // Clear previous source content so raw text errors don't hang around
   iframe.src = 'about:blank';
-  if(noticeOverlay) noticeOverlay.classList.add('hidden');
+  if(noticeOverlay) {
+    noticeOverlay.classList.add('hidden');
+    noticeOverlay.querySelector('p').innerText = "🔄 Loading Stream link...";
+  }
   iframe.classList.remove('hidden');
   updateEpisodeButtonsUI();
 
@@ -832,18 +835,13 @@ async function launchVideoPlayer(epNum) {
     }
   } else if (activeSourceMode === 'anivexa') {
     iframe.classList.add('hidden');
-    if (noticeOverlay) {
-      noticeOverlay.classList.remove('hidden');
-      noticeOverlay.querySelector('p').innerText = "🔄 Loading Custom AniVexa Stream Link...";
-    }
+    if (noticeOverlay) noticeOverlay.classList.remove('hidden');
     
-    // Resolve the JSON endpoint in background instead of pasting it directly inside the iframe src
     const anidbStreamUrl = await fetchAnidbAppStream(window.currentMalId, epNum, currentLanguage);
     if (anidbStreamUrl) {
       if(noticeOverlay) noticeOverlay.classList.add('hidden');
       iframe.classList.remove('hidden');
       
-      // Use standard player wrapper if it's an m3u8 file link, otherwise load directly
       iframe.src = anidbStreamUrl.includes('.m3u8') 
         ? `https://player.vdocipher.com/v2/?url=${encodeURIComponent(anidbStreamUrl)}`
         : anidbStreamUrl;
@@ -852,10 +850,7 @@ async function launchVideoPlayer(epNum) {
     }
   } else if (activeSourceMode === 'consumet') {
     iframe.classList.add('hidden');
-    if (noticeOverlay) {
-      noticeOverlay.classList.remove('hidden');
-      noticeOverlay.querySelector('p').innerText = "🔄 Parsing API Stack Links...";
-    }
+    if (noticeOverlay) noticeOverlay.classList.remove('hidden');
     
     const backupStreamUrl = await fetchConsumetStreamWithStack(window.activeAnimeTitle, epNum, currentLanguage);
     if (backupStreamUrl) {
@@ -918,7 +913,7 @@ function updateServerButtonsUI() {
       btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
       btn.style.borderColor = currentActiveHex;
     } else {
-      // CLEAR all style overwrites entirely so unselected choices unhighlight cleanly
+      // Clear style definitions entirely on unselected configurations
       btn.style.backgroundColor = '';
       btn.style.color = '';
       btn.style.borderColor = '';
