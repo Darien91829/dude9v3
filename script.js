@@ -8,10 +8,9 @@ let currentLanguage = 'sub';
 let activeScheduleDay = 'today';
 let activeProviderMode = 'allmanga'; // Default active provider
 
-// Track all available backend providers from your API manifest (Spliced MegaPlay Core)
+// Track all 7 available backend providers from your API manifest
 const API_PROVIDERS = [
   { id: 'allmanga', name: 'AllManga', status: 'Active' },
-  { id: 'megaplay', name: 'MegaPlay', status: 'Active' },
   { id: 'reanime', name: 'ReAnime', status: 'Active' },
   { id: 'anikoto', name: 'AniKoto', status: 'Active' },
   { id: 'animegg', name: 'AnimeGG', status: 'Active' },
@@ -39,22 +38,22 @@ window.activeMaxEpisodes = 12;
 window.currentHlsInstance = null;
 
 const presets = {
-  subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#121216', border: '#22222a', textLight: false },
-  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', border: '#2b223a', textLight: true },
-  rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', border: '#22324a', textLight: false },
-  ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', border: '#3e252c', textLight: false },
-  beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', border: '#3e3324', textLight: false },
-  felt: { hex: '#eab308', bg: '#12110a', card: '#1c1a10', input: '#2a2718', border: '#3a3621', textLight: false },
-  reinhard: { hex: '#dc2626', bg: '#140b0b', card: '#201111', input: '#2e1919', border: '#402222', textLight: true },
-  crusch: { hex: '#059669', bg: '#0a120e', card: '#101c16', input: '#182b22', border: '#223d30', textLight: true },
-  felix: { hex: '#d97706', bg: '#140b0b', card: '#201911', input: '#2e2419', border: '#403222', textLight: false },
-  priscilla: { hex: '#ef4444', bg: '#120a0a', card: '#1c1010', input: '#2a1818', border: '#3a2121', textLight: true },
-  anastasia: { hex: '#f472b6', bg: '#140d11', card: '#20141b', input: '#2e1d27', border: '#402937', textLight: false },
-  julius: { hex: '#818cf8', bg: '#0d0d14', card: '#141420', input: '#1e1e2e', border: '#2a2a40', textLight: true },
-  wilhelm: { hex: '#94a3b8', bg: '#0f1115', card: '#171a21', input: '#222630', border: '#303645', textLight: false },
-  roswaal: { hex: '#4f46e5', bg: '#0b0a14', card: '#111020', input: '#19182e', border: '#232240', textLight: true },
-  satella: { hex: '#6d28d9', bg: '#0a0812', card: '#100c1c', input: '#18122b', border: '#231b3d', textLight: true },
-  echidna: { hex: '#e4e4e7', bg: '#101012', card: '#18181c', input: '#24242a', border: '#34343a', textLight: false }
+  subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
+  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true },
+  rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false },
+  ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false },
+  beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', textLight: false },
+  felt: { hex: '#eab308', bg: '#12110a', card: '#1c1a10', input: '#2a2718', textLight: false },
+  reinhard: { hex: '#dc2626', bg: '#140b0b', card: '#201111', input: '#2e1919', textLight: true },
+  crusch: { hex: '#059669', bg: '#0a120e', card: '#101c16', input: '#182b22', textLight: true },
+  felix: { hex: '#d97706', bg: '#140b0b', card: '#201911', input: '#2e2419', textLight: false },
+  priscilla: { hex: '#ef4444', bg: '#120a0a', card: '#1c1010', input: '#2a1818', textLight: true },
+  anastasia: { hex: '#f472b6', bg: '#140d11', card: '#20141b', input: '#2e1d27', textLight: false },
+  julius: { hex: '#818cf8', bg: '#0d0d14', card: '#141420', input: '#1e1e2e', textLight: true },
+  wilhelm: { hex: '#94a3b8', bg: '#0f1115', card: '#171a21', input: '#222630', textLight: false },
+  roswaal: { hex: '#4f46e5', bg: '#0b0a14', card: '#111020', input: '#19182e', textLight: true },
+  satella: { hex: '#6d28d9', bg: '#0a0812', card: '#100c1c', input: '#18122b', textLight: true },
+  echidna: { hex: '#e4e4e7', bg: '#101012', card: '#18181c', input: '#24242a', textLight: false }
 };
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -76,26 +75,14 @@ function applyCharacterPreset(name) {
   const p = presets[name]; if (!p) return;
   currentPresetName = name;
   document.body.style.backgroundColor = p.bg;
-  
-  // Custom Dynamic Global Variable mappings for Tailwind Injection
-  document.documentElement.style.setProperty('--character-accent', p.hex);
-  document.documentElement.style.setProperty('--character-accent-hover', p.hex);
-  
-  // Convert hex color values down to plain RGB tracks dynamically
-  const r = parseInt(p.hex.slice(1, 3), 16);
-  const g = parseInt(p.hex.slice(3, 5), 16);
-  const b = parseInt(p.hex.slice(5, 7), 16);
-  document.documentElement.style.setProperty('--character-accent-rgb', `${r}, ${g}, ${b}`);
-
-  document.querySelectorAll('#main-menu-drawer, nav.sticky').forEach(el => el.style.backgroundColor = p.bg);
+  document.querySelectorAll('.sidebar').forEach(el => el.style.backgroundColor = p.bg);
   document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = p.card);
   document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = p.input);
-  document.querySelectorAll('.border-dark-border').forEach(el => el.style.borderColor = p.border);
+  document.querySelectorAll('.border-dark').forEach(el => el.style.borderColor = p.input);
   document.querySelectorAll('.dynamic-accent-text').forEach(el => el.style.color = p.hex);
   document.querySelectorAll('.dynamic-accent-bg').forEach(el => {
     el.style.backgroundColor = p.hex; el.style.color = p.textLight ? '#ffffff' : '#000000';
   });
-  
   updateProviderButtonsUI();
   updateLanguageButtonsUI();
   if (window.currentAnilistId) updateEpisodeButtonsUI();
@@ -145,8 +132,7 @@ function renderCalendarGridStructure() {
   const todayDayIndex = new Date().getDay(); 
   const daysFull = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const daysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const currentAccentColor = presets[currentPresetName]?.hex || '#f97316';
-  const currentTextLight = presets[currentPresetName]?.textLight || false;
+  const currentAccentColor = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
   
   for (let i = 0; i < 7; i++) {
     const dayBox = document.createElement('button');
@@ -160,7 +146,7 @@ function renderCalendarGridStructure() {
     if (selectedDayFilter === daysFull[i]) {
       dayBox.style.backgroundColor = currentAccentColor;
       dayBox.style.borderColor = currentAccentColor;
-      dayBox.style.color = currentTextLight ? '#ffffff' : '#000000';
+      dayBox.style.color = '#000000';
     } else if (i === todayDayIndex && !selectedDayFilter) {
       dayBox.style.borderColor = currentAccentColor;
       dayBox.style.color = '#ffffff';
@@ -187,7 +173,7 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
 
   listContainer.innerHTML = `
     <div class="text-center py-8 text-xs text-gray-500">
-      <i class="fa-solid fa-circle-notch animate-spin text-sm mr-2 dynamic-accent-text"></i> Syncing AniList broadcast tracks...
+      <i class="fa-solid fa-circle-notch animate-spin text-sm mr-2 text-orange-500 dynamic-accent-text"></i> Syncing AniList broadcast tracks...
     </div>
   `;
 
@@ -279,7 +265,7 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
       }
 
       let listHtml = `
-        <div class="flex items-center justify-between border-b border-dark-border pb-2 mb-3">
+        <div class="flex items-center justify-between border-b border-dark/60 pb-2 mb-3">
           <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">${displayDayLabel}</h3>
           <span class="text-[10px] text-gray-500 font-medium font-mono">${animeList.length} titles</span>
         </div>
@@ -289,21 +275,21 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
       animeList.forEach(item => {
         const anime = item.media;
         const title = anime.title.english || anime.title.romaji;
-        const scoreDisplay = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 'N/A';
         const airDate = new Date(item.airingAt * 1000);
         const airTime = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const scoreDisplay = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 'N/A';
 
         listHtml += `
           <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.id}, ${anime.idMal || 'null'}, '${title.replace(/'/g, "\\'")}')"
                class="flex items-center justify-between p-2 rounded-xl bg-transparent hover:bg-neutral-900/40 cursor-pointer transition-all group">
             <div class="flex items-center gap-3 min-w-0">
-              <img src="${anime.coverImage?.large}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-dark-border">
+              <img src="${anime.coverImage?.large}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-dark/40">
               <div class="min-w-0">
                 <h4 class="text-xs font-semibold text-gray-200 group-hover:text-white transition-colors truncate">${title}</h4>
                 <p class="text-[10px] text-gray-500 mt-0.5 font-mono">${anime.type || 'TV'} &bull; Ep ${item.episode} &bull; Score: ${scoreDisplay}</p>
               </div>
             </div>
-            <span class="text-[10px] font-mono font-bold text-gray-400 shrink-0 bg-zinc-900/80 px-2 py-1 rounded border border-dark-border">${airTime}</span>
+            <span class="text-[10px] font-mono font-bold text-gray-400 shrink-0 bg-zinc-900/80 px-2 py-1 rounded border border-dark/40">${airTime}</span>
           </div>
         `;
       });
@@ -316,7 +302,7 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
     if (listContainer.innerHTML === '') {
       listContainer.innerHTML = `<div class="text-xs text-gray-500 py-4 text-center">No matching upcoming series airing for this choice.</div>`;
     }
-    applyCharacterPreset(currentPresetName);
+
   } catch (err) {
     console.error(err);
     listContainer.innerHTML = `
@@ -376,7 +362,7 @@ async function loadRecentReleases() {
       `;
 
       cardFrame.addEventListener('mouseenter', () => {
-        const currentHex = presets[currentPresetName]?.hex || '#f97316';
+        const currentHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
         cardFrame.style.borderColor = `${currentHex}4d`;
         cardFrame.querySelector('.consumet-card-title').style.color = currentHex;
       });
@@ -655,13 +641,13 @@ async function fetchLiveReleasingSchedule(dayMode) {
       const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       
       const div = document.createElement('div');
-      div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark-border cursor-pointer transition-all";
+      div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 cursor-pointer transition-all";
       div.innerHTML = `
         <div class="flex flex-col truncate pr-2">
           <span class="truncate font-medium text-gray-300">${title}</span>
           <span class="text-[9px] text-gray-500">Episode ${item.episode}</span>
         </div>
-        <span class="font-mono text-[10px] dynamic-accent-text shrink-0">${timeString}</span>
+        <span class="font-mono text-[10px] text-orange-400 dynamic-accent-text shrink-0">${timeString}</span>
       `;
       div.onclick = () => loadStreamingLayout(item.media.id, item.media.idMal || null, title);
       scheduleBox.appendChild(div);
@@ -681,7 +667,7 @@ function displayScrollFeed(animeArray, elementId) {
     const title = anime.title_english || anime.title;
     const imgUrl = anime.images?.jpg?.image_url;
     const div = document.createElement('div');
-    div.className = "w-28 shrink-0 bg-dark-card border border-dark-border rounded-lg overflow-hidden group cursor-pointer transition-all text-[11px]";
+    div.className = "w-28 shrink-0 bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer transition-all text-[11px]";
     div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
     div.onclick = async () => {
       let linkedAniId = anime.mal_id;
@@ -708,7 +694,7 @@ function displayGridFeed(animeArray, elementId) {
     const title = anime.title.english || anime.title.romaji;
     const imgUrl = anime.coverImage?.large;
     const div = document.createElement('div');
-    div.className = "bg-dark-card border border-dark-border rounded-lg overflow-hidden group cursor-pointer transition-all flex flex-col justify-between text-xs";
+    div.className = "bg-dark-card border border-dark rounded-lg overflow-hidden group cursor-pointer transition-all flex flex-col justify-between text-xs";
     div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
     div.onclick = () => loadStreamingLayout(anime.id, anime.idMal || null, title);
     container.appendChild(div);
@@ -723,7 +709,7 @@ function displayTop10Sidebar(animeArray) {
     if (!anime.title) return;
     const title = anime.title.english || anime.title.romaji;
     const div = document.createElement('div');
-    div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark-border cursor-pointer transition-all";
+    div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark/40 transition-all";
     div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium">${title}</span>`;
     div.onclick = () => loadStreamingLayout(anime.id, anime.idMal || null, title);
     container.appendChild(div);
@@ -747,25 +733,557 @@ async function fetchJikanMetadata(malId) {
   }
 }
 
+// Inject your 7 custom API server provider nodes into the stream layout
 function injectProviderButtons() {
-  const container = document.getElementById('server-source-tabs-bar');
+  const container = document.getElementById('server-source-tabs-bar') || document.querySelector('.server-tabs-container');
   if (!container) return;
 
   container.innerHTML = '';
   API_PROVIDERS.forEach(prov => {
     const btn = document.createElement('button');
     btn.id = `server-${prov.id}`;
-    btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark-border";
+    btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark";
     btn.innerHTML = `${prov.name} ${prov.status === 'Unstable' ? '⚠️' : ''}`;
     btn.onclick = () => setProviderSource(prov.id);
     container.appendChild(btn);
   });
+}
+
+window.loadStreamingLayout = async function(anilistId, malId, titleName) {
+  window.currentAnilistId = anilistId;
+  window.currentMalId = malId;
+  window.activeAnimeTitle = titleName;
+
+  const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
+  views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
+  document.getElementById('stream-dashboard-box')?.classList.remove('hidden');
+  document.getElementById('header-search-engine')?.classList.remove('hidden');
+  
+  const epTitle = document.getElementById('ep-title');
+  if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
+  
+  injectProviderButtons();
+  updateLanguageButtonsUI();
   updateProviderButtonsUI();
+  
+  if (malId) {
+    fetchJikanMetadata(malId);
+  } else {
+    document.getElementById('detail-title').innerText = titleName;
+  }
+
+  // Load exact available episode listing structures from your unified episodes endpoint
+  await buildEpisodeButtonsGrid(anilistId);
+};
+
+async function buildEpisodeButtonsGrid(anilistId) {
+  const epBox = document.getElementById('episode-buttons');
+  if (!epBox) return;
+
+  epBox.innerHTML = '<div class="text-xs text-gray-500 p-2 font-mono"><i class="fa-solid fa-circle-notch animate-spin mr-1.5"></i>Syncing episode feeds...</div>';
+
+  try {
+    const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
+    console.log("Episodes Response:", epData);
+    globalEpisodeDataCache = epData; // Cache response data structure globally
+
+    // Target active format layout arrays
+    let providerList = [];
+    if (epData) {
+      if (Array.isArray(epData)) {
+        const block = epData.find(item => item.provider === activeProviderMode);
+        providerList = block ? block.episodes : [];
+      } else if (epData.episodes && Array.isArray(epData.episodes)) {
+        providerList = epData.episodes;
+      } else {
+        providerList = epData[activeProviderMode] || [];
+      }
+    }
+    
+    if (!Array.isArray(providerList) || providerList.length === 0) {
+      const fallbackProvider = API_PROVIDERS.find(p => {
+        if (!epData) return false;
+        if (Array.isArray(epData)) {
+          const b = epData.find(item => item.provider === p.id);
+          return b && b.episodes && b.episodes.length > 0;
+        } else {
+          return epData[p.id] && epData[p.id].length > 0;
+        }
+      });
+
+      if (fallbackProvider) {
+        if (Array.isArray(epData)) {
+          providerList = epData.find(item => item.provider === fallbackProvider.id).episodes;
+        } else {
+          providerList = epData[fallbackProvider.id];
+        }
+      }
+    }
+
+    const totalEpisodesCount = providerList && providerList.length > 0 ? providerList.length : 12;
+    window.activeMaxEpisodes = totalEpisodesCount;
+    epBox.innerHTML = '';
+
+    for (let i = 1; i <= totalEpisodesCount; i++) {
+      const btn = document.createElement('button');
+      btn.id = `ep-btn-${i}`;
+      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-sm cursor-pointer";
+      btn.innerText = i;
+      btn.onclick = () => launchVideoPlayer(i);
+      epBox.appendChild(btn);
+    }
+
+    document.getElementById('detail-episodes').innerText = totalEpisodesCount;
+    launchVideoPlayer(1);
+
+  } catch (err) {
+    console.error("Failed to map live API episodes:", err);
+    epBox.innerHTML = '<div class="text-xs text-red-500 p-2">Episode catalog track timeout. Presetting default blocks...</div>';
+    
+    window.activeMaxEpisodes = 12;
+    epBox.innerHTML = '';
+    for (let i = 1; i <= 12; i++) {
+      const btn = document.createElement('button');
+      btn.id = `ep-btn-${i}`;
+      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all cursor-pointer";
+      btn.innerText = i;
+      btn.onclick = () => launchVideoPlayer(i);
+      epBox.appendChild(btn);
+    }
+    launchVideoPlayer(1);
+  }
+}
+
+// =========================================================================
+// AGGREGATOR ENGINE & SEGREGATED STREAM LINK GROUPS (7-Provider Core Logic)
+// =========================================================================
+
+async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
+  try {
+    const category = dubMode === 'dub' ? 'dub' : 'sub';
+    const cleanProvider = activeProviderMode.toLowerCase().trim();
+    
+    if (cleanProvider === 'reanime') {
+      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/reanime-${epNum}`;
+      return [{
+        name: "ReAnime Core Stream",
+        type: "HLS",
+        url: redirectUrl,
+        isActive: true
+      }];
+    }
+
+    let computedEpId = `${cleanProvider}-${epNum}`;
+    if (globalEpisodeDataCache) {
+      let targetList = [];
+      if (Array.isArray(globalEpisodeDataCache)) {
+        const block = globalEpisodeDataCache.find(item => item.provider === cleanProvider);
+        if (block) targetList = block.episodes || [];
+      } else if (globalEpisodeDataCache.episodes && Array.isArray(globalEpisodeDataCache.episodes)) {
+        targetList = globalEpisodeDataCache.episodes;
+      } else {
+        targetList = globalEpisodeDataCache[cleanProvider] || [];
+      }
+
+      if (targetList && targetList.length > 0) {
+        const matchedEpisodeObj = targetList.find(e => e.number == epNum || e.episode == epNum);
+        if (matchedEpisodeObj && matchedEpisodeObj.id) {
+          computedEpId = matchedEpisodeObj.id;
+        }
+      }
+    }
+
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${computedEpId}`;
+    console.log(`[Anivexa API Request] -> ${watchUrl}`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const watchRes = await fetch(watchUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!watchRes.ok) return null;
+    const watchData = await watchRes.json();
+    
+    if (watchData && Array.isArray(watchData.streams)) {
+      return watchData.streams; 
+    } else if (watchData && watchData.url) {
+      const isHLS = watchData.url.includes('.m3u8');
+      return [{ 
+        name: `${activeProviderMode.toUpperCase()} Mirror`, 
+        type: isHLS ? "HLS" : "Embed", 
+        url: watchData.url, 
+        isActive: true 
+      }];
+    }
+    
+    return null;
+  } catch (e) {
+    console.warn(`[Anivexa Stream Router Exception]:`, e);
+    return null;
+  }
+}
+
+function renderSubServerGrid(streams) {
+  let serverGridContainer = document.getElementById('sub-server-links-grid');
+  
+  if (!serverGridContainer) {
+    const targetParent = document.getElementById('episode-buttons')?.parentElement;
+    if (!targetParent) return;
+    
+    const sectionWrapper = document.createElement('div');
+    sectionWrapper.className = "mt-6";
+    sectionWrapper.innerHTML = `
+      <div id="sub-server-links-grid" class="space-y-4 mb-6"></div>
+    `;
+    targetParent.appendChild(sectionWrapper);
+    serverGridContainer = document.getElementById('sub-server-links-grid');
+  }
+
+  serverGridContainer.innerHTML = '';
+
+  const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
+  const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
+
+  if (hlsStreams.length > 0) {
+    const internalGroup = document.createElement('div');
+    internalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
+    internalGroup.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-xs text-purple-400"></i>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">HLS Streams (Internal Player)</h3>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">${hlsStreams.length} Available</span>
+      </div>
+      <div id="hls-links-subgrid" class="grid grid-cols-2 gap-2.5"></div>
+    `;
+    serverGridContainer.appendChild(internalGroup);
+    
+    const hlsGrid = document.getElementById('hls-links-subgrid');
+    hlsStreams.forEach((stream, idx) => {
+      createStreamPillElement(stream, `hls-${idx}`, hlsGrid, streams);
+    });
+  }
+
+  if (fallbackStreams.length > 0) {
+    const externalGroup = document.createElement('div');
+    externalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
+    externalGroup.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-link text-xs text-zinc-400"></i>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Iframe Embed Mirrors (Side Content)</h3>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700/60 px-2 py-0.5 rounded-full">${fallbackStreams.length} Links</span>
+      </div>
+      <div id="fallback-links-subgrid" class="grid grid-cols-2 gap-2.5"></div>
+    `;
+    serverGridContainer.appendChild(externalGroup);
+    
+    const fallbackGrid = document.getElementById('fallback-links-subgrid');
+    fallbackStreams.forEach((stream, idx) => {
+      createStreamPillElement(stream, `fallback-${idx}`, fallbackGrid, streams);
+    });
+  }
+}
+
+function createStreamPillElement(stream, uniquelyIdentifiedId, parentGridContainer, masterStreamsArray) {
+  const pill = document.createElement('div');
+  pill.id = `stream-link-pill-${uniquelyIdentifiedId}`;
+  pill.className = "bg-[#16161c] border border-zinc-800/80 rounded-xl p-3 flex flex-col justify-between cursor-pointer select-none transition-all hover:scale-[1.01] group";
+  
+  const labelType = stream.url.includes('.m3u8') ? 'HLS' : (stream.type || 'Embed');
+  const typeBadgeStyles = labelType === 'HLS' 
+    ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+    : 'bg-zinc-800 text-zinc-400 border-zinc-700/50';
+
+  pill.innerHTML = `
+    <div class="flex items-start justify-between gap-2">
+      <h4 class="text-xs font-bold text-gray-200 transition-colors server-name-text truncate">${stream.name || 'Mirror Source'}</h4>
+      <span class="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded border tracking-wide uppercase shrink-0 ${typeBadgeStyles}">${labelType}</span>
+    </div>
+    <div class="flex items-center gap-3 text-[10px] text-gray-500 font-mono mt-2.5 pt-2 border-t border-zinc-800/40 group-hover:text-gray-400">
+      <span class="hover:text-white"><i class="fa-regular fa-thumbs-up mr-1.5"></i>--</span>
+      <span class="hover:text-white"><i class="fa-regular fa-thumbs-down mr-1.5"></i>--</span>
+    </div>
+  `;
+
+  if (stream.isActive) {
+    applyActivePillStyles(pill);
+  }
+
+  pill.onclick = () => {
+    masterStreamsArray.forEach((_, idx) => {
+      const p1 = document.getElementById(`stream-link-pill-hls-${idx}`);
+      const p2 = document.getElementById(`stream-link-pill-fallback-${idx}`);
+      if (p1) removeActivePillStyles(p1);
+      if (p2) removeActivePillStyles(p2);
+    });
+
+    applyActivePillStyles(pill);
+    executeStreamRouting(stream.url, labelType);
+  };
+
+  parentGridContainer.appendChild(pill);
+}
+
+function applyActivePillStyles(element) {
+  element.style.backgroundColor = '#ffffff';
+  element.style.borderColor = '#ffffff';
+  const nameTxt = element.querySelector('.server-name-text');
+  if (nameTxt) nameTxt.style.color = '#000000';
+  element.querySelectorAll('span, i').forEach(el => {
+    if (!el.classList.contains('border')) el.style.color = '#4b5563';
+  });
+}
+
+function removeActivePillStyles(element) {
+  element.style.backgroundColor = '';
+  element.style.borderColor = '';
+  const nameTxt = element.querySelector('.server-name-text');
+  if (nameTxt) nameTxt.style.color = '';
+  element.querySelectorAll('span, i').forEach(el => {
+    if (!el.classList.contains('border')) el.style.color = '';
+  });
+}
+
+// =========================================================================
+// REWRITTEN PLAYBACK ENGINE LOGIC (Native Hls.js + Plyr Support)
+// =========================================================================
+
+function executeStreamRouting(streamUrl, streamType) {
+  const videoElement = document.getElementById('video-iframe'); // This is the <video> tag now
+  const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8') || activeProviderMode === 'reanime';
+  
+  // Clean up any ongoing Hls.js instance before opening a new link
+  if (window.currentHlsInstance) {
+    window.currentHlsInstance.destroy();
+    window.currentHlsInstance = null;
+  }
+
+  if (isHLSSource) {
+    // 1. Execute HLS Native Stream Routing Engine
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+      window.currentHlsInstance = new Hls({
+        maxMaxBufferLength: 30, // Keep streams highly responsive
+        enableWorker: true
+      });
+      window.currentHlsInstance.loadSource(streamUrl);
+      window.currentHlsInstance.attachMedia(videoElement);
+      
+      window.currentHlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+        initializePlyrEngine(videoElement);
+        videoElement.play().catch(() => console.log("Autoplay blocked by browser policy"));
+      });
+
+      // Handle stream network errors gracefully without crashing the UI
+      window.currentHlsInstance.on(Hls.Events.ERROR, function (event, data) {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.log("Fatal network error encountered, attempting retry...");
+              window.currentHlsInstance.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log("Fatal media error, attempting recovery...");
+              window.currentHlsInstance.recoverMediaError();
+              break;
+            default:
+              handleStreamMissingNotice();
+              break;
+          }
+        }
+      });
+
+    } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+      // Native fallback handling (Safari / iOS Safari)
+      videoElement.src = streamUrl;
+      initializePlyrEngine(videoElement);
+    } else {
+      handleStreamMissingNotice();
+    }
+  } else {
+    // 2. Execute Extracted/Iframe Embed Fallback Routing Engine
+    // Destroy Plyr instance since we need the video layout container to adapt to an iframe element
+    if (window.currentPlyr) {
+      window.currentPlyr.destroy();
+      window.currentPlyr = null;
+    }
+
+    const mediaContainer = videoElement.parentElement;
+    if (mediaContainer) {
+      mediaContainer.innerHTML = `
+        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0" src="${streamUrl}"></iframe>
+        <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+          <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
+        </div>`;
+    }
+  }
+}
+
+function initializePlyrEngine(videoElement) {
+  try {
+    if (typeof Plyr !== 'undefined') {
+      // If Plyr is already attached to this specific element, do not initialize it a second time
+      if (window.currentPlyr) return;
+      
+      const currentActivePreset = presets[currentPresetName] || presets.subaru;
+
+      window.currentPlyr = new Plyr(videoElement, {
+        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen'],
+        keyboard: { focused: true, global: true },
+        tooltips: { controls: true, seek: true }
+      });
+
+      // Automatically inject your custom neon colors directly into Plyr properties on creation
+      document.documentElement.style.setProperty('--plyr-color-main', currentActivePreset.hex);
+    }
+  } catch(err) {
+    console.warn("[Media Hub] Native Plyr binding initialization standby.", err);
+  }
+}
+
+async function launchVideoPlayer(epNum) {
+  currentEpisodeIndex = epNum;
+  
+  let videoElement = document.getElementById('video-iframe');
+  let noticeOverlay = document.getElementById('notice-overlay');
+  
+  // If we came from an Iframe Embed view, structural mutation occurred. Re-build HTML5 video layout block.
+  if (!videoElement || videoElement.tagName.toLowerCase() === 'iframe') {
+    const layoutWrapper = document.getElementById('video-player-wrapper');
+    if (layoutWrapper) {
+      // Safely kill Plyr reference tracking tags
+      if (window.currentPlyr) {
+        window.currentPlyr.destroy();
+        window.currentPlyr = null;
+      }
+      layoutWrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+      videoElement = document.getElementById('video-iframe');
+    }
+  }
+
+  noticeOverlay = document.getElementById('notice-overlay');
+  if (noticeOverlay) noticeOverlay.classList.add('hidden');
+  
+  updateEpisodeButtonsUI();
+
+  const oldGrid = document.getElementById('sub-server-links-grid');
+  if (oldGrid) oldGrid.innerHTML = '';
+
+  const streamsList = await fetchAnivexaStreamList(window.currentAnilistId, epNum, currentLanguage);
+  
+  if (streamsList && streamsList.length > 0) {
+    renderSubServerGrid(streamsList);
+    
+    // Default Sorting Priority: active HLS -> any HLS -> active Embed -> first index fallback
+    const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
+      || streamsList.find(s => s.url.includes('.m3u8')) 
+      || streamsList.find(s => s.isActive) 
+      || streamsList[0];
+      
+    const calculatedType = (defaultStream.url.includes('.m3u8') || activeProviderMode === 'reanime') ? 'HLS' : (defaultStream.type || 'Embed');
+    executeStreamRouting(defaultStream.url, calculatedType);
+  } else {
+    handleStreamMissingNotice();
+  }
+}
+
+function updateEpisodeButtonsUI() {
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const curPreset = presets[currentPresetName] || presets.subaru;
+
+  for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+    const btn = document.getElementById(`ep-btn-${i}`);
+    if (btn) {
+      if (i === currentEpisodeIndex) {
+        btn.style.backgroundColor = currentActiveHex;
+        btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+        btn.style.borderColor = currentActiveHex;
+      } else {
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }
+    }
+  }
+}
+
+function setProviderSource(providerId) {
+  activeProviderMode = providerId;
+  updateProviderButtonsUI();
+  launchVideoPlayer(currentEpisodeIndex);
 }
 
 function updateProviderButtonsUI() {
-  const currentAccent = presets[currentPresetName]?.hex || '#f97316';
-  const currentTextLight = presets[currentPresetName]?.textLight || false;
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const curPreset = presets[currentPresetName] || presets.subaru;
   
   API_PROVIDERS.forEach(prov => {
-    const btn = document.getElementById(`server
+    const btn = document.getElementById(`server-${prov.id}`);
+    if (!btn) return;
+    if (activeProviderMode === prov.id) {
+      btn.style.backgroundColor = currentActiveHex;
+      btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+      btn.style.borderColor = currentActiveHex;
+    } else {
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }
+  });
+}
+
+function handleStreamMissingNotice() {
+  const videoCore = document.getElementById('video-iframe');
+  if (videoCore) videoCore.classList.add('hidden');
+
+  const noticeOverlay = document.getElementById('notice-overlay');
+  if (noticeOverlay) {
+    noticeOverlay.classList.remove('hidden');
+    const txt = noticeOverlay.querySelector('p');
+    if (txt) txt.innerText = `Source empty on provider: "${activeProviderMode.toUpperCase()}". Try switching tabs above.`;
+  }
+}
+
+function setLanguage(lang) {
+  currentLanguage = lang;
+  updateLanguageButtonsUI();
+  launchVideoPlayer(currentEpisodeIndex);
+}
+
+function updateLanguageButtonsUI() {
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const curPreset = presets[currentPresetName] || presets.subaru;
+
+  ['sub', 'dub'].forEach(l => {
+    const btn = document.getElementById(`${l}-btn`);
+    if(!btn) return;
+    if (currentLanguage === l) {
+      btn.style.backgroundColor = currentActiveHex;
+      btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+      btn.style.borderColor = currentActiveHex;
+    } else {
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }
+  });
+}
+
+// Autoplay Event Handshake Interceptor
+window.addEventListener("message", function (event) {
+  let data = event.data;
+  if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
+  if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
+    const nextEp = currentEpisodeIndex + 1;
+    if (nextEp <= window.activeMaxEpisodes) launchVideoPlayer(nextEp);
+  }
+});
+
+window.onload = function() {
+  startSystemClock();
+  applyCharacterPreset('subaru');
+  switchToView('home');
+};
