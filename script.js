@@ -750,31 +750,34 @@ function injectProviderButtons() {
   });
 }
 
-window.loadStreamingLayout = async function(anilistId, malId, titleName) {
-  window.currentAnilistId = anilistId;
-  window.currentMalId = malId;
-  window.activeAnimeTitle = titleName;
+// FIXED: Encapsulated inline async logic safely inside an IIFE block
+window.loadStreamingLayout = function(anilistId, malId, titleName) {
+  (async () => {
+    window.currentAnilistId = anilistId;
+    window.currentMalId = malId;
+    window.activeAnimeTitle = titleName;
 
-  const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
-  views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
-  document.getElementById('stream-dashboard-box')?.classList.remove('hidden');
-  document.getElementById('header-search-engine')?.classList.remove('hidden');
-  
-  const epTitle = document.getElementById('ep-title');
-  if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
-  
-  injectProviderButtons();
-  updateLanguageButtonsUI();
-  updateProviderButtonsUI();
-  
-  if (malId) {
-    fetchJikanMetadata(malId);
-  } else {
-    document.getElementById('detail-title').innerText = titleName;
-  }
+    const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
+    views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
+    document.getElementById('stream-dashboard-box')?.classList.remove('hidden');
+    document.getElementById('header-search-engine')?.classList.remove('hidden');
+    
+    const epTitle = document.getElementById('ep-title');
+    if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
+    
+    injectProviderButtons();
+    updateLanguageButtonsUI();
+    updateProviderButtonsUI();
+    
+    if (malId) {
+      await fetchJikanMetadata(malId);
+    } else {
+      document.getElementById('detail-title').innerText = titleName;
+    }
 
-  // Load exact available episode listing structures from your unified episodes endpoint
-  await buildEpisodeButtonsGrid(anilistId);
+    // Load exact available episode listing structures from your unified episodes endpoint
+    await buildEpisodeButtonsGrid(anilistId);
+  })();
 };
 
 // CALCULATES LIVE MAXIMUM EPISODES AUTOMATICALLY WITHOUT HARD LOCKS
