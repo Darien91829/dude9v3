@@ -1,6 +1,6 @@
 const JIKAN_BASE = "https://api.jikan.moe/v4";
 
-// YOUR STANDALONE STREAMING API HOSTED ON VERCEL (UPDATED TO THE ACTIVE DOMAIN)
+// YOUR STANDALONE STREAMING API HOSTED ON VERCEL
 const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
 
 let currentEpisodeIndex = 1;
@@ -448,11 +448,6 @@ function openBottomSheet() {
   document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
 }
 
-function openBottomSheet() {
-  document.getElementById('sheet-overlay')?.classList.remove('hidden');
-  document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
-}
-
 function closeBottomSheet() {
   document.getElementById('sheet-overlay')?.classList.add('hidden');
   document.getElementById('bottom-sheet-menu')?.classList.add('translate-y-full');
@@ -741,39 +736,46 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
 // FETCH STREAMS NATIVELY FROM THE MULTI-PROVIDER AGGREGATOR VERCEL SERVER
 async function fetchAnivexaStream(malId, epNum, dubMode) {
   try {
-    console.log(`[Anivexa] Fetching mapping for MAL ID: ${malId}`);
+    console.log(`[Anivexa] Requesting conversion tracker for MAL: ${malId}`);
     
-    // Step 1: Convert MAL ID to AniList ID using your backend map endpoint
-    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
-    if (!mapRes.ok) {
-      console.error(`[Anivexa] Mapping failed for MAL ID: ${malId}`);
-      return null;
-    }
-    const mapData = await mapRes.json();
+    // Core Correction: Convert MAL ID to an actual AniList ID using GraphQL first
+    const lookupQuery = `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`;
+    const lookupResponse = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: lookupQuery, variables: { id: parseInt(malId) } })
+    });
     
-    // Support multiple fallback wrappings depending on your map endpoint structure
-    const anilistId = mapData.mappings?.aniId || mapData.anilistId || mapData.id;
-    
-    if (!anilistId) {
-      console.error(`[Anivexa] No AniList ID mapping found in response.`);
-      return null;
-    }
+    if (!lookupResponse.ok) throw new Error("GraphQL map tracking fallback offline");
+    const lookupResult = await lookupResponse.json();
+    const anilistId = lookupResult?.data?.Media?.id;
 
-    // Step 2: Extract routing parameters based directly on your API routes array
+    if (!anilistId) {
+      console.error(`[Anivexa] Zero crossover link paths established for MAL Reference.`);
+      return null;
+    }
+    
+    // Now pass the proper AniList ID into your verified /map/ backend endpoint layout
+    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${anilistId}`);
+    if (!mapRes.ok) {
+      console.error(`[Anivexa] Mapping configuration failed at edge node server.`);
+      return null;
+    }
+    
+    // Extract routing configuration parameters matching your API routes array layout
     const provider = "anidbapp";
     const category = dubMode === 'dub' ? 'dub' : 'sub';
     
-    // Step 3: Match the exact pattern from your screenshot schema layout track:
-    // /watch/:provider/:id/:translation/:provider-:ep
+    // Match pattern precisely: /watch/:provider/:id/:translation/:provider-:ep
     const watchUrl = `${ANIVEXA_BASE_API}/watch/${provider}/${anilistId}/${category}/${provider}-${epNum}`;
-    console.log(`[Anivexa] Querying stream: ${watchUrl}`);
+    console.log(`[Anivexa] Streaming payload request target: ${watchUrl}`);
     
     const watchRes = await fetch(watchUrl);
     if (!watchRes.ok) return null;
 
     const watchData = await watchRes.json();
     
-    // Step 4: Extract the stream url safely from the dynamic backend object parameters
+    // Extract the stream file safely from the dynamic backend array layers
     if (watchData && Array.isArray(watchData.streams)) {
       const activeStream = watchData.streams.find(s => s.isActive === true) || watchData.streams[0];
       return activeStream ? activeStream.url : null;
@@ -783,7 +785,7 @@ async function fetchAnivexaStream(malId, epNum, dubMode) {
     
     return null;
   } catch (e) {
-    console.warn(`[Anivexa] Internal mapping tracking pipeline standby mode.`, e);
+    console.warn(`[Anivexa] Stream processing structure failure:`, e);
     return null;
   }
 }
