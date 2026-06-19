@@ -218,8 +218,10 @@
               <button onclick="switchToView('catalog')" class="mt-4 dynamic-accent-bg bg-orange-500 text-black text-xs font-bold py-1.5 px-4 rounded-full transition-transform hover:scale-105">Dashboard Return</button>
             </div>
             
-            <!-- Standard Video/Iframe Content Frame Placement Area -->
-            <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" src="" allowfullscreen scrolling="no"></iframe>
+            <!-- Unified Wrapper to handle dynamic iframe vs raw HTML5 Plyr/Hls switching natively -->
+            <div id="video-player-wrapper" class="w-full h-full">
+              <iframe id="video-iframe" class="w-full h-full relative z-0 border-0" src="" allowfullscreen scrolling="no"></iframe>
+            </div>
           </div>
         </div>
 
