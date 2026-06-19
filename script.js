@@ -736,24 +736,47 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes) {
 // FETCH STREAMS NATIVELY FROM THE MULTI-PROVIDER AGGREGATOR VERCEL SERVER
 async function fetchAnivexaStream(malId, epNum, dubMode) {
   try {
-    console.log(`[Anivexa] Querying aggregator tracking pipelines for MAL ID: ${malId}, Episode: ${epNum}`);
+    console.log(`[Anivexa] Fetching mapping for MAL ID: ${malId}`);
     
-    // Resolve internal track coordinates via metadata parser routing
-    const category = dubMode === 'dub' ? 'dub' : 'sub';
-    const targetUrl = `${ANIVEXA_BASE_API}/watch/anidbapp/${malId}/${category}/anidbapp-${epNum}`;
-    
-    const response = await fetch(targetUrl);
-    if (!response.ok) return null;
-
-    const streamPayload = await response.json();
-    // Scan dynamic structural parameters for live stream items
-    if (streamPayload && Array.isArray(streamPayload.streams)) {
-      const liveStream = streamPayload.streams.find(s => s.isActive || s.isBackup) || streamPayload.streams[0];
-      return liveStream ? liveStream.url : null;
+    // Step 1: Convert MAL ID to AniList ID using your backend map endpoint
+    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
+    if (!mapRes.ok) {
+      console.error(`[Anivexa] Mapping failed for MAL ID: ${malId}`);
+      return null;
     }
+    const mapData = await mapRes.json();
+    const anilistId = mapData.mappings?.aniId;
+    
+    if (!anilistId) {
+      console.error(`[Anivexa] No AniList ID mapping found in response.`);
+      return null;
+    }
+
+    // Step 2: Use resolved AniList ID to query your route structure:
+    // /watch/{provider}/{anilist_id}/{category}/{slug}
+    const provider = "anidbapp";
+    const category = dubMode === 'dub' ? 'dub' : 'sub';
+    const slug = `${provider}-${epNum}`;
+    
+    console.log(`[Anivexa] Querying stream: /watch/${provider}/${anilistId}/${category}/${slug}`);
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${provider}/${anilistId}/${category}/${slug}`;
+    
+    const watchRes = await fetch(watchUrl);
+    if (!watchRes.ok) return null;
+
+    const watchData = await watchRes.json();
+    
+    // Step 3: Extract the stream url safely from the dynamic backend object parameters
+    if (watchData && Array.isArray(watchData.streams)) {
+      const activeStream = watchData.streams.find(s => s.isActive === true) || watchData.streams[0];
+      return activeStream ? activeStream.url : null;
+    } else if (watchData && watchData.url) {
+      return watchData.url;
+    }
+    
     return null;
   } catch (e) {
-    console.warn(`[Anivexa] Internal mapping pipeline proxy standby mode.`, e);
+    console.warn(`[Anivexa] Internal mapping tracking pipeline standby mode.`, e);
     return null;
   }
 }
