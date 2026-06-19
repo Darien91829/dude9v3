@@ -224,26 +224,24 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
       Page(page: 1, perPage: 100) {
         airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME_ASC) {
           episode
-          airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME_ASC) {
-            episode
-            airingAt
-            media {
-              id
-              idMal
-              type
-              averageScore
-              title {
-                english
-                romaji
-              }
-              coverImage {
-                large
-              }
-              episodes
+          airingAt
+          media {
+            id
+            idMal
+            type
+            averageScore
+            title {
+              english
+              romaji
             }
+            coverImage {
+              large
+            }
+            episodes
           }
         }
-      }`;
+      }
+    }`;
 
   try {
     const response = await fetch('https://graphql.anilist.co', {
@@ -310,8 +308,9 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
         const airTime = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         const scoreDisplay = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 'N/A';
 
+        // FIXED CHUNK: Double escape single quotes for inline onclick property string safety
         listHtml += `
-          <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.id}, ${anime.idMal || 'null'}, '${title.replace(/'/g, "\\'")}')"
+          <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.id}, ${anime.idMal || 'null'}, '${title.replace(/'/g, "\\\\'")}')"
                class="flex items-center justify-between p-2 rounded-xl bg-transparent hover:bg-neutral-900/40 cursor-pointer transition-all group">
             <div class="flex items-center gap-3 min-w-0">
               <img src="${anime.coverImage?.large}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-dark/40">
