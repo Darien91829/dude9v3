@@ -1,64 +1,71 @@
 /* ==========================================================================
-   1. CORE APPLICATION & LAYOUT CONFIGURATION
+   1. CORE APPLICATION & LAYOUT VARIABLES
    ========================================================================== */
+:root {
+  --accent-color: var(--character-accent, #00ff66);
+  --accent-color-hover: var(--character-accent-hover, #00cc52);
+  --accent-color-rgb: var(--character-accent-rgb, 0, 255, 102);
+}
+
 body { 
-  font-family: 'Segoe UI', 'Inter', sans-serif; 
+  font-family: 'Inter', 'Segoe UI', sans-serif; 
   transition: background-color 0.3s ease, color 0.3s ease; 
-  background-color: #050505;
-  color: #ffffff;
+  background-color: #0f0f12;
+  color: #e2e8f0;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
 }
 
+/* Base structural utility style matches */
 .bg-dark-card { 
-  background-color: #111111;
-  border: 1px solid #1c1c1e;
+  background-color: #16161c;
+  border: 1px solid #22222a;
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; 
 }
 
 .bg-dark-input { 
-  background-color: #1a1a1e;
-  border: 1px solid #2c2c2e;
+  background-color: #121216;
+  border: 1px solid #22222a;
   color: #ffffff;
   transition: background-color 0.3s ease, border-color 0.3s ease; 
 }
 
 .bg-dark-input:focus {
   outline: none;
-  border-color: var(--accent-color, rgb(0, 255, 102));
+  border-color: rgba(var(--accent-color-rgb), 0.4);
 }
 
 .border-dark { 
-  border-color: #1c1c1e;
+  border-color: #22222a;
   transition: border-color 0.3s ease; 
 }
 
 /* ==========================================================================
-   2. DYNAMIC ACCENT TRACERS & NEON GLOW UTILITIES
+   2. DYNAMIC ACCENT TRACERS & GLOW SELECTIONS
    ========================================================================== */
 .dynamic-accent-text {
-  color: var(--accent-color, rgb(0, 255, 102));
+  color: var(--accent-color);
   transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
 .dynamic-accent-bg {
-  background-color: var(--accent-color, rgb(0, 255, 102));
+  background-color: var(--accent-color);
   color: #000000;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
-/* Neon Glow Accents utilizing the vibrant green profile theme */
+/* Neon Glow Accents referencing style matrices */
 .accent-glow-sm {
-  box-shadow: 0 0 8px rgba(0, 255, 102, 0.25);
+  box-shadow: 0 0 8px rgba(var(--accent-color-rgb), 0.2);
 }
 
 .accent-glow-md {
-  box-shadow: 0 0 16px rgba(0, 255, 102, 0.4);
+  box-shadow: 0 0 16px rgba(var(--accent-color-rgb), 0.35);
 }
 
 .accent-glow-text {
-  text-shadow: 0 0 10px rgba(0, 255, 102, 0.6);
+  text-shadow: 0 0 10px rgba(var(--accent-color-rgb), 0.5);
 }
 
 /* Sidebar navigation item state tracers */
@@ -69,19 +76,19 @@ body {
 }
 
 .sidebar-item:hover {
-  background-color: rgba(0, 255, 102, 0.04);
+  background-color: rgba(255, 255, 255, 0.02);
   color: #ffffff;
 }
 
 .sidebar-item.active {
-  background-color: rgba(0, 255, 102, 0.08) !important;
-  color: var(--accent-color, rgb(0, 255, 102)) !important;
-  border-left: 3px solid var(--accent-color, rgb(0, 255, 102)) !important;
+  background-color: rgba(var(--accent-color-rgb), 0.08) !important;
+  color: var(--accent-color) !important;
+  border-left: 3px solid var(--accent-color) !important;
   border-radius: 0px 12px 12px 0px;
 }
 
 /* ==========================================================================
-   3. HORIZONTAL FLUID MEDIA SCROLLBARS (RECENTLY UPDATED ROW)
+   3. FLUID HORIZONTAL MEDIA SCROLLBAR RUNWAYS
    ========================================================================== */
 .scroll-row {
   display: flex;
@@ -97,22 +104,22 @@ body {
 }
 
 .scroll-row::-webkit-scrollbar-track { 
-  background: #050505; 
+  background: #0f0f12; 
   border-radius: 10px;
 }
 
 .scroll-row::-webkit-scrollbar-thumb { 
-  background: rgba(0, 255, 102, 0.3); 
+  background: rgba(var(--accent-color-rgb), 0.25); 
   border-radius: 10px; 
   transition: background-color 0.2s ease;
 }
 
 .scroll-row::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color, rgb(0, 255, 102));
+  background: var(--accent-color);
 }
 
 /* ==========================================================================
-   4. THIN VERTICAL INTERNAL SCROLLBARS (EPISODE GRIDS & CALENDAR LISTS)
+   4. THIN VERTICAL SCROLL CHANNELS (EPISODES & CALENDARS)
    ========================================================================== */
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
@@ -128,10 +135,10 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color, rgb(0, 255, 102));
+  background: var(--accent-color);
 }
 
-/* Completely vanish generic default scroll structures if container demands it */
+/* Global scroll container blanking utility class override */
 .scrollbar-none::-webkit-scrollbar { 
   display: none; 
 }
@@ -142,73 +149,100 @@ body {
 }
 
 /* ==========================================================================
-   5. INTERACTIVE COMPONENT STATES (PROVIDERS & CALENDAR MATRIX)
+   5. INTERACTIVE STRUCTURAL SYSTEM PARAMS (TABS & SCHEDULES)
    ========================================================================== */
-/* Video Provider Tab & Sub/Dub Button Navigation */
+/* Video Server Tab & Language Toggle Switches */
 .server-tab-btn, .lang-btn {
-  background: #111111;
-  color: #ffffff;
-  border: 1px solid #1c1c1e;
-  padding: 8px 16px;
-  border-radius: 20px;
+  background: #16161c;
+  color: #a0aec0;
+  border: 1px solid #22222a;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease-in-out;
 }
 
 .server-tab-btn:hover, .lang-btn:hover {
-  border-color: rgba(0, 255, 102, 0.5);
+  border-color: rgba(var(--accent-color-rgb), 0.4);
+  color: #ffffff;
 }
 
 .server-tab-btn.active, .lang-btn.active {
-  background-color: var(--accent-color, rgb(0, 255, 102)) !important;
+  background-color: var(--accent-color) !important;
   color: #000000 !important;
-  border-color: var(--accent-color, rgb(0, 255, 102)) !important;
-  font-weight: bold;
-  box-shadow: 0 0 12px rgba(0, 255, 102, 0.35);
+  border-color: var(--accent-color) !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(var(--accent-color-rgb), 0.25);
 }
 
-/* Weekly Airing Schedule Day Grid Blocks */
+/* Quick Timing Sidebar Tab Fixes */
+.schedule-tab-btn.active {
+  color: #ffffff !important;
+  background-color: var(--accent-color) !important;
+  color: #000000 !important;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(var(--accent-color-rgb), 0.2);
+}
+
+/* Airing Weekly Grid Matrix Card Blocks */
 .calendar-matrix-day {
-  background: #111111;
-  border: 1px solid #1c1c1e;
-  border-radius: 8px;
-  padding: 12px;
+  background: #16161c;
+  border: 1px solid #22222a;
+  border-radius: 12px;
+  padding: 10px;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 }
 
 .calendar-matrix-day:hover {
-  border-color: rgba(0, 255, 102, 0.3);
+  border-color: rgba(var(--accent-color-rgb), 0.3);
+  transform: translateY(-1px);
 }
 
 .calendar-matrix-day.active-today {
-  border-color: var(--accent-color, rgb(0, 255, 102)) !important;
-  background-color: rgba(0, 255, 102, 0.05);
+  border-color: var(--accent-color) !important;
+  background-color: rgba(var(--accent-color-rgb), 0.04);
 }
 
 .calendar-matrix-day.selected-filter {
-  background-color: var(--accent-color, rgb(0, 255, 102)) !important;
-  border-color: var(--accent-color, rgb(0, 255, 102)) !important;
+  background-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
   color: #000000 !important;
-  font-weight: bold;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(var(--accent-color-rgb), 0.25);
 }
 
-/* Embedded Player Custom Pipeline Overrides */
-.plyr--video {
-  border-radius: 12px;
-  background-color: #000000;
+/* ==========================================================================
+   6. EMBEDDED PLAYER FRAMEWORK ACCENT LIFTS (PLYR OVERRIDES)
+   ========================================================================== */
+.plyr {
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  border: 1px solid #22222a;
 }
 
 .plyr--full-ui input[type=range] {
-  color: var(--accent-color, rgb(0, 255, 102)) !important;
+  color: var(--accent-color) !important;
 }
 
 .plyr__control--overlaid {
-  background: rgba(0, 255, 102, 0.85) !important;
+  background: rgba(var(--accent-color-rgb), 0.9) !important;
   color: #000000 !important;
 }
 
 .plyr__controls {
   background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.85)) !important;
+}
+
+/* Fade animation helper utility */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
