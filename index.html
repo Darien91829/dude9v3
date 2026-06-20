@@ -239,42 +239,47 @@
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
-              <div class="flex items-center space-x-2 w-full sm:w-auto overflow-hidden">
-                <span class="text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase pl-1 shrink-0">Server:</span>
-                <div id="server-source-tabs-bar" class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 overflow-x-auto scrollbar-none gap-1 w-full sm:w-auto">
+            <div class="space-y-3 bg-dark-card border border-dark-border p-4 rounded-2xl shadow-xl">
+              <div class="flex items-center justify-between border-b border-dark-border pb-2 mb-2">
+                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Streaming Server Framework</h3>
+                <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0">
+                  <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all">SUB</button>
+                  <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
                 </div>
               </div>
-              
-              <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
-                <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all">SUB</button>
-                <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
-              </div>
-            </div>
 
-            <div class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-3 shadow-xl">
-              <div class="border-b border-dark-border pb-2 flex items-center justify-between">
-                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">The HLS Streams (Internal Player)</h3>
-                <span class="text-[9px] font-mono bg-emerald-950/80 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800/40 font-bold">Direct Source</span>
+              <div class="border border-dark-border rounded-xl bg-dark-input overflow-hidden">
+                <button onclick="document.getElementById('internal-dropdown-body').classList.toggle('hidden')" class="w-full bg-[#181726]/40 hover:bg-[#181726]/70 px-4 py-3 flex items-center justify-between text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
+                  <span class="flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400 text-[10px]"></i> Internal Player Providers (HLS)</span>
+                  <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                </button>
+                <div id="internal-dropdown-body" class="p-3 bg-dark-card/40 border-t border-dark-border/40 space-y-2">
+                  <div id="server-source-tabs-bar" class="flex flex-wrap gap-1.5 pb-2 border-b border-dark-border/30">
+                    </div>
+                  <div class="space-y-1">
+                    <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Active HLS Pipeline Tracks:</span>
+                    <div id="hls-streams-container" class="flex flex-wrap gap-2">
+                      <p class="text-[11px] text-gray-500 italic font-mono">Select an internal provider engine above...</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div id="hls-streams-container" class="flex flex-wrap gap-2">
-                <p class="text-[11px] text-gray-500 italic font-mono">Initializing streaming pipelines...</p>
+
+              <div class="border border-dark-border rounded-xl bg-dark-input overflow-hidden">
+                <button onclick="document.getElementById('external-dropdown-body').classList.toggle('hidden')" class="w-full bg-[#181726]/40 hover:bg-[#181726]/70 px-4 py-3 flex items-center justify-between text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
+                  <span class="flex items-center gap-2"><i class="fa-solid fa-server text-indigo-400 text-[10px]"></i> External Embed Mirrors (Working Framework)</span>
+                  <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                </button>
+                <div id="external-dropdown-body" class="p-3 bg-dark-card/40 border-t border-dark-border/40">
+                  <div id="iframe-mirrors-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    </div>
+                </div>
               </div>
+
             </div>
           </div>
 
           <div class="space-y-5">
-            
-            <div class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-3 shadow-xl">
-              <div class="border-b border-dark-border pb-2 flex items-center justify-between">
-                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Iframe Embed Mirrors (Side Content)</h3>
-                <span class="text-[9px] font-mono bg-indigo-950/80 text-indigo-400 px-2 py-0.5 rounded border border-indigo-800/40 font-bold">Web Mirror</span>
-              </div>
-              <div id="iframe-mirrors-container" class="space-y-1.5 max-h-48 overflow-y-auto pr-0.5 scrollbar-none">
-                <p class="text-[11px] text-gray-500 italic font-mono">Compiling mirror structures...</p>
-              </div>
-            </div>
-
             <div class="bg-dark-card border border-dark-border rounded-2xl p-4 flex flex-row items-start text-left gap-4 shadow-xl">
               <div class="w-20 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-xl overflow-hidden shadow-md shrink-0">
                 <img id="detail-poster" src="" class="w-full h-full object-cover" alt="Active Cover Poster">
@@ -288,8 +293,8 @@
                 </div>
               </div>
             </div>
-
           </div>
+
         </div>
 
         <div class="bg-dark-card border border-dark-border rounded-2xl p-5 space-y-4 shadow-xl">
@@ -375,7 +380,7 @@
       { id: 'allmanga', name: 'AllManga' },
       { id: 'reanime', name: 'ReAnime' },
       { id: 'anikoto', name: 'AniKoto' },
-      { id: 'animegg', name: 'AnimeGG' },
+      { id: 'animeegg', name: 'AnimeGG' },
       { id: 'anineko', name: 'AniNeko' },
       { id: 'anidbapp', name: 'AniDB App' },
       { id: 'animepahe', name: 'AnimePahe' }
@@ -514,7 +519,6 @@
       document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
       localStorage.setItem('dude9anime-preset', profileKey);
       
-      // Update contextual language buttons and operational selectors dynamically inside DOM context
       const hex = choice.hex;
       const subBtn = document.getElementById('sub-btn');
       const dubBtn = document.getElementById('dub-btn');
@@ -529,7 +533,6 @@
 
       if (document.getElementById('stream-dashboard-box').style.display === 'block') {
         updateProviderTabsUI();
-        // Re-inject dynamic accent classes to active episode buttons matching theme parameters
         const targetBtn = document.getElementById(`ep-btn-${currentEpisodeIndex}`);
         if(targetBtn) {
           targetBtn.style.backgroundColor = hex;
@@ -851,7 +854,6 @@
       const viewTitle = document.getElementById('view-indicator-title');
       if(viewTitle) viewTitle.innerText = "Console Core Player Active";
 
-      // Update all poster references across panels
       document.querySelectorAll('#detail-poster').forEach(img => img.src = posterImg || '');
       document.querySelectorAll('#detail-title').forEach(h2 => h2.innerText = title);
       document.querySelectorAll('#detail-synopsis').forEach(p => p.innerText = "Querying description parameters database...");
@@ -934,6 +936,9 @@
       const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
       
       API_PROVIDERS.forEach(provider => {
+        // Only list HLS API engines here (not MegaPlay which is pure fallback layout mirror)
+        if (provider.id === 'megaplay') return;
+        
         const btn = document.createElement('button');
         btn.id = `provider-${provider.id}`;
         btn.innerText = provider.name;
@@ -942,7 +947,7 @@
           btn.className = "px-3 py-1 text-[10px] font-black text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
           btn.style.backgroundColor = activeColor;
         } else {
-          btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
+          btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-[#1c1b2e] border border-dark-border/40 shrink-0";
           btn.style.backgroundColor = '';
         }
         
@@ -962,12 +967,12 @@
       
       initializeHlsVideo(videoElement, url);
       
-      // Update UI feedback on selected stream track dynamically using custom layout property parameters
       const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
       document.querySelectorAll('.hls-track-btn').forEach(btn => {
         btn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]";
         btn.style.color = '';
         btn.style.borderColor = '';
+        btn.style.backgroundColor = '';
       });
       const targetBtn = document.getElementById(`hls-track-${btoa(url).replace(/=/g, '')}`);
       if(targetBtn) {
@@ -994,14 +999,14 @@
       
       const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
       document.querySelectorAll('.mirror-item-btn').forEach(btn => {
-        btn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
+        btn.className = "mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
         btn.style.color = '';
         btn.style.borderColor = '';
         btn.style.backgroundColor = '';
       });
       const targetBtn = document.getElementById(`mirror-${mirrorType}`);
       if(targetBtn) {
-        targetBtn.className = "mirror-item-btn w-full text-left p-2 rounded-xl flex items-center justify-between transition-colors font-bold border";
+        targetBtn.className = "mirror-item-btn w-full text-left p-2.5 rounded-xl flex items-center justify-between transition-colors font-bold border";
         targetBtn.style.color = activeColor;
         targetBtn.style.borderColor = activeColor;
         targetBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.05)';
@@ -1036,14 +1041,13 @@
       
       hlsContainer.innerHTML = '<p class="text-[11px] text-gray-600 font-mono animate-pulse">Scanning server nodes...</p>';
       
-      // Seed side content embed mirror elements standard options
       mirrorContainer.innerHTML = `
-        <button id="mirror-megaplay" onclick="loadAlternativeIframeMirror('megaplay')" class="mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
-          <span><i class="fa-solid fa-server mr-2 text-gray-500"></i>MegaPlay Mirror (External Embed)</span>
+        <button id="mirror-megaplay" onclick="loadAlternativeIframeMirror('megaplay')" class="mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-server text-gray-500"></i> MegaPlay Main Mirror <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1 py-0.2 rounded font-bold border border-emerald-800/30">Active</span></span>
           <i class="fa-solid fa-play text-[9px] text-gray-600"></i>
         </button>
-        <button id="mirror-vidsrc" onclick="loadAlternativeIframeMirror('vidsrc')" class="mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
-          <span><i class="fa-solid fa-server mr-2 text-gray-500"></i>VidSrc Alternative Mirror</span>
+        <button id="mirror-vidsrc" onclick="loadAlternativeIframeMirror('vidsrc')" class="mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-server text-gray-500"></i> VidSrc Mirror Backup <span class="text-[9px] bg-neutral-800 text-gray-400 px-1 py-0.2 rounded font-bold">Embed</span></span>
           <i class="fa-solid fa-play text-[9px] text-gray-600"></i>
         </button>
       `;
@@ -1053,7 +1057,7 @@
 
       try {
         if (activeProviderKey === 'megaplay') {
-          hlsContainer.innerHTML = '<p class="text-[11px] text-gray-500 italic font-mono">MegaPlay operates purely via iframe layout configuration mirrors.</p>';
+          hlsContainer.innerHTML = '<p class="text-[11px] text-gray-500 italic font-mono">MegaPlay operates via external framework layout mirror engines.</p>';
           window.loadAlternativeIframeMirror('megaplay');
           return;
         } 
@@ -1107,10 +1111,9 @@
               sBtn.onclick = () => loadDirectHlsStream(sUrl, label);
               hlsContainer.appendChild(sBtn);
 
-              // Extract any alternative frames as mirrors
               if (sIdx > 0) {
                 const mirBtn = document.createElement('button');
-                mirBtn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
+                mirBtn.className = "mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
                 mirBtn.innerHTML = `<span><i class="fa-solid fa-network-wired mr-2 text-gray-500"></i>Provider Sub-Mirror ${sIdx + 1}</span><i class="fa-solid fa-angle-right text-[10px]"></i>`;
                 mirBtn.onclick = () => loadAlternativeIframeMirror(`sub-${sIdx}`, sUrl);
                 mirrorContainer.appendChild(mirBtn);
@@ -1119,7 +1122,7 @@
 
             initializeHlsVideo(videoElement, targetStreamUrl);
           } else {
-            throw new Error("Empty target stream index layout context.");
+            throw new Error("Empty stream track object response.");
           }
         }
       } catch (err) {
@@ -1167,7 +1170,6 @@
       }
     }
 
-    // Autoplay Interceptor for Event Handshakes (supports embedded post-messages from iframes/mirrors)
     window.addEventListener("message", function (event) {
       let data = event.data;
       if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
@@ -1179,15 +1181,17 @@
       }
     });
 
+    // Modified Failover Handler: Swaps broken streams directly to working MegaPlay interface mirrors smoothly
     function handleStreamMissingNotice() {
-      const wrapper = document.getElementById('video-player-wrapper');
-      if (!wrapper) return;
-      wrapper.innerHTML = `
-        <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] text-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
-          <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Pipeline Fault</p>
-          <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}. Try using the side content mirrors.</p>
-          <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
-        </div>`;
+      console.log("HLS parsing broken or unreturned links. Activating seamless MegaPlay embed failover layout.");
+      
+      const hlsContainer = document.getElementById('hls-streams-container');
+      if (hlsContainer) {
+        hlsContainer.innerHTML = '<p class="text-[11px] text-amber-500/90 font-mono"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Direct stream link offline. Auto-rerouted to system embed framework mirrors below.</p>';
+      }
+      
+      // Instantly load the reliable MegaPlay server into player context area
+      loadAlternativeIframeMirror('megaplay');
     }
 
     window.setLanguage = function(lang) {
