@@ -267,7 +267,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
       scheduleBox.appendChild(div);
     });
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
+    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
   }
 }
 
@@ -459,7 +459,7 @@ window.switchProvider = function(providerKey) {
   activeProviderKey = providerKey;
   updateProviderTabsUI();
   
-  if (window.currentMalId) {
+  if (window.currentMalId || window.currentAnilistId) {
     window.routeActiveStreamSource(currentEpisodeIndex);
   }
 }
@@ -559,6 +559,68 @@ function buildEpisodeIndexButtons(total) {
   }
 }
 
+// Global helper function to parse streams list into functional grid links on the bottom
+function buildMirrorStreamLinkGrids(streamData) {
+  const hlsContainer = document.getElementById('internal-player-links-grid') || document.getElementById('hls-links-grid');
+  const embedContainer = document.getElementById('embed-mirrors-links-grid') || document.getElementById('iframe-links-grid');
+  
+  if (hlsContainer) hlsContainer.innerHTML = '';
+  if (embedContainer) embedContainer.innerHTML = '';
+
+  // 1. Render primary / direct source HLS links
+  if (hlsContainer) {
+    const mainUrl = streamData.streamUrl || streamData.url;
+    if (mainUrl) {
+      const btn = document.createElement('button');
+      btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
+      btn.innerHTML = `<i class="fa-solid fa-play text-accent mr-1.5 text-[9px]"></i>Primary HLS Stream`;
+      btn.onclick = () => {
+        const videoElement = document.getElementById('video-iframe');
+        if (videoElement) initializeHlsVideo(videoElement, mainUrl);
+      };
+      hlsContainer.appendChild(btn);
+    }
+  }
+
+  // 2. Scan and parse auxiliary array streams or multi-mirrors
+  const mirrors = streamData.sources || streamData.mirrors || [];
+  mirrors.forEach((track, i) => {
+    const linkUrl = track.url || track.link;
+    if (!linkUrl) return;
+
+    const btn = document.createElement('button');
+    btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
+    
+    // Distinguish container types based on file type properties
+    if (linkUrl.includes('.m3u8') || track.type === 'hls' || track.type === 'm3u8') {
+      btn.innerHTML = `<i class="fa-solid fa-bolt text-amber-400 mr-1.5 text-[9px]"></i>HLS Server ${i + 1}`;
+      btn.onclick = () => {
+        const videoElement = document.getElementById('video-iframe');
+        if (videoElement) initializeHlsVideo(videoElement, linkUrl);
+      };
+      if (hlsContainer) hlsContainer.appendChild(btn);
+    } else {
+      btn.innerHTML = `<i class="fa-solid fa-link text-indigo-400 mr-1.5 text-[9px]"></i>Mirror Embed ${i + 1}`;
+      btn.onclick = () => {
+        const wrapper = document.getElementById('video-player-wrapper');
+        if (wrapper) {
+          if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+          wrapper.innerHTML = `<iframe id="video-iframe" src="${linkUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+        }
+      };
+      if (embedContainer) embedContainer.appendChild(btn);
+    }
+  });
+
+  // Fallback checks for empty link rows configurations
+  if (hlsContainer && hlsContainer.children.length === 0) {
+    hlsContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No direct internal players found.</p>`;
+  }
+  if (embedContainer && embedContainer.children.length === 0) {
+    embedContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No absolute mirror links found.</p>`;
+  }
+}
+
 window.routeActiveStreamSource = async function(epIndex) {
   currentEpisodeIndex = epIndex;
   
@@ -587,18 +649,17 @@ window.routeActiveStreamSource = async function(epIndex) {
     // 1. RESOLVE MEGAPLAY DIRECT EMBED HARDCODED STREAM STRINGS ROUTE
     if (activeProviderKey === 'megaplay') {
       const activeBaseUrl = PROVIDER_BASES.megaplay;
-      // Replaced pure custom Plyr initialization layer for standard raw third-party iframe injection if required, 
-      // or map straight to fallback tracking streams structure parameters:
       targetStreamUrl = `${activeBaseUrl}/${window.currentMalId}/${epIndex}/${currentLanguage}`;
       
-      // Inject standard responsive iframe layer back over raw player layout tags since MegaPlay provides pre-built streams pages
       wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+      buildMirrorStreamLinkGrids({ url: "", sources: [{ url: targetStreamUrl, type: "embed" }] });
       return;
     } 
     // 2. RESOLVE REANIME 302 BACKEND DIRECT REDIRECT ROUTING MAPS
     else if (activeProviderKey === 'reanime') {
       targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
       initializeHlsVideo(videoElement, targetStreamUrl);
+      buildMirrorStreamLinkGrids({ url: targetStreamUrl, sources: [] });
     } 
     // 3. ATTEMPT ROUTING STANDARD API PARSED STREAM ENDPOINTS
     else {
@@ -609,6 +670,7 @@ window.routeActiveStreamSource = async function(epIndex) {
       
       if (targetStreamUrl) {
         initializeHlsVideo(videoElement, targetStreamUrl);
+        buildMirrorStreamLinkGrids(streamData);
       } else {
         throw new Error("Empty target pipeline stream source mapping index.");
       }
@@ -652,6 +714,11 @@ function handleStreamMissingNotice() {
       <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}.</p>
       <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
     </div>`;
+
+  const hlsContainer = document.getElementById('internal-player-links-grid') || document.getElementById('hls-links-grid');
+  const embedContainer = document.getElementById('embed-mirrors-links-grid') || document.getElementById('iframe-links-grid');
+  if (hlsContainer) hlsContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No links available on error route.</p>`;
+  if (embedContainer) embedContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No links available on error route.</p>`;
 }
 
 window.setLanguage = function(lang) {
