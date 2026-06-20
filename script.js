@@ -2,15 +2,17 @@ const JIKAN_BASE = "https://api.jikan.moe/v4";
 
 // YOUR STANDALONE STREAMING API HOSTED ON VERCEL
 const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
+const MEGAPLAY_PLAYER_BASE = "https://megaplay.buzz/stream/mal";
 
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
 let activeScheduleDay = 'today';
 let activeProviderMode = 'allmanga'; // Default active provider
 
-// Track all 7 available backend providers from your API manifest
+// Track all available backend providers from your API manifest (Including MegaPlay)
 const API_PROVIDERS = [
   { id: 'allmanga', name: 'AllManga', status: 'Active' },
+  { id: 'megaplay', name: 'MegaPlay', status: 'Active' },
   { id: 'reanime', name: 'ReAnime', status: 'Active' },
   { id: 'anikoto', name: 'AniKoto', status: 'Active' },
   { id: 'animegg', name: 'AnimeGG', status: 'Active' },
@@ -52,6 +54,7 @@ let selectedDayFilter = '';
 
 // Store the fetched server episode mapping objects globally so we can access real API data IDs
 let globalEpisodeDataCache = null;
+let globalJikanEpisodeCount = null; // Caches real MAL episode count to fully wipe hardcoded caps
 
 window.currentAnilistId = null;
 window.currentMalId = null;
@@ -61,6 +64,7 @@ window.activeMaxEpisodes = 12;
 // Store global hls.js and Plyr references to safely destroy them
 window.currentHlsInstance = null;
 window.currentPlyr = null;
+window.streamLoadGuard = null;
 
 const presets = {
   subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
@@ -308,7 +312,6 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
         const airTime = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         const scoreDisplay = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 'N/A';
 
-        // FIXED CHUNK: Double escape single quotes for inline onclick property string safety
         listHtml += `
           <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.id}, ${anime.idMal || 'null'}, '${title.replace(/'/g, "\\\\'")}')"
                class="flex items-center justify-between p-2 rounded-xl bg-transparent hover:bg-neutral-900/40 cursor-pointer transition-all group">
@@ -752,6 +755,8 @@ async function fetchJikanMetadata(malId) {
     const json = await fetchWithRetry(`${JIKAN_BASE}/anime/${malId}`);
     const anime = json.data;
 
+    globalJikanEpisodeCount = anime.episodes || null;
+
     document.getElementById('detail-title').innerText = anime.title_english || anime.title || window.activeAnimeTitle;
     document.getElementById('detail-poster').src = anime.images?.jpg?.large_image_url || '';
     document.getElementById('detail-synopsis').innerText = anime.synopsis || "No summary available.";
@@ -785,6 +790,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
   window.currentAnilistId = anilistId;
   window.currentMalId = malId;
   window.activeAnimeTitle = titleName;
+  globalJikanEpisodeCount = null; // Flush clean trace
 
   const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
   views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
@@ -799,7 +805,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
   updateProviderButtonsUI();
   
   if (malId) {
-    fetchJikanMetadata(malId);
+    await fetchJikanMetadata(malId);
   } else {
     document.getElementById('detail-title').innerText = titleName;
   }
@@ -830,7 +836,7 @@ async function buildEpisodeButtonsGrid(anilistId) {
       }
     }
     
-    if (!Array.isArray(providerList) || providerList.length === 0) {
+    if ((!Array.isArray(providerList) || providerList.length === 0) && activeProviderMode !== 'megaplay') {
       const fallbackProvider = API_PROVIDERS.find(p => {
         if (!epData) return false;
         if (Array.isArray(epData)) {
@@ -854,14 +860,21 @@ async function buildEpisodeButtonsGrid(anilistId) {
       }
     }
 
-    const totalEpisodesCount = (Array.isArray(providerList) && providerList.length > 0) ? providerList.length : 12;
+    // Determine absolute safe count based on active API arrays or Jikan catalog tracks
+    let totalEpisodesCount = 12;
+    if (Array.isArray(providerList) && providerList.length > 0) {
+      totalEpisodesCount = providerList.length;
+    } else if (globalJikanEpisodeCount && globalJikanEpisodeCount > 0) {
+      totalEpisodesCount = globalJikanEpisodeCount;
+    }
+
     window.activeMaxEpisodes = totalEpisodesCount;
     epBox.innerHTML = '';
 
     for (let i = 1; i <= totalEpisodesCount; i++) {
       const btn = document.createElement('button');
       btn.id = `ep-btn-${i}`;
-      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-sm cursor-pointer";
+      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-sm cursor-pointer ep-btn";
       btn.innerText = i;
       btn.onclick = () => launchVideoPlayer(i);
       epBox.appendChild(btn);
@@ -873,16 +886,16 @@ async function buildEpisodeButtonsGrid(anilistId) {
     launchVideoPlayer(1);
 
   } catch (err) {
-    console.warn("Failed to map live API episodes, deploying offline mock array grids...", err);
+    console.warn("Failed to map live API episodes, deploying fallback metadata parameters...", err);
     
-    globalEpisodeDataCache = MOCK_OFFLINE_EPISODES_PAYLOAD;
-    window.activeMaxEpisodes = 12;
+    let totalEpisodesCount = (globalJikanEpisodeCount && globalJikanEpisodeCount > 0) ? globalJikanEpisodeCount : 12;
+    window.activeMaxEpisodes = totalEpisodesCount;
     epBox.innerHTML = '';
     
-    for (let i = 1; i <= 12; i++) {
+    for (let i = 1; i <= totalEpisodesCount; i++) {
       const btn = document.createElement('button');
       btn.id = `ep-btn-${i}`;
-      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all cursor-pointer";
+      btn.className = "bg-dark-input text-gray-400 border border-dark text-xs font-bold w-10 h-10 rounded-lg transition-all cursor-pointer ep-btn";
       btn.innerText = i;
       btn.onclick = () => launchVideoPlayer(i);
       epBox.appendChild(btn);
@@ -1173,6 +1186,33 @@ async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   updateEpisodeButtonsUI();
 
+  // Route through external watchdog frame handler for the MegaPlay API link config
+  if (activeProviderMode === 'megaplay') {
+    const layoutWrapper = document.getElementById('video-player-wrapper');
+    const oldGrid = document.getElementById('sub-server-links-grid');
+    if (oldGrid) oldGrid.innerHTML = '';
+
+    if (layoutWrapper) {
+      layoutWrapper.innerHTML = `
+        <iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0" scrolling="no" src=""></iframe>
+        <div id="notice-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/90 z-40 text-center p-4">
+          <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider"></p>
+        </div>`;
+      
+      const iframe = document.getElementById('video-iframe');
+      const targetMalId = window.currentMalId || 1; 
+      
+      // Inject MegaPlay source parameter pathing details 
+      iframe.src = `${MEGAPLAY_PLAYER_BASE}/${targetMalId}/${epNum}/${currentLanguage}`;
+
+      // Set up asynchronous postMessage payload checking loop to guard timeouts
+      clearTimeout(window.streamLoadGuard);
+      window.streamLoadGuard = setTimeout(() => handleStreamMissingNotice(), 8000);
+    }
+    return;
+  }
+
+  // Fallback to local Vercel scraper networks if any other standard provider is picked
   const oldGrid = document.getElementById('sub-server-links-grid');
   if (oldGrid) oldGrid.innerHTML = '';
 
@@ -1216,6 +1256,10 @@ function updateEpisodeButtonsUI() {
 function setProviderSource(providerId) {
   activeProviderMode = providerId;
   updateProviderButtonsUI();
+  
+  // Wipe background timeout threads when switching provider nodes
+  clearTimeout(window.streamLoadGuard);
+  
   launchVideoPlayer(currentEpisodeIndex);
 }
 
@@ -1279,6 +1323,17 @@ function updateLanguageButtonsUI() {
 window.addEventListener("message", function (event) {
   let data = event.data;
   if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
+  
+  // Clear the failure load-guard if MegaPlay posts a ready signal handshake back to us
+  if (data && (data.event === "playing" || data.event === "ready")) {
+    clearTimeout(window.streamLoadGuard);
+  }
+  
+  if (data && data.event === "error") {
+    clearTimeout(window.streamLoadGuard);
+    handleStreamMissingNotice();
+  }
+
   if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
     const nextEp = currentEpisodeIndex + 1;
     if (nextEp <= window.activeMaxEpisodes) launchVideoPlayer(nextEp);
