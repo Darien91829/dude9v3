@@ -947,6 +947,13 @@
           plyrInstance = new Plyr(videoElement, {
             controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
           });
+          // Native video stream continuous autoplay hook
+          plyrInstance.on('ended', () => {
+            const nextEp = currentEpisodeIndex + 1;
+            if (nextEp <= window.activeMaxEpisodes) {
+              window.routeActiveStreamSource(nextEp);
+            }
+          });
         });
         hls.on(Hls.Events.ERROR, function(event, data) {
           if (data.fatal) handleStreamMissingNotice();
@@ -956,8 +963,26 @@
         plyrInstance = new Plyr(videoElement, {
           controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
         });
+        plyrInstance.on('ended', () => {
+          const nextEp = currentEpisodeIndex + 1;
+          if (nextEp <= window.activeMaxEpisodes) {
+            window.routeActiveStreamSource(nextEp);
+          }
+        });
       }
     }
+
+    // Autoplay Interceptor for Event Handshakes (e.g., iframes posting message protocols)
+    window.addEventListener("message", function (event) {
+      let data = event.data;
+      if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
+      if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished" || data.event === "onEnded")) {
+        const nextEp = currentEpisodeIndex + 1;
+        if (nextEp <= window.activeMaxEpisodes) {
+          window.routeActiveStreamSource(nextEp);
+        }
+      }
+    });
 
     function handleStreamMissingNotice() {
       const wrapper = document.getElementById('video-player-wrapper');
