@@ -47,9 +47,14 @@
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
+
+    /* Sub/Dub Active Button Styling states */
+    .lang-btn.active {
+      background-color: var(--character-accent);
+      color: #000000 !important;
+    }
   </style>
 
-  <!-- Player Integration Framework Headers -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
@@ -63,7 +68,6 @@
 </head>
 <body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex font-['Inter',sans-serif]">
 
-  <!-- Sidebar Component Navigation Drawer -->
   <aside id="main-menu-drawer" class="fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5 bg-[#0f0f12] sidebar border-r border-dark-border flex flex-col justify-between">
     <div>
       <div class="pb-5 flex items-center justify-between border-b border-dark-border mb-6">
@@ -104,10 +108,8 @@
 
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden backdrop-blur-sm"></div>
 
-  <!-- Workspace Shell Area -->
   <div class="flex-1 flex flex-col min-w-0">
     
-    <!-- Top Global Header Panel Bar -->
     <nav class="sticky top-0 z-30 bg-dark-bg/95 backdrop-blur border-b border-dark-border px-6 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-4">
         <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Open menu">
@@ -133,7 +135,6 @@
 
     <main class="max-w-7xl w-full mx-auto px-4 md:px-6 py-6 flex-1">
 
-      <!-- View 1: Home Entryway Layout Dashboard -->
       <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-20 px-4 rounded-3xl border border-dark-border mb-10 bg-gradient-to-b from-neutral-900/20 to-transparent shadow-xl">
         <div class="max-w-xl w-full space-y-6">
           <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
@@ -155,7 +156,6 @@
         </div>
       </section>
 
-      <!-- View 2: Exploration Hub Catalog Layout Frame -->
       <section id="main-exploration-hub" class="hidden space-y-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div class="lg:col-span-2 space-y-8">
@@ -179,7 +179,6 @@
             </div>
           </div>
           
-          <!-- Sidebar Layout Controls Component Link -->
           <div class="space-y-6">
             <div id="sidebar-container-block" class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-4 shadow-xl">
               <div class="flex items-center justify-between border-b border-dark-border pb-2 pl-2 border-l-2 border-accent">
@@ -187,20 +186,17 @@
                 <div id="live-24h-clock" class="text-[9px] font-mono font-bold bg-neutral-900 text-gray-400 px-2 py-0.5 rounded border border-dark-border whitespace-nowrap">00:00:00 JST</div>
               </div>
               
-              <!-- Timeline Filter Actions -->
               <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-xl border border-dark-border/60 text-[10px] font-bold text-center">
                 <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="schedule-tab-btn py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all">Yest</button>
                 <button id="tab-today" onclick="changeScheduleDay('today')" class="schedule-tab-btn active py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all">Today</button>
                 <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="schedule-tab-btn py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all">Tomw</button>
               </div>
               
-              <!-- Target List Frame Layout for Schedule Boxes -->
               <div id="schedule-box" class="space-y-2 max-h-72 overflow-y-auto pr-0.5 scrollbar-none rounded-xl">
                 <p class="text-xs text-gray-500 text-center py-4 font-mono">Syncing broadcast array parameters...</p>
               </div>
             </div>
 
-            <!-- Top Chart Metrics Listing Component -->
             <div class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-3 shadow-xl">
               <div class="border-b border-dark-border pb-2">
                 <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Top Chart Hotlist</h3>
@@ -211,7 +207,6 @@
         </div>
       </section>
 
-      <!-- View 3: Complete Releases Feed Engine Canvas Dashboard -->
       <section id="releases-focus-view" class="hidden space-y-4">
         <div class="border-b border-dark-border pb-2.5">
           <h2 class="text-base font-bold uppercase tracking-wider text-white">Full Seasonal Releases</h2>
@@ -220,7 +215,6 @@
         <div id="releases-api-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full"></div>
       </section>
 
-      <!-- View 4: Weekly Master Airing Schedule Section Matrix Platform -->
       <section id="calendar-focus-view" class="w-full max-w-4xl mx-auto hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-dark-border pb-3.5">
           <div>
@@ -240,30 +234,25 @@
         <div id="airing-chronological-list" class="space-y-6 pt-2"></div>
       </section>
 
-      <!-- View 5: Core Media Player Console Architecture Layout -->
       <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-5">
         <div class="relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-dark-border shadow-2xl">
           <div id="player-box" class="w-full h-full relative">
             <div id="video-player-wrapper" class="w-full h-full">
-              <!-- Instantiated media frames append automatically on call routes -->
               <video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>
             </div>
           </div>
         </div>
 
-        <!-- Node API Providers Mapping Selection Elements Grid -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
           <div class="overflow-x-auto scrollbar-none flex items-center gap-2 server-tabs-container py-0.5" id="server-source-tabs-bar">
-            <!-- Dynamic Injection Hub for Mirror APIs -->
-          </div>
+            </div>
           
           <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
-            <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all">SUB</button>
-            <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
+            <button id="sub-btn" onclick="setLanguage('sub')" class="lang-btn active px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white">SUB</button>
+            <button id="dub-btn" onclick="setLanguage('dub')" class="lang-btn px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white">DUB</button>
           </div>
         </div>
 
-        <!-- Meta Informational Cards Block Layout Grid -->
         <div class="bg-dark-card border border-dark-border rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 shadow-xl">
           <div class="w-28 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-xl overflow-hidden shadow-md shrink-0">
             <img id="detail-poster" src="" class="w-full h-full object-cover animate-fade-in" alt="Active Cover Poster">
@@ -279,10 +268,8 @@
           </div>
         </div>
 
-        <!-- Master Target Injection Hub Container Element for Sub-Server Link Mirrors List Grid -->
         <div id="sub-server-links-grid" class="space-y-4 mb-4"></div>
 
-        <!-- Target Indexes Grid System Matrix Dashboard -->
         <div class="bg-dark-card border border-dark-border rounded-2xl p-5 space-y-4 shadow-xl">
           <div class="flex items-center justify-between">
             <h2 class="text-xs font-bold uppercase tracking-wider text-gray-300">Streaming Module Index</h2>
@@ -297,7 +284,6 @@
     </main>
   </div>
 
-  <!-- Component Layout Settings Palette Menu Context Panel Sheets -->
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm"></div>
   
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#131318] border-t border-dark-border rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 ease-out max-h-[80vh] overflow-y-auto shadow-2xl">
@@ -308,11 +294,9 @@
       </div>
       
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-medium">
-        <!-- New Profiles -->
         <button onclick="applyCharacterPreset('umi')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Umi Sonoda</span><span class="w-2.5 h-2.5 rounded-full bg-[#4169e1]"></span></button>
         <button onclick="applyCharacterPreset('alya')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Alya Kujou</span><span class="w-2.5 h-2.5 rounded-full bg-[#a1a1aa]"></span></button>
         
-        <!-- Classic Presets -->
         <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Subaru N.</span><span class="w-2.5 h-2.5 rounded-full bg-[#f97316]"></span></button>
         <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Emilia</span><span class="w-2.5 h-2.5 rounded-full bg-[#c084fc]"></span></button>
         <button onclick="applyCharacterPreset('rem')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Rem</span><span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span></button>
