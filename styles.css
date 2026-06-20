@@ -2,57 +2,81 @@
    1. CORE APPLICATION & LAYOUT CONFIGURATION
    ========================================================================== */
 body { 
-  font-family: 'Inter', sans-serif; 
+  font-family: 'Segoe UI', 'Inter', sans-serif; 
   transition: background-color 0.3s ease, color 0.3s ease; 
-  background-color: #0f0f12;
+  background-color: #050505;
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 .bg-dark-card { 
+  background-color: #111111;
+  border: 1px solid #1c1c1e;
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; 
 }
 
 .bg-dark-input { 
+  background-color: #1a1a1e;
+  border: 1px solid #2c2c2e;
+  color: #ffffff;
   transition: background-color 0.3s ease, border-color 0.3s ease; 
 }
 
+.bg-dark-input:focus {
+  outline: none;
+  border-color: var(--accent-color, rgb(0, 255, 102));
+}
+
 .border-dark { 
+  border-color: #1c1c1e;
   transition: border-color 0.3s ease; 
 }
 
 /* ==========================================================================
-   2. DYNAMIC ACCENT TRACERS & CYBERPUNK GLOW UTILITIES
+   2. DYNAMIC ACCENT TRACERS & NEON GLOW UTILITIES
    ========================================================================== */
 .dynamic-accent-text {
+  color: var(--accent-color, rgb(0, 255, 102));
   transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
 .dynamic-accent-bg {
+  background-color: var(--accent-color, rgb(0, 255, 102));
+  color: #000000;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
-/* Neon Glow Accents mapping directly to the active character profile matrix */
+/* Neon Glow Accents utilizing the vibrant green profile theme */
 .accent-glow-sm {
-  box-shadow: 0 0 8px rgba(var(--character-accent-rgb, 249, 115, 22), 0.25);
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.25);
 }
 
 .accent-glow-md {
-  box-shadow: 0 0 16px rgba(var(--character-accent-rgb, 249, 115, 22), 0.4);
+  box-shadow: 0 0 16px rgba(0, 255, 102, 0.4);
 }
 
 .accent-glow-text {
-  text-shadow: 0 0 10px rgba(var(--character-accent-rgb, 249, 115, 22), 0.5);
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.6);
 }
 
 /* Sidebar navigation item state tracers */
 .sidebar-item {
   border-left: 3px solid transparent;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.sidebar-item:hover {
+  background-color: rgba(0, 255, 102, 0.04);
+  color: #ffffff;
 }
 
 .sidebar-item.active {
-  background-color: rgba(var(--character-accent-rgb, 249, 115, 22), 0.08) !important;
-  color: var(--character-accent) !important;
-  border-left: 3px solid var(--character-accent) !important;
+  background-color: rgba(0, 255, 102, 0.08) !important;
+  color: var(--accent-color, rgb(0, 255, 102)) !important;
+  border-left: 3px solid var(--accent-color, rgb(0, 255, 102)) !important;
   border-radius: 0px 12px 12px 0px;
 }
 
@@ -63,6 +87,8 @@ body {
   display: flex;
   overflow-x: auto;
   scroll-behavior: smooth;
+  gap: 16px;
+  padding-bottom: 8px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -71,18 +97,18 @@ body {
 }
 
 .scroll-row::-webkit-scrollbar-track { 
-  background: #0f0f12; 
+  background: #050505; 
   border-radius: 10px;
 }
 
 .scroll-row::-webkit-scrollbar-thumb { 
-  background: rgba(var(--character-accent-rgb, 249, 115, 22), 0.3); 
+  background: rgba(0, 255, 102, 0.3); 
   border-radius: 10px; 
   transition: background-color 0.2s ease;
 }
 
 .scroll-row::-webkit-scrollbar-thumb:hover {
-  background: var(--character-accent, #f97316);
+  background: var(--accent-color, rgb(0, 255, 102));
 }
 
 /* ==========================================================================
@@ -102,7 +128,7 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: var(--character-accent, #f97316);
+  background: var(--accent-color, rgb(0, 255, 102));
 }
 
 /* Completely vanish generic default scroll structures if container demands it */
@@ -118,47 +144,69 @@ body {
 /* ==========================================================================
    5. INTERACTIVE COMPONENT STATES (PROVIDERS & CALENDAR MATRIX)
    ========================================================================== */
-/* Video Provider Tab Navigation Rings */
-.server-tab-btn {
+/* Video Provider Tab & Sub/Dub Button Navigation */
+.server-tab-btn, .lang-btn {
+  background: #111111;
+  color: #ffffff;
+  border: 1px solid #1c1c1e;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.server-tab-btn.active {
-  background-color: var(--character-accent) !important;
-  color: var(--preset-text-color, #000000) !important;
-  box-shadow: 0 0 12px rgba(var(--character-accent-rgb, 249, 115, 22), 0.35);
+.server-tab-btn:hover, .lang-btn:hover {
+  border-color: rgba(0, 255, 102, 0.5);
+}
+
+.server-tab-btn.active, .lang-btn.active {
+  background-color: var(--accent-color, rgb(0, 255, 102)) !important;
+  color: #000000 !important;
+  border-color: var(--accent-color, rgb(0, 255, 102)) !important;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(0, 255, 102, 0.35);
 }
 
 /* Weekly Airing Schedule Day Grid Blocks */
 .calendar-matrix-day {
+  background: #111111;
+  border: 1px solid #1c1c1e;
+  border-radius: 8px;
+  padding: 12px;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 }
 
+.calendar-matrix-day:hover {
+  border-color: rgba(0, 255, 102, 0.3);
+}
+
 .calendar-matrix-day.active-today {
-  border-color: var(--character-accent) !important;
-  background-color: rgba(var(--character-accent-rgb, 249, 115, 22), 0.05);
+  border-color: var(--accent-color, rgb(0, 255, 102)) !important;
+  background-color: rgba(0, 255, 102, 0.05);
 }
 
 .calendar-matrix-day.selected-filter {
-  background-color: var(--character-accent) !important;
-  border-color: var(--character-accent) !important;
-  color: var(--preset-text-color, #000000) !important;
+  background-color: var(--accent-color, rgb(0, 255, 102)) !important;
+  border-color: var(--accent-color, rgb(0, 255, 102)) !important;
+  color: #000000 !important;
+  font-weight: bold;
 }
 
-/* Embedded Plyr HTML5 Player Pipeline Custom Overrides */
+/* Embedded Player Custom Pipeline Overrides */
 .plyr--video {
   border-radius: 12px;
   background-color: #000000;
+  overflow: hidden;
 }
 
 .plyr--full-ui input[type=range] {
-  color: var(--character-accent) !important;
+  color: var(--accent-color, rgb(0, 255, 102)) !important;
 }
 
 .plyr__control--overlaid {
-  background: rgba(var(--character-accent-rgb, 249, 115, 22), 0.85) !important;
-  color: var(--preset-text-color, #000000) !important;
+  background: rgba(0, 255, 102, 0.85) !important;
+  color: #000000 !important;
 }
 
 .plyr__controls {
