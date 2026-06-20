@@ -1,7 +1,17 @@
 // ==========================================
 // 1. GLOBAL STATE INITIALIZATION
 // ==========================================
-const MAL_PLAYER_BASE = "https://megaplay.buzz/stream/mal";
+// Replaced hardcoded string engine with a comprehensive tracking map coordinate system
+const PROVIDER_BASES = {
+  allmanga: "https://allmanga.buzz/stream/mal",
+  megaplay: "https://megaplay.buzz/stream/mal",
+  reanime: "https://reanime.buzz/stream/mal",
+  anikoto: "https://anikoto.buzz/stream/mal",
+  animegg: "https://animegg.buzz/stream/mal",
+  animeneko: "https://animeneko.buzz/stream/mal"
+};
+
+let currentProvider = 'megaplay'; // Default initialized starting state anchor
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
 let streamLoadGuard = null;
@@ -424,6 +434,26 @@ function displayTop10Sidebar(animeArray) {
 // ==========================================
 // 5. STREAM PIPELINE & INTERACTIVE CONSOLE MODULE
 // ==========================================
+// Added active system switcher tool to dynamically rebind scraping endpoints
+window.setScraperProvider = function(providerKey) {
+  if (!PROVIDER_BASES[providerKey]) return;
+  currentProvider = providerKey;
+  
+  // Handles active selection switching for DOM elements matching UI button maps
+  document.querySelectorAll('[id^="provider-btn-"]').forEach(btn => {
+    btn.className = "bg-dark-input text-gray-400 border border-dark-border px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all";
+  });
+  const activeBtn = document.getElementById(`provider-btn-${providerKey}`);
+  if (activeBtn) {
+    activeBtn.className = "dynamic-accent-bg bg-accent text-black border border-accent font-black px-3 py-1.5 rounded-xl text-xs tracking-wide shadow-md";
+  }
+
+  // Forces instantaneous player execution reload if mid-session content routing exists
+  if (window.currentMalId) {
+    launchVideoPlayer(currentEpisodeIndex);
+  }
+}
+
 window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, imgUrl = "") {
   window.currentMalId = malId;
   window.activeAnimeTitle = titleName;
@@ -473,7 +503,8 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
     }
   } catch(e) { console.warn("Meta metadata folder route fail mapping parameters."); }
 
-  launchVideoPlayer(1);
+  // Sync state parameters to lock correct default focus visual layouts
+  window.setScraperProvider(currentProvider);
 };
 
 function launchVideoPlayer(epNum) {
@@ -491,7 +522,10 @@ function launchVideoPlayer(epNum) {
   
   playerBox.innerHTML = '<iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>';
   const iframe = document.getElementById('video-iframe');
-  iframe.src = `${MAL_PLAYER_BASE}/${window.currentMalId}/${epNum}/${currentLanguage}`;
+  
+  // Appends base target endpoints out of current active provider mapping variables dynamically
+  const activeBaseUrl = PROVIDER_BASES[currentProvider] || PROVIDER_BASES.megaplay;
+  iframe.src = `${activeBaseUrl}/${window.currentMalId}/${epNum}/${currentLanguage}`;
   
   clearTimeout(streamLoadGuard);
   streamLoadGuard = setTimeout(() => handleStreamMissingNotice(), 8000);
@@ -503,7 +537,7 @@ function handleStreamMissingNotice() {
   playerBox.innerHTML = `
     <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] color-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
       <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Mirror Unavailable</p>
-      <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The requested third-party layout API mirror could not parse structural folder routes mapping for this episodic file tracking stream block.</p>
+      <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The requested stream tracker "${currentProvider.toUpperCase()}" could not parse structural folder routes mapping for this episodic file tracking stream block.</p>
       <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
     </div>`;
 }
