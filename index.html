@@ -235,8 +235,17 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-end bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
-          <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0">
+        <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
+          <div class="flex items-center space-x-2 w-full sm:w-auto">
+            <span class="text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase pl-1">Server Pipeline:</span>
+            <div id="provider-select-group" class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 overflow-x-auto scrollbar-none gap-1">
+              <button id="provider-megaplay" onclick="switchProvider('megaplay')" class="px-3 py-1 text-[10px] font-bold rounded-lg transition-all uppercase tracking-wider">MegaPlay</button>
+              <button id="provider-anikoto" onclick="switchProvider('anikoto')" class="px-3 py-1 text-[10px] font-bold rounded-lg transition-all uppercase tracking-wider">Anikoto</button>
+              <button id="provider-multistream" onclick="switchProvider('multistream')" class="px-3 py-1 text-[10px] font-bold rounded-lg transition-all uppercase tracking-wider">MultiStream</button>
+            </div>
+          </div>
+          
+          <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
             <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all">SUB</button>
             <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
           </div>
@@ -310,7 +319,13 @@
     // ==========================================
     // 1. GLOBAL STATE INITIALIZATION
     // ==========================================
-    const MAL_PLAYER_BASE = "https://megaplay.buzz/stream/mal";
+    const streamingProviders = {
+      megaplay: "https://megaplay.buzz/stream/mal",
+      anikoto: "https://anikoto.cc/api/v2/stream/mal",
+      multistream: "https://multistream.io/embed/mal"
+    };
+
+    let activeProviderKey = 'megaplay';
     let currentEpisodeIndex = 1;
     let currentLanguage = 'sub';
     let streamLoadGuard = null;
@@ -439,6 +454,11 @@
       document.documentElement.style.setProperty('--character-accent-hover', choice.hex);
       document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
       localStorage.setItem('dude9anime-preset', profileKey);
+      
+      // Forces re-render of active dynamic nodes to match theme shifts cleanly
+      if (document.getElementById('stream-dashboard-box').style.display === 'block') {
+        updateProviderTabsUI();
+      }
     }
 
     function loadSavedTheme() {
@@ -760,6 +780,7 @@
       document.getElementById('detail-episodes').innerText = episodesMax || "--";
       document.getElementById('detail-rating').innerText = "--";
 
+      updateProviderTabsUI();
       buildEpisodeIndexButtons(window.activeMaxEpisodes);
       window.routeActiveStreamSource(1);
       
@@ -793,6 +814,26 @@
       }
     }
 
+    window.switchProvider = function(providerKey) {
+      if (activeProviderKey === providerKey) return;
+      activeProviderKey = providerKey;
+      updateProviderTabsUI();
+      window.routeActiveStreamSource(currentEpisodeIndex);
+    }
+
+    function updateProviderTabsUI() {
+      const buttons = ['megaplay', 'anikoto', 'multistream'];
+      buttons.forEach(p => {
+        const btn = document.getElementById(`provider-${p}`);
+        if (!btn) return;
+        if (p === activeProviderKey) {
+          btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm";
+        } else {
+          btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent";
+        }
+      });
+    }
+
     window.routeActiveStreamSource = function(epIndex) {
       currentEpisodeIndex = epIndex;
       document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
@@ -801,9 +842,10 @@
       const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
       if(targetBtn) targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
 
-      // Appends configuration flag strings representing the active language status parameter values.
+      // Dynamically picks base engine matching the active selection parameter
+      const providerBase = streamingProviders[activeProviderKey];
       const languageFlag = (currentLanguage === 'dub') ? '?translation=dub' : '';
-      const targetUrl = `${MAL_PLAYER_BASE}/${window.currentMalId}/${currentEpisodeIndex}${languageFlag}`;
+      const targetUrl = `${providerBase}/${window.currentMalId}/${currentEpisodeIndex}${languageFlag}`;
       
       // Reset player target environment frame container
       const wrapper = document.getElementById('video-player-wrapper');
