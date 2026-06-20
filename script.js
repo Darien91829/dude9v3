@@ -267,7 +267,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
       scheduleBox.appendChild(div);
     });
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
+    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
   }
 }
 
@@ -453,7 +453,6 @@ function displayTop10Sidebar(animeArray) {
 // ==========================================
 // 5. STREAM PIPELINE & INTERACTIVE CONSOLE MODULE
 // ==========================================
-// Handles programmatic engine switching across UI tabs mapping configurations
 window.switchProvider = function(providerKey) {
   if (activeProviderKey === providerKey) return;
   activeProviderKey = providerKey;
@@ -464,7 +463,6 @@ window.switchProvider = function(providerKey) {
   }
 }
 
-// Rewritten button map UI update synchronization loops to handle any arbitrary configuration lists
 function updateProviderTabsUI() {
   const targetBar = document.getElementById('server-source-tabs-bar');
   if (!targetBar) return;
@@ -514,7 +512,6 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
   buildEpisodeIndexButtons(totalEpisodes);
 
   try {
-    // Resolve standard cross-platform structural parameters via MAL target mapping pipelines
     const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
     const mapData = await mapRes.json();
     window.currentAnilistId = mapData.anilistId || mapData.id || malId;
@@ -542,7 +539,6 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
     }
   } catch(e) { console.warn("Meta metadata sync non-fatal exception."); }
 
-  // Route the default track execution setup configuration mapping
   window.routeActiveStreamSource(1);
 };
 
@@ -570,13 +566,15 @@ function buildMirrorStreamLinkGrids(streamData) {
   // 1. Render primary / direct source HLS links
   if (hlsContainer) {
     const mainUrl = streamData.streamUrl || streamData.url;
-    if (mainUrl) {
+    if (mainUrl && (mainUrl.includes('.m3u8') || streamData.type === 'hls')) {
       const btn = document.createElement('button');
       btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
       btn.innerHTML = `<i class="fa-solid fa-play text-accent mr-1.5 text-[9px]"></i>Primary HLS Stream`;
       btn.onclick = () => {
+        const wrapper = document.getElementById('video-player-wrapper');
+        wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
         const videoElement = document.getElementById('video-iframe');
-        if (videoElement) initializeHlsVideo(videoElement, mainUrl);
+        initializeHlsVideo(videoElement, mainUrl);
       };
       hlsContainer.appendChild(btn);
     }
@@ -591,12 +589,14 @@ function buildMirrorStreamLinkGrids(streamData) {
     const btn = document.createElement('button');
     btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
     
-    // Distinguish container types based on file type properties
     if (linkUrl.includes('.m3u8') || track.type === 'hls' || track.type === 'm3u8') {
       btn.innerHTML = `<i class="fa-solid fa-bolt text-amber-400 mr-1.5 text-[9px]"></i>HLS Server ${i + 1}`;
       btn.onclick = () => {
+        if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+        const wrapper = document.getElementById('video-player-wrapper');
+        wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
         const videoElement = document.getElementById('video-iframe');
-        if (videoElement) initializeHlsVideo(videoElement, linkUrl);
+        initializeHlsVideo(videoElement, linkUrl);
       };
       if (hlsContainer) hlsContainer.appendChild(btn);
     } else {
@@ -612,7 +612,6 @@ function buildMirrorStreamLinkGrids(streamData) {
     }
   });
 
-  // Fallback checks for empty link rows configurations
   if (hlsContainer && hlsContainer.children.length === 0) {
     hlsContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No direct internal players found.</p>`;
   }
@@ -639,14 +638,10 @@ window.routeActiveStreamSource = async function(epIndex) {
   }
 
   const wrapper = document.getElementById('video-player-wrapper');
-  wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-  const videoElement = document.getElementById('video-iframe');
-
   const anilistId = window.currentAnilistId || window.currentMalId;
   let targetStreamUrl = "";
 
   try {
-    // 1. RESOLVE MEGAPLAY DIRECT EMBED HARDCODED STREAM STRINGS ROUTE
     if (activeProviderKey === 'megaplay') {
       const activeBaseUrl = PROVIDER_BASES.megaplay;
       targetStreamUrl = `${activeBaseUrl}/${window.currentMalId}/${epIndex}/${currentLanguage}`;
@@ -655,13 +650,13 @@ window.routeActiveStreamSource = async function(epIndex) {
       buildMirrorStreamLinkGrids({ url: "", sources: [{ url: targetStreamUrl, type: "embed" }] });
       return;
     } 
-    // 2. RESOLVE REANIME 302 BACKEND DIRECT REDIRECT ROUTING MAPS
     else if (activeProviderKey === 'reanime') {
       targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
+      wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+      const videoElement = document.getElementById('video-iframe');
       initializeHlsVideo(videoElement, targetStreamUrl);
       buildMirrorStreamLinkGrids({ url: targetStreamUrl, sources: [] });
     } 
-    // 3. ATTEMPT ROUTING STANDARD API PARSED STREAM ENDPOINTS
     else {
       const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
       const streamData = await watchResponse.json();
@@ -669,7 +664,13 @@ window.routeActiveStreamSource = async function(epIndex) {
       targetStreamUrl = streamData.streamUrl || streamData.url || (streamData.sources && streamData.sources[0]?.url);
       
       if (targetStreamUrl) {
-        initializeHlsVideo(videoElement, targetStreamUrl);
+        if (targetStreamUrl.includes('.m3u8') || streamData.type === 'hls' || (streamData.sources && streamData.sources[0]?.type === 'hls')) {
+          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+          const videoElement = document.getElementById('video-iframe');
+          initializeHlsVideo(videoElement, targetStreamUrl);
+        } else {
+          wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+        }
         buildMirrorStreamLinkGrids(streamData);
       } else {
         throw new Error("Empty target pipeline stream source mapping index.");
