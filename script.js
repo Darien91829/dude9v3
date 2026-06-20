@@ -67,7 +67,6 @@ window.switchToView = function(viewTarget) {
     'stream-dashboard-box'
   ];
 
-  // Hide everything first by standardizing on Tailwind's 'hidden' utility
   sections.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -76,7 +75,6 @@ window.switchToView = function(viewTarget) {
     }
   });
 
-  // Always reveal search layout engine wrapper options globally unless targeted explicitly
   const headerSearch = document.getElementById('header-search-engine');
   if (headerSearch) {
     headerSearch.classList.remove('hidden');
@@ -107,7 +105,6 @@ window.switchToView = function(viewTarget) {
       catalog.classList.add('block');
     }
     
-    // Ensure visibility of inner blocks inside catalog ecosystem
     const recBlock = document.getElementById('recommendations-container-block');
     if (recBlock) recBlock.classList.remove('hidden');
     const sideBlock = document.getElementById('sidebar-container-block');
@@ -348,7 +345,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
       scheduleBox.appendChild(div);
     });
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
+    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
   }
 }
 
@@ -584,7 +581,6 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
   
   clearTimeout(streamLoadGuard);
 
-  // Clear views safely using the structural classes configuration setup
   const sections = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
   sections.forEach(id => {
     const el = document.getElementById(id);
@@ -763,6 +759,7 @@ window.routeActiveStreamSource = async function(epIndex) {
       buildMirrorStreamLinkGrids({ url: targetStreamUrl, sources: [] });
     } 
     else {
+      // Dynamic route mapping fix to target correct custom endpoint structures
       const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
       const streamData = await watchResponse.json();
       
