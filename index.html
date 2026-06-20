@@ -38,6 +38,13 @@
       border-left: 3px solid var(--character-accent);
       border-radius: 0px 12px 12px 0px;
     }
+
+    /* Fallback and utility adjustments for schedule active states */
+    .schedule-tab-btn.active {
+      color: #ffffff !important;
+      background-color: var(--character-accent) !important;
+      box-shadow: 0 4px 12px rgba(var(--character-accent-rgb), 0.25);
+    }
   </style>
 
   <!-- External Player Engines -->
@@ -172,19 +179,22 @@
           <!-- Quick Timing Sidebar Layout -->
           <div class="space-y-6">
             <div id="sidebar-container-block" class="bg-dark-card border border-dark-border rounded-xl p-4 space-y-4 shadow-md">
-              <div class="flex items-center justify-between border-b border-dark-border pb-2">
+              <div class="flex items-center justify-between border-b border-dark-border pb-2 pl-2.5 border-l-4 border-accent">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Broadcast Schedule</h3>
-                <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-neutral-900/50 text-gray-400 px-2 py-0.5 rounded border border-dark-border/60">00:00:00 JST</div>
+                <div id="live-24h-clock" class="text-[10px] font-mono font-bold bg-accent/10 text-accent px-2 py-0.5 rounded border border-accent/20 tracking-wider whitespace-nowrap">00:00:00 JST</div>
               </div>
               
               <!-- Tab Grid Layout Map Hooks -->
-              <div class="grid grid-cols-3 gap-1 bg-dark-input p-0.5 rounded-lg border border-dark-border/40 text-[10px] font-bold text-center">
-                <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="py-1 rounded transition-all">YEST</button>
-                <button id="tab-today" onclick="changeScheduleDay('today')" class="py-1 rounded transition-all">TODAY</button>
-                <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="py-1 rounded transition-all">TOMW</button>
+              <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-xl border border-dark-border/40 text-[10px] font-bold text-center">
+                <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="schedule-tab-btn py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 uppercase tracking-wide transition-all duration-200">Yest</button>
+                <button id="tab-today" onclick="changeScheduleDay('today')" class="schedule-tab-btn active py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 uppercase tracking-wide transition-all duration-200">Today</button>
+                <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="schedule-tab-btn py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 uppercase tracking-wide transition-all duration-200">Tomw</button>
               </div>
               
-              <div id="schedule-box" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs text-gray-400"></div>
+              <!-- Clean dynamic wrapper with scroll track styling -->
+              <div id="schedule-box" class="space-y-2 max-h-72 overflow-y-auto pr-1 text-xs text-gray-400 bg-[#09090b] rounded-lg border border-dark-border/50 p-3 scrollbar-none">
+                <p class="text-xs text-gray-500 text-center py-4">Syncing broadcast timeline index...</p>
+              </div>
             </div>
 
             <!-- Top 10 Rating Index Frame -->
