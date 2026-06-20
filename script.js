@@ -59,30 +59,60 @@ const colorProfiles = {
 // 2. INTERFACE OPERATIONS MANAGER (UI / VIEWS)
 // ==========================================
 window.switchToView = function(viewTarget) {
-  // Safe helper to toggle layout sections without crashing if an ID is missing
-  const safeStyle = (id, prop, val) => { const el = document.getElementById(id); if(el) el.style[prop] = val; };
+  const sections = [
+    'landing-portal',
+    'main-exploration-hub',
+    'releases-focus-view',
+    'calendar-focus-view',
+    'stream-dashboard-box'
+  ];
 
-  safeStyle('landing-portal', 'display', 'none');
-  safeStyle('main-exploration-hub', 'display', 'none');
-  safeStyle('releases-focus-view', 'display', 'none');
-  safeStyle('calendar-focus-view', 'display', 'none');
-  safeStyle('stream-dashboard-box', 'display', 'none');
-  safeStyle('header-search-engine', 'display', 'flex');
+  // Hide everything first by standardizing on Tailwind's 'hidden' utility
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('hidden');
+      el.classList.remove('block', 'flex');
+    }
+  });
+
+  // Always reveal search layout engine wrapper options globally unless targeted explicitly
+  const headerSearch = document.getElementById('header-search-engine');
+  if (headerSearch) {
+    headerSearch.classList.remove('hidden');
+    headerSearch.classList.add('flex');
+  }
 
   document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-
   const viewTitle = document.getElementById('view-indicator-title');
 
   if (viewTarget === 'home') {
-    safeStyle('landing-portal', 'display', 'flex');
-    safeStyle('header-search-engine', 'display', 'none');
+    const landing = document.getElementById('landing-portal');
+    if (landing) {
+      landing.classList.remove('hidden');
+      landing.classList.add('flex');
+    }
+    if (headerSearch) {
+      headerSearch.classList.add('hidden');
+      headerSearch.classList.remove('flex');
+    }
     const navHome = document.getElementById('side-nav-home');
     if(navHome) navHome.classList.add('active');
     if(viewTitle) viewTitle.innerText = "Welcome Portal";
-  } else if (viewTarget === 'catalog') {
-    safeStyle('main-exploration-hub', 'display', 'block');
-    safeStyle('recommendations-container-block', 'display', 'block');
-    safeStyle('sidebar-container-block', 'display', 'block');
+  } 
+  else if (viewTarget === 'catalog') {
+    const catalog = document.getElementById('main-exploration-hub');
+    if (catalog) {
+      catalog.classList.remove('hidden');
+      catalog.classList.add('block');
+    }
+    
+    // Ensure visibility of inner blocks inside catalog ecosystem
+    const recBlock = document.getElementById('recommendations-container-block');
+    if (recBlock) recBlock.classList.remove('hidden');
+    const sideBlock = document.getElementById('sidebar-container-block');
+    if (sideBlock) sideBlock.classList.remove('hidden');
+
     const splitContainer = document.getElementById('grid-split-container');
     if(splitContainer) splitContainer.className = "lg:col-span-2 space-y-8";
     const headerTitle = document.getElementById('grid-header-title');
@@ -91,14 +121,24 @@ window.switchToView = function(viewTarget) {
     if(navCatalog) navCatalog.classList.add('active');
     if(viewTitle) viewTitle.innerText = "Catalog Exploration Matrix";
     loadMainHubFeeds();
-  } else if (viewTarget === 'releases') {
-    safeStyle('releases-focus-view', 'display', 'block');
+  } 
+  else if (viewTarget === 'releases') {
+    const releases = document.getElementById('releases-focus-view');
+    if (releases) {
+      releases.classList.remove('hidden');
+      releases.classList.add('block');
+    }
     const navReleases = document.getElementById('side-nav-releases');
     if(navReleases) navReleases.classList.add('active');
     if(viewTitle) viewTitle.innerText = "Global Release Streams";
     fetchFullSeasonalReleases();
-  } else if (viewTarget === 'calendar') {
-    safeStyle('calendar-focus-view', 'display', 'block');
+  } 
+  else if (viewTarget === 'calendar') {
+    const calendar = document.getElementById('calendar-focus-view');
+    if (calendar) {
+      calendar.classList.remove('hidden');
+      calendar.classList.add('block');
+    }
     const navCalendar = document.getElementById('side-nav-calendar');
     if(navCalendar) navCalendar.classList.add('active');
     if(viewTitle) viewTitle.innerText = "Broadcasting Track Scheduler";
@@ -173,7 +213,7 @@ window.applyCharacterPreset = function(profileKey) {
   localStorage.setItem('dude9anime-preset', profileKey);
   
   const streamBox = document.getElementById('stream-dashboard-box');
-  if (streamBox && streamBox.style.display === 'block') {
+  if (streamBox && !streamBox.classList.contains('hidden')) {
     updateProviderTabsUI();
   }
 }
@@ -215,13 +255,21 @@ window.triggerCatalogSearch = async function(fromHeader = false) {
   if(sInput) sInput.value = query;
   if(hInput) hInput.value = query;
 
-  const safeStyle = (id, prop, val) => { const el = document.getElementById(id); if(el) el.style[prop] = val; };
-  safeStyle('landing-portal', 'display', 'none');
-  safeStyle('stream-dashboard-box', 'display', 'none');
-  safeStyle('main-exploration-hub', 'display', 'block');
-  safeStyle('header-search-engine', 'display', 'flex');
-  safeStyle('recommendations-container-block', 'display', 'none');
-  safeStyle('sidebar-container-block', 'display', 'none');
+  const landing = document.getElementById('landing-portal');
+  if(landing) { landing.classList.add('hidden'); landing.classList.remove('flex'); }
+  const streamBox = document.getElementById('stream-dashboard-box');
+  if(streamBox) streamBox.classList.add('hidden');
+  
+  const catalog = document.getElementById('main-exploration-hub');
+  if(catalog) { catalog.classList.remove('hidden'); catalog.classList.add('block'); }
+  
+  const headerSearch = document.getElementById('header-search-engine');
+  if(headerSearch) { headerSearch.classList.remove('hidden'); headerSearch.classList.add('flex'); }
+
+  const recBlock = document.getElementById('recommendations-container-block');
+  if (recBlock) recBlock.classList.add('hidden');
+  const sideBlock = document.getElementById('sidebar-container-block');
+  if (sideBlock) sideBlock.classList.add('hidden');
   
   const splitContainer = document.getElementById('grid-split-container');
   if(splitContainer) splitContainer.className = "w-full space-y-8";
@@ -300,7 +348,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
       scheduleBox.appendChild(div);
     });
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
+    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
   }
 }
 
@@ -536,13 +584,18 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
   
   clearTimeout(streamLoadGuard);
 
-  const safeStyle = (id, prop, val) => { const el = document.getElementById(id); if(el) el.style[prop] = val; };
-  safeStyle('landing-portal', 'display', 'none');
-  safeStyle('main-exploration-hub', 'display', 'none');
-  safeStyle('releases-focus-view', 'display', 'none');
-  safeStyle('calendar-focus-view', 'display', 'none');
-  safeStyle('stream-dashboard-box', 'display', 'block');
-  safeStyle('header-search-engine', 'display', 'flex');
+  // Clear views safely using the structural classes configuration setup
+  const sections = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) { el.classList.add('hidden'); el.classList.remove('block', 'flex'); }
+  });
+
+  const streamBox = document.getElementById('stream-dashboard-box');
+  if(streamBox) { streamBox.classList.remove('hidden'); streamBox.classList.add('block'); }
+  
+  const headerSearch = document.getElementById('header-search-engine');
+  if(headerSearch) { headerSearch.classList.remove('hidden'); headerSearch.classList.add('flex'); }
   
   const dTitle = document.getElementById('detail-title');
   const dPoster = document.getElementById('detail-poster');
@@ -737,7 +790,6 @@ window.routeActiveStreamSource = async function(epIndex) {
 function initializeHlsVideo(videoElement, sourceUrl) {
   if (!videoElement) return;
   
-  // Guard checking if external Hls library exists before evaluating
   if (typeof Hls !== 'undefined' && Hls.isSupported()) {
     const hls = new Hls();
     hls.loadSource(sourceUrl);
