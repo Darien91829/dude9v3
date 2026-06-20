@@ -29,7 +29,7 @@ const API_PROVIDERS = [
 const MOCK_OFFLINE_EPISODES_PAYLOAD = [
   {
     provider: "allmanga",
-    episodes = [
+    episodes: [ // FIXED: Changed "=" to ":" to prevent JavaScript runtime failure
       { number: 1, id: "mock-ep-1", title: "Episode 1 (Offline Server Mirror)" },
       { number: 2, id: "mock-ep-2", title: "Episode 2 (Offline Server Mirror)" },
       { number: 3, id: "mock-ep-3", title: "Episode 3 (Offline Server Mirror)" },
@@ -112,6 +112,12 @@ function applyCharacterPreset(name) {
   document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = p.card);
   document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = p.input);
   document.querySelectorAll('.border-dark').forEach(el => el.style.borderColor = p.input);
+  
+  // Custom theme properties setup for CSS stylesheet maps
+  document.documentElement.style.setProperty('--character-accent', p.hex);
+  document.documentElement.style.setProperty('--character-accent-rgb', name === 'subaru' ? '249, 115, 22' : name === 'emilia' ? '192, 132, 252' : name === 'rem' ? '56, 189, 248' : '249, 115, 22');
+  document.documentElement.style.setProperty('--preset-text-color', p.textLight ? '#ffffff' : '#000000');
+
   document.querySelectorAll('.dynamic-accent-text').forEach(el => el.style.color = p.hex);
   document.querySelectorAll('.dynamic-accent-bg').forEach(el => {
     el.style.backgroundColor = p.hex; el.style.color = p.textLight ? '#ffffff' : '#000000';
@@ -173,7 +179,7 @@ function renderCalendarGridStructure() {
   
   for (let i = 0; i < 7; i++) {
     const dayBox = document.createElement('button');
-    dayBox.className = "bg-[#16161a] border border-gray-800/80 rounded-xl py-3 px-1 flex flex-col items-center justify-center text-[11px] font-bold text-gray-400 transition-all select-none hover:border-gray-600";
+    dayBox.className = "calendar-matrix-day bg-[#16161a] border border-gray-800/80 rounded-xl py-3 px-1 flex flex-col items-center justify-center text-[11px] font-bold text-gray-400 transition-all select-none hover:border-gray-600";
     
     dayBox.innerHTML = `
       <span class="text-[9px] text-gray-500 uppercase tracking-tight mb-0.5">${daysShort[i].slice(0,2)}</span>
@@ -181,10 +187,12 @@ function renderCalendarGridStructure() {
     `;
     
     if (selectedDayFilter === daysFull[i]) {
+      dayBox.classList.add('selected-filter');
       dayBox.style.backgroundColor = currentAccentColor;
       dayBox.style.borderColor = currentAccentColor;
       dayBox.style.color = '#000000';
     } else if (i === todayDayIndex && !selectedDayFilter) {
+      dayBox.classList.add('active-today');
       dayBox.style.borderColor = currentAccentColor;
       dayBox.style.color = '#ffffff';
     }
@@ -401,11 +409,13 @@ async function loadRecentReleases() {
       cardFrame.addEventListener('mouseenter', () => {
         const currentHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
         cardFrame.style.borderColor = `${currentHex}4d`;
-        cardFrame.querySelector('.consumet-card-title').style.color = currentHex;
+        const cTitle = cardFrame.querySelector('.consumet-card-title');
+        if (cTitle) cTitle.style.color = currentHex;
       });
       cardFrame.addEventListener('mouseleave', () => {
         cardFrame.style.borderColor = 'transparent';
-        cardFrame.querySelector('.consumet-card-title').style.color = '#ffffff';
+        const cTitle = cardFrame.querySelector('.consumet-card-title');
+        if (cTitle) cTitle.style.color = '#ffffff';
       });
 
       cardFrame.addEventListener("click", async () => {
@@ -519,7 +529,7 @@ function homeReturnReset() {
 }
 
 async function loadMainHubFeeds() {
-  fetchLiveReleasingSchedule(activeScheduleDay);
+  changeScheduleDay(activeScheduleDay);
   await delay(600);
 
   try {
@@ -783,7 +793,7 @@ function injectProviderButtons() {
   API_PROVIDERS.forEach(prov => {
     const btn = document.createElement('button');
     btn.id = `server-${prov.id}`;
-    btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark cursor-pointer";
+    btn.className = "server-tab-btn px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all whitespace-nowrap bg-dark-input text-gray-400 border-dark cursor-pointer";
     btn.innerHTML = `${prov.name} ${prov.status === 'Unstable' ? '⚠️' : ''}`;
     btn.onclick = () => setProviderSource(prov.id);
     container.appendChild(btn);
@@ -864,7 +874,6 @@ async function buildEpisodeButtonsGrid(anilistId) {
       }
     }
 
-    // Determine absolute safe count based on active API arrays or Jikan catalog tracks
     let totalEpisodesCount = 12;
     if (Array.isArray(providerList) && providerList.length > 0) {
       totalEpisodesCount = providerList.length;
@@ -1105,7 +1114,6 @@ function executeStreamRouting(streamUrl, streamType) {
   const layoutWrapper = document.getElementById('video-player-wrapper');
   if (!layoutWrapper) return;
 
-  // STREAM-GUARD CHECK: Intercept known backend sandbox placeholder test streams
   if (streamUrl && (streamUrl.includes('big_buck_bunny') || streamUrl.includes('x36xhzz.m3u8') || streamUrl.includes('sample.mp4'))) {
     console.warn("[StreamGuard] Intercepted test placeholder stream URL:", streamUrl);
     if (window.currentHlsInstance) { window.currentHlsInstance.destroy(); window.currentHlsInstance = null; }
@@ -1200,7 +1208,6 @@ async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   updateEpisodeButtonsUI();
 
-  // Route through external watchdog frame handler for the MegaPlay API link config
   if (activeProviderMode === 'megaplay') {
     const layoutWrapper = document.getElementById('video-player-wrapper');
     const oldGrid = document.getElementById('sub-server-links-grid');
@@ -1216,24 +1223,20 @@ async function launchVideoPlayer(epNum) {
       const iframe = document.getElementById('video-iframe');
       const targetMalId = window.currentMalId || 1; 
       
-      // OPTION 1 FIX: Clean existing timer structures completely 
       clearTimeout(window.streamLoadGuard);
       window.streamLoadGuard = null;
 
-      // Inject MegaPlay source parameter pathing details 
       iframe.src = `${MEGAPLAY_PLAYER_BASE}/${targetMalId}/${epNum}/${currentLanguage}`;
     }
     return;
   }
 
-  // Fallback to local Vercel scraper networks if any other standard provider is picked
   const oldGrid = document.getElementById('sub-server-links-grid');
   if (oldGrid) oldGrid.innerHTML = '';
 
   const streamsList = await fetchAnivexaStreamList(window.currentAnilistId, epNum, currentLanguage);
   
   if (streamsList && streamsList.length > 0) {
-    // STREAM-GUARD CHECK: Intercept if the primary/fallback array contains test data links
     const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
       || streamsList.find(s => s.url.includes('.m3u8')) 
       || streamsList.find(s => s.isActive) 
@@ -1277,7 +1280,6 @@ function setProviderSource(providerId) {
   activeProviderMode = providerId;
   updateProviderButtonsUI();
   
-  // Wipe background timeout threads when switching provider nodes
   clearTimeout(window.streamLoadGuard);
   window.streamLoadGuard = null;
   
@@ -1344,32 +1346,26 @@ function updateLanguageButtonsUI() {
 window.addEventListener("message", function (event) {
   let data = event.data;
   
-  // If it's an unparsed JSON string, attempt to parse it cleanly.
   if (typeof data === "string") { 
     try { 
       data = JSON.parse(data); 
     } catch (e) { 
-      // Stop right here if it's plain text data or third-party subtitles cue tracks
       return; 
     } 
   }
   
-  // Safety fallback: ensure data is a proper object layout before processing keys
   if (!data || typeof data !== 'object') return;
   
-  // Clear the missing stream watchdog if MegaPlay returns structural play actions
   if (data.event === "playing" || data.event === "ready") {
     clearTimeout(window.streamLoadGuard);
     window.streamLoadGuard = null;
     return;
   }
   
-  // Strict check for legitimate streaming errors
   if (data.event === "error" || data.status === "error") {
     clearTimeout(window.streamLoadGuard);
     window.streamLoadGuard = null;
     
-    // Only fire missing warning overlay if the player hasn't initialized any source
     const targetIframe = document.getElementById('video-iframe');
     if (targetIframe && targetIframe.src === "") {
       handleStreamMissingNotice();
@@ -1377,7 +1373,6 @@ window.addEventListener("message", function (event) {
     return;
   }
 
-  // Handle standard finished tracks tracking to trigger the Autoplay function
   if (data.event === "complete" || data.event === "ended" || data.status === "finished") {
     const nextEp = currentEpisodeIndex + 1;
     if (nextEp <= window.activeMaxEpisodes) {
