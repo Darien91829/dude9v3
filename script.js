@@ -116,11 +116,11 @@ function applyCharacterPreset(name) {
   // Dynamic design variables initialization
   document.documentElement.style.setProperty('--character-accent', p.hex);
   document.documentElement.style.setProperty('--character-accent-rgb', p.rgb);
-  document.documentElement.style.setProperty('--preset-text-color', p.textLight ? '#ffffff' : '#000000');
+  document.documentElement.style.setProperty('--preset-text-color', p.textLight ? '#000000' : '#ffffff');
 
   document.querySelectorAll('.dynamic-accent-text').forEach(el => el.style.color = p.hex);
   document.querySelectorAll('.dynamic-accent-bg').forEach(el => {
-    el.style.backgroundColor = p.hex; el.style.color = p.textLight ? '#ffffff' : '#000000';
+    el.style.backgroundColor = p.hex; el.style.color = p.textLight ? '#000000' : '#ffffff';
   });
   updateProviderButtonsUI();
   updateLanguageButtonsUI();
@@ -132,7 +132,7 @@ function applyCharacterPreset(name) {
     if (b) {
       if (day === activeScheduleDay) {
         b.style.backgroundColor = p.hex;
-        b.style.color = p.textLight ? '#ffffff' : '#000000';
+        b.style.color = p.textLight ? '#000000' : '#ffffff';
       } else {
         b.style.backgroundColor = 'transparent';
         b.style.color = '#6b7280';
@@ -638,8 +638,6 @@ async function triggerCatalogSearch(fromHeader = false) {
 
 function changeScheduleDay(targetDay) {
   activeScheduleDay = targetDay;
-  
-  // Re-run preset assignment immediately to update navigation style classes cleanly
   applyCharacterPreset(currentPresetName);
   fetchLiveReleasingSchedule(targetDay);
 }
@@ -690,7 +688,6 @@ async function fetchLiveReleasingSchedule(dayMode) {
     
     scheduleBox.innerHTML = '';
     
-    // De-duplicate items inside current streaming tracks
     const mapCleanCache = new Map();
     schedules.forEach(item => {
       if (!item.media) return;
@@ -704,7 +701,6 @@ async function fetchLiveReleasingSchedule(dayMode) {
       const title = item.media.title.english || item.media.title.romaji;
       const airDate = new Date(item.airingAt * 1000);
       const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      const imgUrl = item.media.coverImage?.large || "";
       
       const div = document.createElement('div');
       div.className = "scroll-row flex items-center justify-between p-2 rounded-xl bg-[#111111] border border-[#1c1c1e] hover:border-zinc-800 transition-all cursor-pointer mb-2";
@@ -823,7 +819,7 @@ window.loadStreamingLayout = async function(anilistId, malId, titleName) {
   window.currentAnilistId = anilistId;
   window.currentMalId = malId;
   window.activeAnimeTitle = titleName;
-  globalJikanEpisodeCount = null; // Flush clean trace
+  globalJikanEpisodeCount = null;
 
   const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
   views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
@@ -918,7 +914,7 @@ async function buildEpisodeButtonsGrid(anilistId) {
     launchVideoPlayer(1);
 
   } catch (err) {
-    console.warn("Failed to map live API episodes, deploying fallback metadata parameters...", err);
+    console.warn("Failed to map live API episodes, deploying fallback parameters...", err);
     
     let totalEpisodesCount = (globalJikanEpisodeCount && globalJikanEpisodeCount > 0) ? globalJikanEpisodeCount : 12;
     window.activeMaxEpisodes = totalEpisodesCount;
@@ -972,7 +968,6 @@ async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
     }
 
     const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${computedEpId}`;
-    console.log(`[Anivexa API Request] -> ${watchUrl}`);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000); 
@@ -1134,7 +1129,6 @@ function executeStreamRouting(streamUrl, streamType) {
   if (!layoutWrapper) return;
 
   if (streamUrl && (streamUrl.includes('big_buck_bunny') || streamUrl.includes('x36xhzz.m3u8') || streamUrl.includes('sample.mp4'))) {
-    console.warn("[StreamGuard] Intercepted test placeholder stream URL:", streamUrl);
     if (window.currentHlsInstance) { window.currentHlsInstance.destroy(); window.currentHlsInstance = null; }
     if (window.currentPlyr) { window.currentPlyr.destroy(); window.currentPlyr = null; }
     clearTimeout(window.streamLoadGuard);
@@ -1144,14 +1138,8 @@ function executeStreamRouting(streamUrl, streamType) {
 
   const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8') || activeProviderMode === 'reanime';
   
-  if (window.currentHlsInstance) {
-    window.currentHlsInstance.destroy();
-    window.currentHlsInstance = null;
-  }
-  if (window.currentPlyr) {
-    window.currentPlyr.destroy();
-    window.currentPlyr = null;
-  }
+  if (window.currentHlsInstance) { window.currentHlsInstance.destroy(); window.currentHlsInstance = null; }
+  if (window.currentPlyr) { window.currentPlyr.destroy(); window.currentPlyr = null; }
 
   if (isHLSSource) {
     layoutWrapper.innerHTML = `
@@ -1172,7 +1160,7 @@ function executeStreamRouting(streamUrl, streamType) {
       
       window.currentHlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
         initializePlyrEngine(videoElement);
-        videoElement.play().catch(() => console.log("Autoplay block caught"));
+        videoElement.play().catch(() => console.log("Autoplay blocked"));
       });
 
       window.currentHlsInstance.on(Hls.Events.ERROR, function (event, data) {
@@ -1227,7 +1215,6 @@ async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   updateEpisodeButtonsUI();
 
-  // Reset core element views and overlay items immediately upon invocation
   const videoCore = document.getElementById('video-iframe');
   if (videoCore) videoCore.classList.remove('hidden');
   const overlayNotice = document.getElementById('notice-overlay');
@@ -1268,7 +1255,6 @@ async function launchVideoPlayer(epNum) {
       || streamsList[0];
       
     if (defaultStream && defaultStream.url && (defaultStream.url.includes('big_buck_bunny') || defaultStream.url.includes('x36xhzz.m3u8') || defaultStream.url.includes('sample.mp4'))) {
-      console.warn("[StreamGuard] Cancelled rendering; placeholder test mirror received.");
       handleStreamMissingNotice();
       return;
     }
@@ -1290,7 +1276,7 @@ function updateEpisodeButtonsUI() {
     if (btn) {
       if (i === currentEpisodeIndex) {
         btn.style.backgroundColor = currentActiveHex;
-        btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+        btn.style.color = curPreset.textLight ? '#000000' : '#ffffff';
         btn.style.borderColor = currentActiveHex;
       } else {
         btn.style.backgroundColor = '';
@@ -1320,7 +1306,7 @@ function updateProviderButtonsUI() {
     if (!btn) return;
     if (activeProviderMode === prov.id) {
       btn.style.backgroundColor = currentActiveHex;
-      btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+      btn.style.color = curPreset.textLight ? '#000000' : '#ffffff';
       btn.style.borderColor = currentActiveHex;
     } else {
       btn.style.backgroundColor = '';
@@ -1357,7 +1343,7 @@ function updateLanguageButtonsUI() {
     if(!btn) return;
     if (currentLanguage === l) {
       btn.style.backgroundColor = currentActiveHex;
-      btn.style.color = curPreset.textLight ? '#ffffff' : '#000000';
+      btn.style.color = curPreset.textLight ? '#000000' : '#ffffff';
       btn.style.borderColor = currentActiveHex;
     } else {
       btn.style.backgroundColor = '';
@@ -1370,15 +1356,7 @@ function updateLanguageButtonsUI() {
 // Autoplay & Message Handshake Interceptor
 window.addEventListener("message", function (event) {
   let data = event.data;
-  
-  if (typeof data === "string") { 
-    try { 
-      data = JSON.parse(data); 
-    } catch (e) { 
-      return; 
-    } 
-  }
-  
+  if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
   if (!data || typeof data !== 'object') return;
   
   if (data.event === "playing" || data.event === "ready") {
@@ -1386,14 +1364,12 @@ window.addEventListener("message", function (event) {
     window.streamLoadGuard = null;
     return;
   }
-  
   if (data.event === "error" || data.status === "error") {
     clearTimeout(window.streamLoadGuard);
     window.streamLoadGuard = null;
     handleStreamMissingNotice();
     return;
   }
-
   if (data.event === "complete" || data.event === "ended" || data.status === "finished") {
     const nextEp = currentEpisodeIndex + 1;
     if (nextEp <= window.activeMaxEpisodes) {
