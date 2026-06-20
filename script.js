@@ -1,3 +1,5 @@
+const JIKAN_BASE = "https://api.jikan.moe/v4";
+
 // ==========================================
 // 1. GLOBAL STATE INITIALIZATION
 // ==========================================
@@ -7,6 +9,7 @@ const PROVIDER_BASES = {
   megaplay: "https://megaplay.buzz/stream/mal"
 };
 
+// Updated list tracking all available backend providers
 const API_PROVIDERS = [
   { id: 'megaplay', name: 'MegaPlay' },
   { id: 'allmanga', name: 'AllManga' },
@@ -23,6 +26,16 @@ let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
 let plyrInstance = null;
 let streamLoadGuard = null;
+
+// Guard items to stop loop updates on view toggle
+let hubFeedsLoaded = false;
+let recentReleasesLoaded = false;
+let calendarLoaded = false;
+let currentPresetName = 'subaru';
+let selectedDayFilter = '';
+
+// Store the fetched server episode mapping objects globally so we can access real API data IDs
+let globalEpisodeDataCache = null;
 
 window.currentMalId = "";
 window.currentAnilistId = "";
@@ -207,12 +220,14 @@ window.applyCharacterPreset = function(profileKey) {
   document.documentElement.style.setProperty('--character-accent', choice.hex);
   document.documentElement.style.setProperty('--character-accent-hover', choice.hex);
   document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
+  currentPresetName = profileKey;
   localStorage.setItem('dude9anime-preset', profileKey);
   
   const streamBox = document.getElementById('stream-dashboard-box');
   if (streamBox && !streamBox.classList.contains('hidden')) {
     updateProviderTabsUI();
   }
+  updateLanguageButtonsUI();
 }
 
 function loadSavedTheme() {
@@ -226,7 +241,7 @@ function loadSavedTheme() {
 async function loadMainHubFeeds() {
   fetchLiveReleasingSchedule(activeScheduleDay);
   try {
-    const res = await fetch("https://api.jikan.moe/v4/seasons/now?limit=22");
+    const res = await fetch(`${JIKAN_BASE}/seasons/now?limit=22`);
     const json = await res.json();
     const dataset = json.data || [];
     if(dataset.length > 0) {
@@ -278,7 +293,7 @@ window.triggerCatalogSearch = async function(fromHeader = false) {
   if(grid) grid.innerHTML = "<p class='text-xs text-gray-500 font-mono animate-pulse'>Executing system scan tracking vectors...</p>";
   
   try {
-    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=16`);
+    const res = await fetch(`${JIKAN_BASE}/anime?q=${encodeURIComponent(query)}&limit=16`);
     const json = await res.json();
     if(!grid) return;
     if(!json.data || json.data.length === 0) {
@@ -310,7 +325,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
   const targetDayString = weekdays[currentDayIndex];
 
   try {
-    const response = await fetch(`https://api.jikan.moe/v4/schedules?filter=${targetDayString}&limit=15`);
+    const response = await fetch(`${JIKAN_BASE}/schedules?filter=${targetDayString}&limit=15`);
     const json = await response.json();
     const rawAnimeList = json.data || [];
     const ongoingAnime = rawAnimeList.filter(anime => anime.airing === true || anime.status === "Currently Airing");
@@ -386,7 +401,7 @@ async function selectCalendarTimelineDay(dayName) {
   if(targetList) targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Syncing calendar row segments...</p>';
   
   try {
-    const res = await fetch(`https://api.jikan.moe/v4/schedules?filter=${dayName}`);
+    const res = await fetch(`${JIKAN_BASE}/schedules?filter=${dayName}`);
     const json = await res.json();
     calendarCachedDataset = json.data || [];
     renderCalendarGridItems(calendarCachedDataset);
@@ -453,7 +468,7 @@ async function fetchFullSeasonalReleases() {
   if(!grid) return;
   grid.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Rebuilding layout cards configuration routing grids...</p>';
   try {
-    const res = await fetch("https://api.jikan.moe/v4/seasons/now?limit=20");
+    const res = await fetch(`${JIKAN_BASE}/seasons/now?limit=20`);
     const json = await res.json();
     const dataset = json.data || [];
     if(dataset.length > 0) {
@@ -628,7 +643,7 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
   }
 
   try {
-    const detailRes = await fetch(`https://api.jikan.moe/v4/anime/${malId}`);
+    const detailRes = await fetch(`${JIKAN_BASE}/anime/${malId}`);
     const dataJson = await detailRes.json();
     const info = dataJson.data;
     if(info) {
@@ -759,7 +774,6 @@ window.routeActiveStreamSource = async function(epIndex) {
       buildMirrorStreamLinkGrids({ url: targetStreamUrl, sources: [] });
     } 
     else {
-      // Dynamic route mapping fix to target correct custom endpoint structures
       const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
       const streamData = await watchResponse.json();
       
@@ -833,21 +847,36 @@ function handleStreamMissingNotice() {
 window.setLanguage = function(lang) {
   if (currentLanguage === lang) return;
   currentLanguage = lang;
-  const subBtn = document.getElementById('sub-btn');
-  const dubBtn = document.getElementById('dub-btn');
-  if (lang === 'sub') {
-    if(subBtn) subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
-    if(dubBtn) dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-  } else {
-    if(subBtn) subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-    if(dubBtn) dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
-  }
+  updateLanguageButtonsUI();
   
   if (window.currentMalId) {
     window.routeActiveStreamSource(currentEpisodeIndex);
   }
 }
 
+function updateLanguageButtonsUI() {
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const curPreset = colorProfiles[currentPresetName] || colorProfiles.subaru;
+
+  ['sub', 'dub'].forEach(l => {
+    const btn = document.getElementById(`${l}-btn`);
+    if(!btn) return;
+    if (currentLanguage === l) {
+      btn.style.backgroundColor = currentActiveHex;
+      btn.style.color = '#ffffff'; // Fallback setup for clear contrast
+      btn.style.borderColor = currentActiveHex;
+      // Reinforce Tailwind alignment if needed dynamically
+      btn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
+    } else {
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+      btn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+    }
+  });
+}
+
+// Autoplay Event Handshake Interceptor
 window.addEventListener("message", function (event) {
   let data = event.data;
   if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
