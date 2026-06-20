@@ -739,6 +739,18 @@ window.setLanguage = function(lang) {
   }
 }
 
+// Autoplay Event Handshake Interceptor
+window.addEventListener("message", function (event) {
+  let data = event.data;
+  if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
+  if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
+    const nextEp = currentEpisodeIndex + 1;
+    if (nextEp <= window.activeMaxEpisodes) {
+      window.routeActiveStreamSource(nextEp);
+    }
+  }
+});
+
 // ==========================================
 // 6. LIFE MATRIX BOOT INITIALIZER EXECUTION
 // ==========================================
