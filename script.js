@@ -705,7 +705,7 @@ function displayScrollFeed(animeArray, elementId) {
     div.onclick = async () => {
       let linkedAniId = anime.mal_id;
       try {
-        const lookup = await fetch(`https://graphql.anilist.co`, {
+        const lookup = await fetch(`https://graphql.anilist.co', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`, variables: { id: anime.mal_id } })
         });
@@ -1101,6 +1101,16 @@ function executeStreamRouting(streamUrl, streamType) {
   const layoutWrapper = document.getElementById('video-player-wrapper');
   if (!layoutWrapper) return;
 
+  // STREAM-GUARD CHECK: Intercept known backend sandbox placeholder test streams
+  if (streamUrl && (streamUrl.includes('big_buck_bunny') || streamUrl.includes('x36xhzz.m3u8') || streamUrl.includes('sample.mp4'))) {
+    console.warn("[StreamGuard] Intercepted test placeholder stream URL:", streamUrl);
+    if (window.currentHlsInstance) { window.currentHlsInstance.destroy(); window.currentHlsInstance = null; }
+    if (window.currentPlyr) { window.currentPlyr.destroy(); window.currentPlyr = null; }
+    clearTimeout(window.streamLoadGuard);
+    handleStreamMissingNotice();
+    return;
+  }
+
   const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8') || activeProviderMode === 'reanime';
   
   if (window.currentHlsInstance) {
@@ -1219,13 +1229,19 @@ async function launchVideoPlayer(epNum) {
   const streamsList = await fetchAnivexaStreamList(window.currentAnilistId, epNum, currentLanguage);
   
   if (streamsList && streamsList.length > 0) {
-    renderSubServerGrid(streamsList);
-    
+    // STREAM-GUARD CHECK: Intercept if the primary/fallback array contains test data links
     const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
       || streamsList.find(s => s.url.includes('.m3u8')) 
       || streamsList.find(s => s.isActive) 
       || streamsList[0];
       
+    if (defaultStream && defaultStream.url && (defaultStream.url.includes('big_buck_bunny') || defaultStream.url.includes('x36xhzz.m3u8') || defaultStream.url.includes('sample.mp4'))) {
+      console.warn("[StreamGuard] Cancelled rendering; placeholder test mirror received.");
+      handleStreamMissingNotice();
+      return;
+    }
+
+    renderSubServerGrid(streamsList);
     const calculatedType = (defaultStream.url.includes('.m3u8') || activeProviderMode === 'reanime') ? 'HLS' : (defaultStream.type || 'Embed');
     executeStreamRouting(defaultStream.url, calculatedType);
   } else {
