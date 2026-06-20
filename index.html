@@ -514,8 +514,27 @@
       document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
       localStorage.setItem('dude9anime-preset', profileKey);
       
+      // Update contextual language buttons and operational selectors dynamically inside DOM context
+      const hex = choice.hex;
+      const subBtn = document.getElementById('sub-btn');
+      const dubBtn = document.getElementById('dub-btn');
+      if (subBtn && currentLanguage === 'sub') {
+        subBtn.style.backgroundColor = hex;
+        subBtn.style.color = '#000000';
+      }
+      if (dubBtn && currentLanguage === 'dub') {
+        dubBtn.style.backgroundColor = hex;
+        dubBtn.style.color = '#000000';
+      }
+
       if (document.getElementById('stream-dashboard-box').style.display === 'block') {
         updateProviderTabsUI();
+        // Re-inject dynamic accent classes to active episode buttons matching theme parameters
+        const targetBtn = document.getElementById(`ep-btn-${currentEpisodeIndex}`);
+        if(targetBtn) {
+          targetBtn.style.backgroundColor = hex;
+          targetBtn.style.borderColor = hex;
+        }
       }
     }
 
@@ -626,7 +645,7 @@
           scheduleBox.appendChild(div);
         });
       } catch (error) { 
-        scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
+        scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
       }
     }
 
@@ -876,11 +895,23 @@
     function buildEpisodeIndexButtons(total) {
       const box = document.getElementById('episode-buttons');
       box.innerHTML = '';
+      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
+      
       for (let i = 1; i <= total; i++) {
         const btn = document.createElement('button');
         btn.id = `ep-btn-${i}`;
         btn.innerText = i < 10 ? `0${i}` : i;
-        btn.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
+        
+        if (i === currentEpisodeIndex) {
+          btn.className = "min-w-[40px] h-9 text-xs font-mono font-black text-black rounded-xl border shadow-lg flex items-center justify-center scale-105";
+          btn.style.backgroundColor = activeColor;
+          btn.style.borderColor = activeColor;
+        } else {
+          btn.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
+          btn.style.backgroundColor = '';
+          btn.style.borderColor = '';
+        }
+        
         btn.onclick = () => window.routeActiveStreamSource(i);
         box.appendChild(btn);
       }
@@ -900,15 +931,19 @@
       if (!targetBar) return;
       
       targetBar.innerHTML = '';
+      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
+      
       API_PROVIDERS.forEach(provider => {
         const btn = document.createElement('button');
         btn.id = `provider-${provider.id}`;
         btn.innerText = provider.name;
         
         if (provider.id === activeProviderKey) {
-          btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
+          btn.className = "px-3 py-1 text-[10px] font-black text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
+          btn.style.backgroundColor = activeColor;
         } else {
           btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
+          btn.style.backgroundColor = '';
         }
         
         btn.onclick = () => window.switchProvider(provider.id);
@@ -927,10 +962,20 @@
       
       initializeHlsVideo(videoElement, url);
       
-      // Update UI feedback on selected stream track
-      document.querySelectorAll('.hls-track-btn').forEach(btn => btn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]");
+      // Update UI feedback on selected stream track dynamically using custom layout property parameters
+      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
+      document.querySelectorAll('.hls-track-btn').forEach(btn => {
+        btn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]";
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      });
       const targetBtn = document.getElementById(`hls-track-${btoa(url).replace(/=/g, '')}`);
-      if(targetBtn) targetBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-accent bg-accent/10 text-accent font-bold transition-all text-[11px]";
+      if(targetBtn) {
+        targetBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all bg-opacity-10";
+        targetBtn.style.color = activeColor;
+        targetBtn.style.borderColor = activeColor;
+        targetBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.1)';
+      }
     }
 
     // Alternative Embed Mirror Injector
@@ -947,18 +992,37 @@
       
       wrapper.innerHTML = `<iframe id="video-iframe" src="${targetUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
       
-      document.querySelectorAll('.mirror-item-btn').forEach(btn => btn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors");
+      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
+      document.querySelectorAll('.mirror-item-btn').forEach(btn => {
+        btn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.style.backgroundColor = '';
+      });
       const targetBtn = document.getElementById(`mirror-${mirrorType}`);
-      if(targetBtn) targetBtn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-accent/5 border border-accent/40 text-accent flex items-center justify-between transition-colors font-bold";
+      if(targetBtn) {
+        targetBtn.className = "mirror-item-btn w-full text-left p-2 rounded-xl flex items-center justify-between transition-colors font-bold border";
+        targetBtn.style.color = activeColor;
+        targetBtn.style.borderColor = activeColor;
+        targetBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.05)';
+      }
     }
 
     window.routeActiveStreamSource = async function(epIndex) {
       currentEpisodeIndex = epIndex;
+      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
+      
       document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
         b.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
+        b.style.backgroundColor = '';
+        b.style.borderColor = '';
       });
       const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
-      if(targetBtn) targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
+      if(targetBtn) {
+        targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black text-black rounded-xl border shadow-lg flex items-center justify-center scale-105";
+        targetBtn.style.backgroundColor = activeColor;
+        targetBtn.style.borderColor = activeColor;
+      }
 
       clearTimeout(streamLoadGuard);
       if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
@@ -998,10 +1062,18 @@
           
           const uniqueId = btoa(targetStreamUrl).replace(/=/g, '');
           hlsContainer.innerHTML = `
-            <button id="hls-track-${uniqueId}" onclick="loadDirectHlsStream('${targetStreamUrl}', 'ReAnime Stream')" class="hls-track-btn px-3 py-1.5 rounded-xl border border-accent bg-accent/10 text-accent font-bold transition-all text-[11px]">
+            <button id="hls-track-${uniqueId}" onclick="loadDirectHlsStream('${targetStreamUrl}', 'ReAnime Stream')" class="hls-track-btn px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all">
               <i class="fa-solid fa-bolt mr-1.5"></i>ReAnime Stream Track (Auto)
             </button>
           `;
+          
+          const targetHlsBtn = document.getElementById(`hls-track-${uniqueId}`);
+          if (targetHlsBtn) {
+            targetHlsBtn.style.color = activeColor;
+            targetHlsBtn.style.borderColor = activeColor;
+            targetHlsBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.1)';
+          }
+
           initializeHlsVideo(videoElement, targetStreamUrl);
         } 
         else {
@@ -1021,7 +1093,16 @@
               
               const sBtn = document.createElement('button');
               sBtn.id = `hls-track-${uniqueId}`;
-              sBtn.className = sIdx === 0 ? "hls-track-btn px-3 py-1.5 rounded-xl border border-accent bg-accent/10 text-accent font-bold transition-all text-[11px]" : "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]";
+              
+              if (sIdx === 0) {
+                sBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all";
+                sBtn.style.color = activeColor;
+                sBtn.style.borderColor = activeColor;
+                sBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.1)';
+              } else {
+                sBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]";
+              }
+              
               sBtn.innerHTML = `<i class="fa-solid fa-circle-play mr-1.5"></i>${label}`;
               sBtn.onclick = () => loadDirectHlsStream(sUrl, label);
               hlsContainer.appendChild(sBtn);
@@ -1064,7 +1145,10 @@
           });
         });
         hls.on(Hls.Events.ERROR, function(event, data) {
-          if (data.fatal) handleStreamMissingNotice();
+          if (data.fatal) {
+            console.warn("HLS Engine captured a fatal networking context error. Trying fallbacks.");
+            handleStreamMissingNotice();
+          }
         });
       } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
         videoElement.src = sourceUrl;
@@ -1077,10 +1161,13 @@
             window.routeActiveStreamSource(nextEp);
           }
         });
+        videoElement.addEventListener('error', function() {
+          handleStreamMissingNotice();
+        });
       }
     }
 
-    // Autoplay Interceptor for Event Handshakes (e.g., iframes posting message protocols)
+    // Autoplay Interceptor for Event Handshakes (supports embedded post-messages from iframes/mirrors)
     window.addEventListener("message", function (event) {
       let data = event.data;
       if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
@@ -1108,12 +1195,18 @@
       currentLanguage = lang;
       const subBtn = document.getElementById('sub-btn');
       const dubBtn = document.getElementById('dub-btn');
+      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
+      
       if (lang === 'sub') {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
+        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-black";
+        subBtn.style.backgroundColor = activeColor;
         dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+        dubBtn.style.backgroundColor = '';
       } else {
         subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
+        subBtn.style.backgroundColor = '';
+        dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-black";
+        dubBtn.style.backgroundColor = activeColor;
       }
       if (window.currentMalId) {
         window.routeActiveStreamSource(currentEpisodeIndex);
