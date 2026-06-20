@@ -223,10 +223,7 @@ window.applyCharacterPreset = function(profileKey) {
   currentPresetName = profileKey;
   localStorage.setItem('dude9anime-preset', profileKey);
   
-  const streamBox = document.getElementById('stream-dashboard-box');
-  if (streamBox && !streamBox.classList.contains('hidden')) {
-    updateProviderTabsUI();
-  }
+  updateProviderTabsUI();
   updateLanguageButtonsUI();
 }
 
@@ -482,390 +479,219 @@ async function fetchFullSeasonalReleases() {
           <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2">
             <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Cover">
           </div>
-          <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-1">${title}</div>
+          <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-1 group-hover:text-white">${title}</div>
         `;
         const cleanTitle = title.replace(/'/g, "\\'");
         card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
         grid.appendChild(card);
       });
     }
-  } catch (e) { grid.innerHTML = '<p class="text-xs text-gray-600 font-mono col-span-full">Fail parsing pipeline seasonal assets streams data files.</p>'; }
-}
-
-function displayScrollFeed(animeArray, elementId) {
-  const container = document.getElementById(elementId);
-  if(!container) return;
-  container.innerHTML = '';
-  animeArray.forEach(anime => {
-    const title = anime.title_english || anime.title;
-    const imgUrl = anime.images?.jpg?.image_url || '';
-    const card = document.createElement('div');
-    card.className = "w-28 shrink-0 bg-dark-card border border-dark-border/60 p-1.5 rounded-2xl cursor-pointer hover:border-accent/40 transition-all shadow group";
-    card.innerHTML = `
-      <div class="aspect-[2/3] rounded-xl overflow-hidden mb-1.5 bg-neutral-900">
-        <img src="${imgUrl}" class="w-full h-full object-cover" alt="Cover">
-      </div>
-      <div class="text-[11px] text-gray-300 font-semibold truncate px-0.5">${title}</div>
-    `;
-    const cleanTitle = title.replace(/'/g, "\\'");
-    card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
-    container.appendChild(card);
-  });
-}
-
-function displayGridFeed(animeArray, elementId) {
-  const container = document.getElementById(elementId);
-  if(!container) return;
-  container.innerHTML = '';
-  const cleanArray = animeArray || [];
-  cleanArray.forEach(anime => {
-    const title = anime.title_english || anime.title;
-    const imgUrl = anime.images?.jpg?.image_url || '';
-    const card = document.createElement('div');
-    card.className = "bg-dark-card border border-dark-border/60 p-2 rounded-2xl cursor-pointer hover:border-accent/40 transition-all shadow group";
-    card.innerHTML = `
-      <div class="aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-neutral-900">
-        <img src="${imgUrl}" class="w-full h-full object-cover" alt="Cover">
-      </div>
-      <div class="text-xs text-gray-300 font-semibold truncate px-0.5">${title}</div>
-    `;
-    const cleanTitle = title.replace(/'/g, "\\'");
-    card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
-    container.appendChild(card);
-  });
-}
-
-function displayTop10Sidebar(animeArray) {
-  const container = document.getElementById('top10-box');
-  if(!container) return;
-  container.innerHTML = '';
-  animeArray.forEach((anime, idx) => {
-    const title = anime.title_english || anime.title;
-    const row = document.createElement('div');
-    row.className = "flex items-center space-x-3 p-1.5 rounded-xl hover:bg-neutral-900/40 cursor-pointer transition-colors group";
-    row.innerHTML = `
-      <div class="text-sm font-black font-mono text-gray-600 w-4 text-center group-hover:text-accent">${idx + 1}</div>
-      <div class="flex-1 min-w-0"><div class="text-xs font-medium text-gray-300 truncate">${title}</div></div>
-    `;
-    const cleanTitle = title.replace(/'/g, "\\'");
-    row.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, anime.images?.jpg?.image_url || "");
-    container.appendChild(row);
-  });
-}
-
-// ==========================================
-// 5. STREAM PIPELINE & INTERACTIVE CONSOLE MODULE
-// ==========================================
-window.switchProvider = function(providerKey) {
-  if (activeProviderKey === providerKey) return;
-  activeProviderKey = providerKey;
-  updateProviderTabsUI();
-  
-  if (window.currentMalId || window.currentAnilistId) {
-    window.routeActiveStreamSource(currentEpisodeIndex);
+  } catch (err) {
+    grid.innerHTML = '<p class="text-xs text-red-500 font-mono col-span-full">Failed to sync global season records.</p>';
   }
 }
 
+// ==========================================
+// 5. RESTORED STREAM TAB GENERATION ENGINE
+// ==========================================
 function updateProviderTabsUI() {
-  const targetBar = document.getElementById('server-source-tabs-bar');
-  if (!targetBar) return;
-  
-  targetBar.innerHTML = '';
+  const container = document.getElementById('provider-tabs-container');
+  if (!container) return;
+
+  container.innerHTML = ''; // Fresh DOM runway clear
+
+  const currentActiveHex = document.documentElement.style.getPropertyValue('--character-accent').trim() || '#f97316';
+  const curPreset = colorProfiles[currentPresetName] || colorProfiles.subaru;
+
   API_PROVIDERS.forEach(provider => {
     const btn = document.createElement('button');
-    btn.id = `provider-${provider.id}`;
-    btn.innerText = provider.name;
-    
+    btn.className = 'server-tab-btn whitespace-nowrap transition-all duration-200';
+    btn.setAttribute('data-provider-id', provider.id);
+    btn.innerHTML = `<span class="font-semibold">${provider.name}</span>`;
+
+    // Reapply horizontal selection row styling rules manually
     if (provider.id === activeProviderKey) {
-      btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
+      btn.style.backgroundColor = currentActiveHex;
+      btn.style.color = '#000000';
+      btn.style.borderColor = currentActiveHex;
+      btn.classList.add('active');
     } else {
-      btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+      btn.classList.remove('active');
     }
-    
-    btn.onclick = () => window.switchProvider(provider.id);
-    targetBar.appendChild(btn);
+
+    btn.onclick = () => {
+      if (activeProviderKey === provider.id) return;
+      activeProviderKey = provider.id;
+      
+      // Update UI highlights dynamically inside the row container loop
+      const siblings = container.querySelectorAll('.server-tab-btn');
+      siblings.forEach(s => {
+        s.style.backgroundColor = '';
+        s.style.color = '';
+        s.style.borderColor = '';
+        s.classList.remove('active');
+      });
+
+      btn.style.backgroundColor = currentActiveHex;
+      btn.style.color = '#000000';
+      btn.style.borderColor = currentActiveHex;
+      btn.classList.add('active');
+
+      if (window.currentMalId) {
+        window.routeActiveStreamSource(currentEpisodeIndex);
+      }
+    };
+
+    container.appendChild(btn);
   });
 }
 
-window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, imgUrl = "") {
+// ==========================================
+// 6. VIDEO SOURCE ROUTER & INJECTOR PIPELINES
+// ==========================================
+window.loadStreamingLayout = function(malId, title, maxEpisodes, imgUrl) {
   window.currentMalId = malId;
-  window.currentAnilistId = ""; 
-  window.activeAnimeTitle = titleName;
-  window.activeMaxEpisodes = totalEpisodes;
-  window.activeImgUrl = imgUrl || "";
-  
-  clearTimeout(streamLoadGuard);
+  window.activeAnimeTitle = title;
+  window.activeMaxEpisodes = maxEpisodes || 12;
+  window.activeImgUrl = imgUrl;
 
-  const sections = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
-  sections.forEach(id => {
-    const el = document.getElementById(id);
-    if(el) { el.classList.add('hidden'); el.classList.remove('block', 'flex'); }
-  });
+  const landing = document.getElementById('landing-portal');
+  if(landing) { landing.classList.add('hidden'); landing.classList.remove('flex'); }
+  const catalog = document.getElementById('main-exploration-hub');
+  if(catalog) { catalog.classList.add('hidden'); catalog.classList.remove('block'); }
+  const releases = document.getElementById('releases-focus-view');
+  if(releases) { releases.classList.add('hidden'); releases.classList.remove('block'); }
+  const calendar = document.getElementById('calendar-focus-view');
+  if(calendar) { calendar.classList.add('hidden'); calendar.classList.remove('block'); }
 
   const streamBox = document.getElementById('stream-dashboard-box');
-  if(streamBox) { streamBox.classList.remove('hidden'); streamBox.classList.add('block'); }
-  
-  const headerSearch = document.getElementById('header-search-engine');
-  if(headerSearch) { headerSearch.classList.remove('hidden'); headerSearch.classList.add('flex'); }
-  
-  const dTitle = document.getElementById('detail-title');
-  const dPoster = document.getElementById('detail-poster');
-  const dEpisodes = document.getElementById('detail-episodes');
-  const dType = document.getElementById('detail-type');
-  const dRating = document.getElementById('detail-rating');
-  const dSynopsis = document.getElementById('detail-synopsis');
-
-  if(dTitle) dTitle.innerText = titleName;
-  if(dPoster) dPoster.src = window.activeImgUrl;
-  if(dEpisodes) dEpisodes.innerText = totalEpisodes;
-  if(dType) dType.innerText = "TV Series";
-  if(dRating) dRating.innerText = "Syncing...";
-  if(dSynopsis) dSynopsis.innerText = "Requesting tracking parameters from cross-platform database...";
-
-  updateProviderTabsUI();
-  buildEpisodeIndexButtons(totalEpisodes);
-
-  try {
-    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
-    const mapData = await mapRes.json();
-    window.currentAnilistId = mapData.anilistId || mapData.id || malId;
-
-    const epRes = await fetch(`${ANIVEXA_BASE_API}/episodes/${window.currentAnilistId}`);
-    const epData = await epRes.json();
-    
-    if (epData && epData.length > 0) {
-      window.activeMaxEpisodes = epData.length;
-      buildEpisodeIndexButtons(epData.length);
-    }
-  } catch(e) { 
-    console.warn("Backend dynamic map mapping sequence exception fallback to base values.");
-    window.currentAnilistId = malId; 
+  if (streamBox) {
+    streamBox.classList.remove('hidden');
+    streamBox.classList.add('block');
   }
 
-  try {
-    const detailRes = await fetch(`${JIKAN_BASE}/anime/${malId}`);
-    const dataJson = await detailRes.json();
-    const info = dataJson.data;
-    if(info) {
-      if(dSynopsis) dSynopsis.innerText = info.synopsis || "No data record description parameters provided.";
-      if(dType) dType.innerText = info.type || "TV";
-      if(dRating) dRating.innerText = info.score || "?.??";
-    }
-  } catch(e) { console.warn("Meta metadata sync non-fatal exception."); }
+  const trackTitle = document.getElementById('stream-title-text');
+  if(trackTitle) trackTitle.innerText = title;
+  const trackBanner = document.getElementById('stream-detail-banner-img');
+  if(trackBanner) trackBanner.src = imgUrl;
 
+  const viewTitle = document.getElementById('view-indicator-title');
+  if(viewTitle) viewTitle.innerText = `Streaming Channel: ${title}`;
+
+  currentEpisodeIndex = 1;
+  globalEpisodeDataCache = null;
+
+  // Build out horizontal row tabs layout instantly
+  updateProviderTabsUI();
+  updateLanguageButtonsUI();
+  
+  renderEpisodeGridSelector(window.activeMaxEpisodes);
   window.routeActiveStreamSource(1);
 };
 
-function buildEpisodeIndexButtons(total) {
-  const box = document.getElementById('episode-buttons');
-  if(!box) return;
-  box.innerHTML = '';
-  for (let i = 1; i <= total; i++) {
+function renderEpisodeGridSelector(totalEpisodes) {
+  const container = document.getElementById('episode-grid-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (let i = 1; i <= totalEpisodes; i++) {
     const btn = document.createElement('button');
-    btn.id = `ep-btn-${i}`;
-    btn.innerText = i < 10 ? `0${i}` : i;
-    btn.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
+    btn.className = "py-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-accent/40 font-mono text-xs font-semibold text-gray-300 transition-colors";
+    btn.innerText = i < 10 ? `EP 0${i}` : `EP ${i}`;
+    btn.id = `ep-select-btn-${i}`;
     btn.onclick = () => window.routeActiveStreamSource(i);
-    box.appendChild(btn);
+    container.appendChild(btn);
   }
 }
 
-function buildMirrorStreamLinkGrids(streamData) {
-  const hlsContainer = document.getElementById('internal-player-links-grid') || document.getElementById('hls-links-grid');
-  const embedContainer = document.getElementById('embed-mirrors-links-grid') || document.getElementById('iframe-links-grid');
-  
-  if (hlsContainer) hlsContainer.innerHTML = '';
-  if (embedContainer) embedContainer.innerHTML = '';
-
-  if (hlsContainer) {
-    const mainUrl = streamData.streamUrl || streamData.url;
-    if (mainUrl && (mainUrl.includes('.m3u8') || streamData.type === 'hls')) {
-      const btn = document.createElement('button');
-      btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
-      btn.innerHTML = `<i class="fa-solid fa-play text-accent mr-1.5 text-[9px]"></i>Primary HLS Stream`;
-      btn.onclick = () => {
-        const wrapper = document.getElementById('video-player-wrapper');
-        if(wrapper) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, mainUrl);
-        }
-      };
-      hlsContainer.appendChild(btn);
-    }
-  }
-
-  const mirrors = streamData.sources || streamData.mirrors || [];
-  mirrors.forEach((track, i) => {
-    const linkUrl = track.url || track.link;
-    if (!linkUrl) return;
-
-    const btn = document.createElement('button');
-    btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
-    
-    if (linkUrl.includes('.m3u8') || track.type === 'hls' || track.type === 'm3u8') {
-      btn.innerHTML = `<i class="fa-solid fa-bolt text-amber-400 mr-1.5 text-[9px]"></i>HLS Server ${i + 1}`;
-      btn.onclick = () => {
-        if (plyrInstance) { try { plyrInstance.destroy(); } catch(e){} plyrInstance = null; }
-        const wrapper = document.getElementById('video-player-wrapper');
-        if(wrapper) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, linkUrl);
-        }
-      };
-      if (hlsContainer) hlsContainer.appendChild(btn);
-    } else {
-      btn.innerHTML = `<i class="fa-solid fa-link text-indigo-400 mr-1.5 text-[9px]"></i>Mirror Embed ${i + 1}`;
-      btn.onclick = () => {
-        const wrapper = document.getElementById('video-player-wrapper');
-        if (wrapper) {
-          if (plyrInstance) { try { plyrInstance.destroy(); } catch(e){} plyrInstance = null; }
-          wrapper.innerHTML = `<iframe id="video-iframe" src="${linkUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
-        }
-      };
-      if (embedContainer) embedContainer.appendChild(btn);
-    }
-  });
-
-  if (hlsContainer && hlsContainer.children.length === 0) {
-    hlsContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No direct internal players found.</p>`;
-  }
-  if (embedContainer && embedContainer.children.length === 0) {
-    embedContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No absolute mirror links found.</p>`;
-  }
-}
-
-window.routeActiveStreamSource = async function(epIndex) {
-  currentEpisodeIndex = epIndex;
-  
-  document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
-    b.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
-  });
-  const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
-  if(targetBtn) {
-    targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
-  }
-
-  clearTimeout(streamLoadGuard);
-  if (plyrInstance) {
-    try { plyrInstance.destroy(); } catch(e){}
-    plyrInstance = null;
-  }
-
-  const wrapper = document.getElementById('video-player-wrapper');
-  if(!wrapper) return;
-  const anilistId = window.currentAnilistId || window.currentMalId;
-  let targetStreamUrl = "";
-
-  try {
-    if (activeProviderKey === 'megaplay') {
-      const activeBaseUrl = PROVIDER_BASES.megaplay;
-      targetStreamUrl = `${activeBaseUrl}/${window.currentMalId}/${epIndex}/${currentLanguage}`;
-      wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
-      buildMirrorStreamLinkGrids({ url: "", sources: [{ url: targetStreamUrl, type: "embed" }] });
-      return;
-    } 
-    else if (activeProviderKey === 'reanime') {
-      targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
-      wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-      const videoElement = document.getElementById('video-iframe');
-      initializeHlsVideo(videoElement, targetStreamUrl);
-      buildMirrorStreamLinkGrids({ url: targetStreamUrl, sources: [] });
-    } 
-    else {
-      const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
-      const streamData = await watchResponse.json();
-      
-      targetStreamUrl = streamData.streamUrl || streamData.url || (streamData.sources && streamData.sources[0]?.url);
-      
-      if (targetStreamUrl) {
-        if (targetStreamUrl.includes('.m3u8') || streamData.type === 'hls' || (streamData.sources && streamData.sources[0]?.type === 'hls')) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, targetStreamUrl);
-        } else {
-          wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
-        }
-        buildMirrorStreamLinkGrids(streamData);
+function updateEpisodeSelectorUI(targetIndex) {
+  for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+    const btn = document.getElementById(`ep-select-btn-${i}`);
+    if (btn) {
+      if (i === targetIndex) {
+        const hex = document.documentElement.style.getPropertyValue('--character-accent').trim() || '#f97316';
+        btn.style.borderColor = hex;
+        btn.style.color = hex;
+        btn.classList.add('bg-dark-card');
       } else {
-        throw new Error("Empty target pipeline stream source mapping index.");
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.classList.remove('bg-dark-card');
       }
+    }
+  }
+}
+
+window.routeActiveStreamSource = async function(episodeNum) {
+  currentEpisodeIndex = episodeNum;
+  updateEpisodeSelectorUI(episodeNum);
+  
+  const videoFrame = document.getElementById('video-frame-loader');
+  const noticeOverlay = document.getElementById('player-loading-shimmer');
+  if (noticeOverlay) noticeOverlay.classList.remove('hidden');
+
+  // Short circuit route for MegaPlay embedded player mappings
+  if (activeProviderKey === 'megaplay') {
+    if (videoFrame) {
+      videoFrame.src = `${PROVIDER_BASES.megaplay}/${window.currentMalId}/${episodeNum}`;
+    }
+    setTimeout(() => { if (noticeOverlay) noticeOverlay.classList.add('hidden'); }, 1200);
+    return;
+  }
+
+  // API Manifest resolution arrays for advanced background aggregators
+  try {
+    const endpoint = `${ANIVEXA_BASE_API}/api/v2/stream?id=${window.currentMalId}&episode=${episodeNum}&provider=${activeProviderKey}&lang=${currentLanguage}`;
+    const res = await fetch(endpoint);
+    const data = await res.json();
+
+    if (data && data.url) {
+      if (videoFrame) videoFrame.src = data.url;
+      if (noticeOverlay) noticeOverlay.classList.add('hidden');
+    } else {
+      loadAlternativeIframeMirror('megaplay');
     }
   } catch (err) {
-    console.error("Pipeline failure routing active stream node coordinates:", err);
-    handleStreamMissingNotice();
+    loadAlternativeIframeMirror('megaplay');
   }
-}
+};
 
-function initializeHlsVideo(videoElement, sourceUrl) {
-  if (!videoElement) return;
+function loadAlternativeIframeMirror(fallbackKey) {
+  const videoFrame = document.getElementById('video-frame-loader');
+  const noticeOverlay = document.getElementById('player-loading-shimmer');
   
-  if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(sourceUrl);
-    hls.attachMedia(videoElement);
-    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-      if (typeof Plyr !== 'undefined') {
-        plyrInstance = new Plyr(videoElement, {
-          controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-        });
-      }
-    });
-    
-    hls.on(Hls.Events.ERROR, function(event, data) {
-      if (data.fatal) {
-        handleStreamMissingNotice();
-      }
-    });
-  } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-    videoElement.src = sourceUrl;
-    if (typeof Plyr !== 'undefined') {
-      plyrInstance = new Plyr(videoElement, {
-        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-      });
-    }
+  if (videoFrame) {
+    videoFrame.src = `${PROVIDER_BASES.megaplay}/${window.currentMalId}/${currentEpisodeIndex}`;
+  }
+  
+  if (noticeOverlay) {
+    noticeOverlay.classList.add('hidden');
+    const txt = noticeOverlay.querySelector('p');
+    if (txt) txt.innerText = `Source empty on provider: "${activeProviderKey.toUpperCase()}". Try switching tabs above.`;
   }
 }
 
-function handleStreamMissingNotice() {
-  const wrapper = document.getElementById('video-player-wrapper');
-  if (!wrapper) return;
-  wrapper.innerHTML = `
-    <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] text-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
-      <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Pipeline Fault</p>
-      <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}.</p>
-      <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
-    </div>`;
-
-  const hlsContainer = document.getElementById('internal-player-links-grid') || document.getElementById('hls-links-grid');
-  const embedContainer = document.getElementById('embed-mirrors-links-grid') || document.getElementById('iframe-links-grid');
-  if (hlsContainer) hlsContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No links available on error route.</p>`;
-  if (embedContainer) embedContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No links available on error route.</p>`;
-}
-
-window.setLanguage = function(lang) {
-  if (currentLanguage === lang) return;
+function setLanguage(lang) {
   currentLanguage = lang;
   updateLanguageButtonsUI();
-  
   if (window.currentMalId) {
     window.routeActiveStreamSource(currentEpisodeIndex);
   }
 }
 
 function updateLanguageButtonsUI() {
-  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
-  const curPreset = colorProfiles[currentPresetName] || colorProfiles.subaru;
+  const currentActiveHex = document.documentElement.style.getPropertyValue('--character-accent').trim() || '#f97316';
 
   ['sub', 'dub'].forEach(l => {
     const btn = document.getElementById(`${l}-btn`);
     if(!btn) return;
     if (currentLanguage === l) {
       btn.style.backgroundColor = currentActiveHex;
-      btn.style.color = '#ffffff'; // Fallback setup for clear contrast
+      btn.style.color = '#000000';
       btn.style.borderColor = currentActiveHex;
-      // Reinforce Tailwind alignment if needed dynamically
       btn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
     } else {
       btn.style.backgroundColor = '';
@@ -879,7 +705,7 @@ function updateLanguageButtonsUI() {
 // Autoplay Event Handshake Interceptor
 window.addEventListener("message", function (event) {
   let data = event.data;
-  if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
+  if (typeof data === \"string\") { try { data = JSON.parse(data); } catch (e) { return; } }
   if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
     const nextEp = currentEpisodeIndex + 1;
     if (nextEp <= window.activeMaxEpisodes) {
@@ -889,9 +715,78 @@ window.addEventListener("message", function (event) {
 });
 
 // ==========================================
-// 6. LIFE MATRIX BOOT INITIALIZER EXECUTION
+// 7. CORE RUNTIME INITIALIZATION RUNWAYS
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-  loadSavedTheme();
+function displayScrollFeed(dataset, targetId) {
+  const container = document.getElementById(targetId);
+  if(!container) return;
+  container.innerHTML = '';
+  
+  dataset.forEach(anime => {
+    const title = anime.title_english || anime.title;
+    const imgUrl = anime.images?.jpg?.image_url || '';
+    const div = document.createElement('div');
+    div.className = "w-36 shrink-0 bg-dark-card border border-dark-border rounded-2xl p-2 cursor-pointer hover:border-accent/40 transition-all group";
+    div.innerHTML = `
+      <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2">
+        <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Cover">
+      </div>
+      <div class="text-[11px] font-semibold tracking-wide text-gray-300 truncate px-0.5 group-hover:text-white">${title}</div>
+    `;
+    const cleanTitle = title.replace(/'/g, "\\'");
+    div.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+    container.appendChild(div);
+  });
+}
+
+function displayGridFeed(dataset, targetId) {
+  const container = document.getElementById(targetId);
+  if(!container) return;
+  container.innerHTML = '';
+
+  dataset.forEach(anime => {
+    const title = anime.title_english || anime.title;
+    const imgUrl = anime.images?.jpg?.image_url || '';
+    const card = document.createElement('div');
+    card.className = "bg-dark-card border border-dark-border rounded-2xl p-2 cursor-pointer hover:border-accent/40 transition-all shadow group";
+    card.innerHTML = `
+      <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2">
+        <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Cover">
+      </div>
+      <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-1 group-hover:text-white">${title}</div>
+    `;
+    const cleanTitle = title.replace(/'/g, "\\'");
+    card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+    container.appendChild(card);
+  });
+}
+
+function displayTop10Sidebar(dataset) {
+  const container = document.getElementById('sidebar-top-list');
+  if(!container) return;
+  container.innerHTML = '';
+
+  dataset.forEach((anime, idx) => {
+    const title = anime.title_english || anime.title;
+    const item = document.createElement('div');
+    item.className = "flex items-center gap-3 p-2 rounded-xl bg-dark-input/50 border border-dark-border/30 hover:border-accent/30 cursor-pointer transition-colors";
+    item.innerHTML = `
+      <span class="font-mono text-sm font-black text-gray-600 w-4 text-center">${idx + 1}</span>
+      <div class="min-w-0 flex-1">
+        <div class="text-[11px] font-semibold text-gray-300 truncate">${title}</div>
+        <div class="text-[9px] text-gray-500 font-medium">${anime.type || 'TV'} · ${anime.score || 'N/A'}</div>
+      </div>
+    `;
+    const cleanTitle = title.replace(/'/g, "\\'");
+    item.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, anime.images?.jpg?.image_url || '');
+    container.appendChild(item);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
   startSystemClock();
+  loadSavedTheme();
+  
+  // Set tracking parameters to first item automatically on initialization setups
+  updateProviderTabsUI();
 });
