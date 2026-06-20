@@ -360,7 +360,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
       scheduleBox.appendChild(div);
     });
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
+    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
   }
 }
 
@@ -567,23 +567,37 @@ window.switchProvider = function(providerKey) {
 }
 
 function updateProviderTabsUI() {
-  const targetBar = document.getElementById('server-source-tabs-bar');
-  if (!targetBar) return;
-  
-  targetBar.innerHTML = '';
+  const container = document.getElementById('server-source-tabs-bar');
+  if (!container) return;
+
+  container.innerHTML = ''; 
+
+  const currentActiveHex = document.documentElement.style.getPropertyValue('--character-accent').trim() || '#f97316';
+
   API_PROVIDERS.forEach(provider => {
     const btn = document.createElement('button');
-    btn.id = `provider-${provider.id}`;
-    btn.innerText = provider.name;
-    
+    btn.className = 'server-tab-btn whitespace-nowrap transition-all duration-200';
+    btn.setAttribute('data-provider-id', provider.id);
+    btn.innerHTML = `<span class="font-semibold">${provider.name}</span>`;
+
     if (provider.id === activeProviderKey) {
-      btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
+      btn.style.backgroundColor = currentActiveHex;
+      btn.style.color = '#000000';
+      btn.style.borderColor = currentActiveHex;
+      btn.className = "px-3 py-1 text-[10px] font-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0 active";
     } else {
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
       btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
     }
-    
-    btn.onclick = () => window.switchProvider(provider.id);
-    targetBar.appendChild(btn);
+
+    btn.onclick = () => {
+      if (activeProviderKey === provider.id) return;
+      window.switchProvider(provider.id);
+    };
+
+    container.appendChild(btn);
   });
 }
 
@@ -863,9 +877,8 @@ function updateLanguageButtonsUI() {
     if(!btn) return;
     if (currentLanguage === l) {
       btn.style.backgroundColor = currentActiveHex;
-      btn.style.color = '#ffffff'; // Fallback setup for clear contrast
+      btn.style.color = '#ffffff'; 
       btn.style.borderColor = currentActiveHex;
-      // Reinforce Tailwind alignment if needed dynamically
       btn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
     } else {
       btn.style.backgroundColor = '';
