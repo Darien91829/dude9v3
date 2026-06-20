@@ -58,7 +58,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex font-['Inter',sans-serif]">
+<body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex flex-col md:flex-row font-['Inter',sans-serif]">
 
   <aside id="main-menu-drawer" class="fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5 bg-[#0f0f12] sidebar border-r border-dark-border flex flex-col justify-between">
     <div>
@@ -100,7 +100,7 @@
 
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden backdrop-blur-sm"></div>
 
-  <div class="flex-1 flex flex-col min-w-0">
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
     
     <nav class="sticky top-0 z-30 bg-dark-bg/95 backdrop-blur border-b border-dark-border px-6 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-4">
@@ -275,6 +275,26 @@
         </div>
       </section>
     </main>
+
+    <footer class="mt-auto border-t border-dark-border bg-[#0b0b0d] py-6 px-6 sm:px-8">
+      <div class="max-w-7xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-white font-bold text-sm tracking-wide select-none">
+            TheDude9 <span class="dynamic-accent-text text-accent">Anime Hub</span>
+          </span>
+        </div>
+        
+        <p class="text-[11px] text-gray-600 order-3 sm:order-2 font-medium">
+          &copy; 2026 TheDude9. All rights reserved.
+        </p>
+        
+        <div class="flex items-center gap-6 text-[11px] font-semibold text-gray-500 order-2 sm:order-3">
+          <a href="#" class="hover:text-accent transition-colors">Terms</a>
+          <a href="#" class="hover:text-accent transition-colors">Privacy</a>
+          <a href="#" class="hover:text-accent transition-colors">Contact</a>
+        </div>
+      </div>
+    </footer>
   </div>
 
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm"></div>
