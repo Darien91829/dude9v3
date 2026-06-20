@@ -125,7 +125,7 @@ body {
 
 .server-tab-btn.active {
   background-color: var(--character-accent) !important;
-  color: #000000 !important;
+  color: var(--preset-text-color, #000000) !important;
   box-shadow: 0 0 12px rgba(var(--character-accent-rgb, 249, 115, 22), 0.35);
 }
 
@@ -143,7 +143,7 @@ body {
 .calendar-matrix-day.selected-filter {
   background-color: var(--character-accent) !important;
   border-color: var(--character-accent) !important;
-  color: #000000 !important;
+  color: var(--preset-text-color, #000000) !important;
 }
 
 /* Embedded Plyr HTML5 Player Pipeline Custom Overrides */
@@ -158,7 +158,7 @@ body {
 
 .plyr__control--overlaid {
   background: rgba(var(--character-accent-rgb, 249, 115, 22), 0.85) !important;
-  color: #000000 !important;
+  color: var(--preset-text-color, #000000) !important;
 }
 
 .plyr__controls {
