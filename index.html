@@ -936,7 +936,6 @@
       const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
       
       API_PROVIDERS.forEach(provider => {
-        // Only list HLS API engines here (not MegaPlay which is pure fallback layout mirror)
         if (provider.id === 'megaplay') return;
         
         const btn = document.createElement('button');
@@ -956,7 +955,6 @@
       });
     }
 
-    // Direct HLS Source Loading Switcher
     window.loadDirectHlsStream = function(url, streamLabel = 'Default Track') {
       if (!url) return;
       if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
@@ -983,7 +981,6 @@
       }
     }
 
-    // Alternative Embed Mirror Injector
     window.loadAlternativeIframeMirror = function(mirrorType, url = null) {
       if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
       const wrapper = document.getElementById('video-player-wrapper');
@@ -1181,7 +1178,6 @@
       }
     });
 
-    // Modified Failover Handler: Swaps broken streams directly to working MegaPlay interface mirrors smoothly
     function handleStreamMissingNotice() {
       console.log("HLS parsing broken or unreturned links. Activating seamless MegaPlay embed failover layout.");
       
@@ -1190,7 +1186,6 @@
         hlsContainer.innerHTML = '<p class="text-[11px] text-amber-500/90 font-mono"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Direct stream link offline. Auto-rerouted to system embed framework mirrors below.</p>';
       }
       
-      // Instantly load the reliable MegaPlay server into player context area
       loadAlternativeIframeMirror('megaplay');
     }
 
@@ -1217,9 +1212,6 @@
       }
     }
 
-    // ==========================================
-    // 7. SYSTEM LIFE CYCLE BOOTSTRAPPER
-    // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
       loadSavedTheme();
       startSystemClock();
