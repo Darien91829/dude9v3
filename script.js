@@ -1,31 +1,23 @@
 const JIKAN_BASE = "https://api.jikan.moe/v4";
 
-// ==========================================
-// 1. GLOBAL STATE INITIALIZATION
-// ==========================================
+// YOUR STANDALONE STREAMING API HOSTED ON VERCEL
 const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
 
-const PROVIDER_BASES = {
-  megaplay: "https://megaplay.buzz/stream/mal"
-};
-
-// Updated list tracking all available backend providers
-const API_PROVIDERS = [
-  { id: 'megaplay', name: 'MegaPlay' },
-  { id: 'allmanga', name: 'AllManga' },
-  { id: 'reanime', name: 'ReAnime' },
-  { id: 'anikoto', name: 'AniKoto' },
-  { id: 'animegg', name: 'AnimeGG' },
-  { id: 'anineko', name: 'AniNeko' },
-  { id: 'anidbapp', name: 'AniDB App' },
-  { id: 'animepahe', name: 'AnimePahe' }
-];
-
-let activeProviderKey = 'megaplay'; 
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
-let plyrInstance = null;
-let streamLoadGuard = null;
+let activeScheduleDay = 'today';
+let activeProviderMode = 'allmanga'; // Default active provider
+
+// Track all 7 available backend providers from your API manifest
+const API_PROVIDERS = [
+  { id: 'allmanga', name: 'AllManga', status: 'Active' },
+  { id: 'reanime', name: 'ReAnime', status: 'Active' },
+  { id: 'anikoto', name: 'AniKoto', status: 'Active' },
+  { id: 'animegg', name: 'AnimeGG', status: 'Active' },
+  { id: 'anineko', name: 'AniNeko', status: 'Active' },
+  { id: 'anidbapp', name: 'AniDB App', status: 'Active' },
+  { id: 'animepahe', name: 'AnimePahe', status: 'Unstable' }
+];
 
 // Guard items to stop loop updates on view toggle
 let hubFeedsLoaded = false;
@@ -37,459 +29,670 @@ let selectedDayFilter = '';
 // Store the fetched server episode mapping objects globally so we can access real API data IDs
 let globalEpisodeDataCache = null;
 
-window.currentMalId = "";
-window.currentAnilistId = "";
+window.currentAnilistId = null;
+window.currentMalId = null;
 window.activeAnimeTitle = "";
 window.activeMaxEpisodes = 12;
-window.activeImgUrl = "";
 
-let activeScheduleDay = 'today';
-let calendarCachedDataset = [];
-const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+// Store global hls.js reference to destroy it during stream context switching
+window.currentHlsInstance = null;
+window.currentPlyr = null;
 
-const colorProfiles = {
-  umi: { hex: '#4169e1', rgb: '65, 105, 225' },
-  alya: { hex: '#a1a1aa', rgb: '161, 161, 170' },
-  subaru: { hex: '#f97316', rgb: '249, 115, 22' },
-  emilia: { hex: '#c084fc', rgb: '192, 132, 252' },
-  rem: { hex: '#38bdf8', rgb: '56, 189, 248' },
-  ram: { hex: '#fb7185', rgb: '251, 113, 133' },
-  beatrice: { hex: '#fbbf24', rgb: '251, 191, 36' },
-  felt: { hex: '#eab308', rgb: '234, 179, 8' },
-  reinhard: { hex: '#dc2626', rgb: '220, 38, 38' },
-  crusch: { hex: '#059669', rgb: '5, 150, 105' },
-  felix: { hex: '#d97706', rgb: '217, 119, 6' },
-  priscilla: { hex: '#ef4444', rgb: '239, 68, 68' },
-  anastasia: { hex: '#f472b6', rgb: '244, 114, 182' },
-  julius: { hex: '#818cf8', rgb: '129, 140, 248' },
-  wilhelm: { hex: '#94a3b8', rgb: '148, 163, 184' },
-  roswaal: { hex: '#4f46e5', rgb: '79, 70, 229' },
-  satella: { hex: '#6d28d9', rgb: '109, 40, 217' },
-  echidna: { hex: '#e4e4e7', rgb: '228, 228, 231' }
+const presets = {
+  subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#121216', textLight: false },
+  umi: { hex: '#4169e1', bg: '#0f0f12', card: '#16161c', input: '#121216', textLight: true },
+  alya: { hex: '#a1a1aa', bg: '#0f0f12', card: '#16161c', input: '#121216', textLight: false },
+  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true },
+  rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false },
+  ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false },
+  beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', textLight: false },
+  felt: { hex: '#eab308', bg: '#12110a', card: '#1c1a10', input: '#2a2718', textLight: false },
+  reinhard: { hex: '#dc2626', bg: '#140b0b', card: '#201111', input: '#2e1919', textLight: true },
+  crusch: { hex: '#059669', bg: '#0a120e', card: '#101c16', input: '#182b22', textLight: true },
+  felix: { hex: '#d97706', bg: '#140b0b', card: '#201911', input: '#2e2419', textLight: false },
+  priscilla: { hex: '#ef4444', bg: '#120a0a', card: '#1c1010', input: '#2a1818', textLight: true },
+  anastasia: { hex: '#f472b6', bg: '#140d11', card: '#20141b', input: '#2e1d27', textLight: false },
+  julius: { hex: '#6366f1', bg: '#0d0d14', card: '#141420', input: '#1e1e2e', textLight: true },
+  wilhelm: { hex: '#94a3b8', bg: '#0f1115', card: '#171a21', input: '#222630', textLight: false },
+  roswaal: { hex: '#4f46e5', bg: '#0b0a14', card: '#111020', input: '#19182e', textLight: true },
+  satella: { hex: '#6d28d9', bg: '#0a0812', card: '#100c1c', input: '#18122b', textLight: true },
+  echidna: { hex: '#e2e8f0', bg: '#101012', card: '#18181c', input: '#24242a', textLight: false }
 };
 
-// ==========================================
-// 2. INTERFACE OPERATIONS MANAGER (UI / VIEWS)
-// ==========================================
-window.switchToView = function(viewTarget) {
-  const sections = [
-    'landing-portal',
-    'main-exploration-hub',
-    'releases-focus-view',
-    'calendar-focus-view',
-    'stream-dashboard-box'
-  ];
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
-  sections.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.classList.add('hidden');
-      el.classList.remove('block', 'flex');
+async function fetchWithRetry(url, options = {}, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) return await response.json();
+      if (response.status === 429) throw new Error("Rate limited");
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      await delay(2000 * (i + 1)); 
     }
-  });
-
-  const headerSearch = document.getElementById('header-search-engine');
-  if (headerSearch) {
-    headerSearch.classList.remove('hidden');
-    headerSearch.classList.add('flex');
-  }
-
-  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-  const viewTitle = document.getElementById('view-indicator-title');
-
-  if (viewTarget === 'home') {
-    const landing = document.getElementById('landing-portal');
-    if (landing) {
-      landing.classList.remove('hidden');
-      landing.classList.add('flex');
-    }
-    if (headerSearch) {
-      headerSearch.classList.add('hidden');
-      headerSearch.classList.remove('flex');
-    }
-    const navHome = document.getElementById('side-nav-home');
-    if(navHome) navHome.classList.add('active');
-    if(viewTitle) viewTitle.innerText = "Welcome Portal";
-  } 
-  else if (viewTarget === 'catalog') {
-    const catalog = document.getElementById('main-exploration-hub');
-    if (catalog) {
-      catalog.classList.remove('hidden');
-      catalog.classList.add('block');
-    }
-    
-    const recBlock = document.getElementById('recommendations-container-block');
-    if (recBlock) recBlock.classList.remove('hidden');
-    const sideBlock = document.getElementById('sidebar-container-block');
-    if (sideBlock) sideBlock.classList.remove('hidden');
-
-    const splitContainer = document.getElementById('grid-split-container');
-    if(splitContainer) splitContainer.className = "lg:col-span-2 space-y-8";
-    const headerTitle = document.getElementById('grid-header-title');
-    if(headerTitle) headerTitle.innerText = "Trending Media Records";
-    const navCatalog = document.getElementById('side-nav-catalog');
-    if(navCatalog) navCatalog.classList.add('active');
-    if(viewTitle) viewTitle.innerText = "Catalog Exploration Matrix";
-    loadMainHubFeeds();
-  } 
-  else if (viewTarget === 'releases') {
-    const releases = document.getElementById('releases-focus-view');
-    if (releases) {
-      releases.classList.remove('hidden');
-      releases.classList.add('block');
-    }
-    const navReleases = document.getElementById('side-nav-releases');
-    if(navReleases) navReleases.classList.add('active');
-    if(viewTitle) viewTitle.innerText = "Global Release Streams";
-    fetchFullSeasonalReleases();
-  } 
-  else if (viewTarget === 'calendar') {
-    const calendar = document.getElementById('calendar-focus-view');
-    if (calendar) {
-      calendar.classList.remove('hidden');
-      calendar.classList.add('block');
-    }
-    const navCalendar = document.getElementById('side-nav-calendar');
-    if(navCalendar) navCalendar.classList.add('active');
-    if(viewTitle) viewTitle.innerText = "Broadcasting Track Scheduler";
-    initCalendarTimelineLayout();
   }
 }
 
-window.toggleMainMenu = function() {
+function applyCharacterPreset(name) {
+  const p = presets[name]; if (!p) return;
+  currentPresetName = name;
+  
+  // Apply theme variables dynamically to match CSS properties
+  document.documentElement.style.setProperty('--character-accent', p.hex);
+  document.documentElement.style.setProperty('--character-accent-hover', p.hex + 'cc');
+  
+  document.body.style.backgroundColor = p.bg;
+  document.querySelectorAll('.sidebar, #main-menu-drawer').forEach(el => el.style.backgroundColor = p.bg);
+  document.querySelectorAll('.bg-dark-card').forEach(el => el.style.backgroundColor = p.card);
+  document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = p.input);
+  document.querySelectorAll('.border-dark, .border-dark-border').forEach(el => el.style.borderColor = p.input);
+  document.querySelectorAll('.dynamic-accent-text').forEach(el => el.style.color = p.hex);
+  
+  document.querySelectorAll('.dynamic-accent-bg').forEach(el => {
+    el.style.backgroundColor = p.hex; 
+    el.style.color = p.textLight ? '#ffffff' : '#000000';
+  });
+  
+  updateProviderButtonsUI();
+  updateLanguageButtonsUI();
+  if (window.currentAnilistId) updateEpisodeButtonsUI();
+  
+  const tabAct = document.getElementById(`tab-${activeScheduleDay}`);
+  if(tabAct) { 
+    tabAct.style.backgroundColor = p.hex; 
+    tabAct.style.color = p.textLight ? '#ffffff' : '#000000'; 
+  }
+
+  document.querySelectorAll('.consumet-card-item').forEach(card => {
+    card.addEventListener('mouseenter', () => card.style.borderColor = `${p.hex}4d`);
+    card.addEventListener('mouseleave', () => card.style.borderColor = 'transparent');
+  });
+  
+  if (calendarLoaded) {
+    renderCalendarGridStructure();
+  }
+}
+
+function initCalendarUI() {
+  setupCalendarControls();
+  renderCalendarGridStructure();
+  fetchAndRenderChronologicalList();
+}
+
+function setupCalendarControls() {
+  const todayBtn = document.getElementById('jump-today-btn');
+  const searchInput = document.getElementById('calendar-search');
+
+  if (todayBtn && !todayBtn.dataset.bound) {
+    todayBtn.dataset.bound = true;
+    todayBtn.addEventListener('click', () => {
+      selectedDayFilter = '';
+      if(searchInput) searchInput.value = '';
+      renderCalendarGridStructure();
+      fetchAndRenderChronologicalList();
+    });
+  }
+}
+
+function filterCalendarGrid() {
+  const searchInput = document.getElementById('calendar-search');
+  if (searchInput) {
+    fetchAndRenderChronologicalList(searchInput.value.trim());
+  }
+}
+
+function resetCalendarGridDay() {
+  selectedDayFilter = '';
+  const searchInput = document.getElementById('calendar-search');
+  if (searchInput) searchInput.value = '';
+  renderCalendarGridStructure();
+  fetchAndRenderChronologicalList();
+}
+
+function renderCalendarGridStructure() {
+  const matrixContainer = document.getElementById('calendar-days-matrix');
+  if (!matrixContainer) return;
+  matrixContainer.innerHTML = '';
+
+  const todayDayIndex = new Date().getDay(); 
+  const daysFull = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const daysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const currentAccentColor = document.querySelector('.dynamic-accent-text')?.style.color || '#00ff66';
+  
+  for (let i = 0; i < 7; i++) {
+    const dayBox = document.createElement('button');
+    dayBox.className = "bg-[#16161c] border border-dark-border rounded-xl py-3 px-1 flex flex-col items-center justify-center text-[11px] font-bold text-gray-400 transition-all select-none hover:border-gray-600";
+    
+    dayBox.innerHTML = `
+      <span class="text-[9px] text-gray-500 uppercase tracking-tight mb-0.5">${daysShort[i].slice(0,2)}</span>
+      <span>${daysShort[i]}</span>
+    `;
+    
+    if (selectedDayFilter === daysFull[i]) {
+      dayBox.style.backgroundColor = currentAccentColor;
+      dayBox.style.borderColor = currentAccentColor;
+      dayBox.style.color = '#000000';
+    } else if (i === todayDayIndex && !selectedDayFilter) {
+      dayBox.style.borderColor = currentAccentColor;
+      dayBox.style.color = '#ffffff';
+    }
+
+    dayBox.onclick = () => {
+      if (selectedDayFilter === daysFull[i]) {
+        selectedDayFilter = ''; 
+      } else {
+        selectedDayFilter = daysFull[i];
+      }
+      renderCalendarGridStructure();
+      const searchInput = document.getElementById('calendar-search');
+      fetchAndRenderChronologicalList(searchInput ? searchInput.value.trim() : "");
+    };
+
+    matrixContainer.appendChild(dayBox);
+  }
+}
+
+async function fetchAndRenderChronologicalList(filterTerm = "") {
+  const listContainer = document.getElementById('airing-chronological-list');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = `
+    <div class="text-center py-8 text-xs text-gray-500 col-span-full">
+      <i class="fa-solid fa-circle-notch animate-spin text-sm mr-2 dynamic-accent-text"></i> Syncing AniList broadcast tracks...
+    </div>
+  `;
+
+  const targetTime = new Date();
+  const currentDayIndex = targetTime.getDay();
+  
+  const startOfWeek = new Date(targetTime);
+  startOfWeek.setDate(targetTime.getDate() - currentDayIndex);
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+  const startTimeSeconds = Math.floor(startOfWeek.getTime() / 1000);
+  const endTimeSeconds = Math.floor(endOfWeek.getTime() / 1000);
+
+  const calendarGraphQLQuery = `
+    query ($start: Int, $end: Int) {
+      Page(page: 1, perPage: 100) {
+        airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME_ASC) {
+          episode
+          airingAt
+          media {
+            id
+            idMal
+            type
+            averageScore
+            title {
+              english
+              romaji
+            }
+            coverImage {
+              large
+            }
+            episodes
+          }
+        }
+      }
+    }`;
+
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: calendarGraphQLQuery,
+        variables: { start: startTimeSeconds, end: endTimeSeconds }
+      })
+    });
+    
+    const json = await response.json();
+    const rawSchedules = json.data?.Page?.airingSchedules || [];
+
+    if (rawSchedules.length === 0) {
+      listContainer.innerHTML = `<div class="text-xs text-gray-500 py-4 text-center col-span-full">No scheduled items found.</div>`;
+      return;
+    }
+
+    const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const todayName = daysOfWeek[new Date().getDay()];
+    listContainer.innerHTML = '';
+
+    const mappedDays = {};
+    daysOfWeek.forEach(d => mappedDays[d] = []);
+
+    rawSchedules.forEach(item => {
+      if (!item.media) return;
+      const airDate = new Date(item.airingAt * 1000);
+      const localDayLabel = daysOfWeek[airDate.getDay()];
+      
+      const title = item.media.title.english || item.media.title.romaji || "";
+      if (filterTerm && !title.toLowerCase().includes(filterTerm.toLowerCase())) return;
+
+      mappedDays[localDayLabel].push(item);
+    });
+
+    daysOfWeek.forEach(dayLabel => {
+      if (selectedDayFilter && dayLabel !== selectedDayFilter) return;
+
+      const animeList = mappedDays[dayLabel];
+      if (animeList.length === 0) return;
+
+      const daySection = document.createElement('div');
+      daySection.className = "col-span-full mb-4";
+
+      let displayDayLabel = dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1);
+      if (dayLabel === todayName) {
+        displayDayLabel = `${displayDayLabel} &bull; Today`;
+      }
+
+      let listHtml = `
+        <div class="flex items-center justify-between border-b border-dark-border pb-2 mb-3">
+          <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">${displayDayLabel}</h3>
+          <span class="text-[10px] text-gray-500 font-medium font-mono">${animeList.length} titles</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      `;
+
+      animeList.forEach(item => {
+        const anime = item.media;
+        const title = anime.title.english || anime.title.romaji;
+        const airDate = new Date(item.airingAt * 1000);
+        const airTime = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const scoreDisplay = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 'N/A';
+
+        listHtml += `
+          <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.id}, ${anime.idMal || 'null'}, '${title.replace(/'/g, "\\'")}')"
+               class="flex items-center justify-between p-2 rounded-xl bg-dark-card border border-dark-border hover:bg-neutral-900/40 cursor-pointer transition-all group">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="${anime.coverImage?.large}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-dark-border">
+              <div class="min-w-0">
+                <h4 class="text-xs font-semibold text-gray-200 group-hover:text-white transition-colors truncate">${title}</h4>
+                <p class="text-[10px] text-gray-500 mt-0.5 font-mono">${anime.type || 'TV'} &bull; Ep ${item.episode} &bull; Score: ${scoreDisplay}</p>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono font-bold text-gray-400 shrink-0 bg-zinc-900/80 px-2 py-1 rounded border border-dark-border">${airTime}</span>
+          </div>
+        `;
+      });
+
+      listHtml += `</div>`;
+      daySection.innerHTML = listHtml;
+      listContainer.appendChild(daySection);
+    });
+
+    if (listContainer.innerHTML === '') {
+      listContainer.innerHTML = `<div class="text-xs text-gray-500 py-4 text-center col-span-full">No matching upcoming series airing for this choice.</div>`;
+    }
+
+  } catch (err) {
+    console.error(err);
+    listContainer.innerHTML = `
+      <div class="text-center py-6 col-span-full">
+        <p class="text-xs text-red-500 mb-3">AniList data hub temporary standby.</p>
+        <button onclick="fetchAndRenderChronologicalList()" class="bg-accent text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
+      </div>`;
+  }
+}
+
+function toggleMainMenu() {
   const drawer = document.getElementById('main-menu-drawer');
   const overlay = document.getElementById('menu-overlay');
-  if (!drawer) return;
+  if (!drawer || !overlay) return;
   if (drawer.classList.contains('-translate-x-full')) {
     drawer.classList.remove('-translate-x-full');
-    if (overlay) overlay.classList.remove('hidden');
+    overlay.classList.remove('hidden');
   } else {
     drawer.classList.add('-translate-x-full');
-    if (overlay) overlay.classList.add('hidden');
+    overlay.classList.add('hidden');
   }
 }
 
-window.homeReturnReset = function() {
-  clearTimeout(streamLoadGuard);
-  if(plyrInstance) { 
-    try { plyrInstance.destroy(); } catch(e){} 
-    plyrInstance = null; 
+async function loadRecentReleases() {
+  const targetGrid = document.getElementById("releases-api-grid");
+  if (!targetGrid) return;
+
+  try {
+    const json = await fetchWithRetry(`${JIKAN_BASE}/seasons/now?limit=20`);
+    targetGrid.innerHTML = "";
+
+    if (!json.data || json.data.length === 0) {
+      targetGrid.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-6">No seasonal episodes found from Jikan catalog tracks.</p>`;
+      return;
+    }
+
+    json.data.forEach(anime => {
+      const cardFrame = document.createElement("div");
+      cardFrame.className = "consumet-card-item relative group aspect-[2/3] w-full rounded-2xl overflow-hidden bg-zinc-900 border border-transparent shadow-xl cursor-pointer transition-all duration-300 hover:scale-[1.02]";
+      
+      cardFrame.innerHTML = `
+        <img src="${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url}" alt="${anime.title}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 p-3 sm:p-4 flex flex-col gap-1.5 justify-end h-1/2">
+          <h3 class="consumet-card-title text-white font-medium text-xs sm:text-sm line-clamp-2 leading-tight drop-shadow-md transition-colors duration-200">
+            ${anime.title_english || anime.title}
+          </h3>
+          <div class="flex items-center gap-2 text-[10px] font-medium mt-0.5">
+            <span class="bg-zinc-950/90 text-zinc-200 px-2 py-0.5 rounded border border-zinc-800/60 font-mono tracking-wide">
+              EP ${anime.episodes || 'Airing'}
+            </span>
+            <span class="uppercase text-[9px] tracking-wider bg-neutral-900/80 text-gray-300 px-1.5 py-0.5 rounded border border-zinc-800/40 font-bold">
+              ${anime.type || 'TV'}
+            </span>
+          </div>
+        </div>
+      `;
+
+      cardFrame.addEventListener('mouseenter', () => {
+        const currentHex = document.querySelector('.dynamic-accent-text')?.style.color || '#00ff66';
+        cardFrame.style.borderColor = `${currentHex}4d`;
+        cardFrame.querySelector('.consumet-card-title').style.color = currentHex;
+      });
+      cardFrame.addEventListener('mouseleave', () => {
+        cardFrame.style.borderColor = 'transparent';
+        cardFrame.querySelector('.consumet-card-title').style.color = '#ffffff';
+      });
+
+      cardFrame.addEventListener("click", async () => {
+        let mappedId = anime.mal_id;
+        try {
+          const lookup = await fetch(`https://graphql.anilist.co`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`,
+              variables: { id: anime.mal_id }
+            })
+          });
+          const res = await lookup.json();
+          mappedId = res?.data?.Media?.id || anime.mal_id;
+        } catch(e){}
+        loadStreamingLayout(mappedId, anime.mal_id, anime.title_english || anime.title);
+      });
+
+      targetGrid.appendChild(cardFrame);
+    });
+
+  } catch (error) {
+    console.error("Jikan payload error:", error);
+    targetGrid.innerHTML = `
+      <div class="col-span-full py-8 text-center">
+        <p class="text-xs text-red-500 mb-3">Server temporarily busy.</p>
+        <button onclick="loadRecentReleases()" class="bg-accent text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
+      </div>`;
   }
-  window.switchToView('home');
-  const sInput = document.getElementById('search-input');
-  const hInput = document.getElementById('header-search-input');
-  if(sInput) sInput.value = "";
-  if(hInput) hInput.value = "";
+}
+
+function switchToView(targetViewId) {
+  const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
+  views.forEach(v => {
+    const el = document.getElementById(v);
+    if (el) el.classList.add('hidden');
+  });
+  
+  const sideItems = ['home', 'catalog', 'releases', 'calendar'];
+  sideItems.forEach(item => {
+    const el = document.getElementById(`side-nav-${item}`);
+    if (el) el.classList.remove('active');
+  });
+
+  const indicator = document.getElementById('view-indicator-title');
+  
+  if (targetViewId === 'home') {
+    document.getElementById('landing-portal')?.classList.remove('hidden');
+    document.getElementById('header-search-engine')?.classList.add('hidden');
+    document.getElementById('side-nav-home')?.classList.add('active');
+    if (indicator) indicator.innerText = "Welcome Portal";
+  } else if (targetViewId === 'catalog') {
+    document.getElementById('main-exploration-hub')?.classList.remove('hidden');
+    document.getElementById('header-search-engine')?.classList.remove('hidden');
+    document.getElementById('side-nav-catalog')?.classList.add('active');
+    if (indicator) indicator.innerText = "Catalog Index Browser";
+    
+    if (!hubFeedsLoaded) {
+      hubFeedsLoaded = true;
+      loadMainHubFeeds();
+    }
+  } else if (targetViewId === 'releases') {
+    document.getElementById('releases-focus-view')?.classList.remove('hidden');
+    document.getElementById('header-search-engine')?.classList.remove('hidden');
+    document.getElementById('side-nav-releases')?.classList.add('active');
+    if (indicator) indicator.innerText = "Recent Time Releases Feed";
+    
+    if (!recentReleasesLoaded) {
+      recentReleasesLoaded = true;
+      loadRecentReleases(); 
+    }
+  } else if (targetViewId === 'calendar') {
+    document.getElementById('calendar-focus-view')?.classList.remove('hidden');
+    document.getElementById('header-search-engine')?.classList.add('hidden'); 
+    document.getElementById('side-nav-calendar')?.classList.add('active');
+    if (indicator) indicator.innerText = "Airing Schedule";
+    
+    if (!calendarLoaded) {
+      calendarLoaded = true;
+      initCalendarUI(); 
+    }
+  }
 }
 
 function startSystemClock() {
   setInterval(() => {
     const now = new Date();
     const jstString = now.toLocaleTimeString("en-US", {
-      timeZone: "Asia/Tokyo",
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit"
+      timeZone: "Asia/Tokyo", hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit"
     });
     const clockEl = document.getElementById('live-24h-clock');
     if (clockEl) clockEl.innerText = `${jstString} JST`;
   }, 1000);
 }
 
-window.openBottomSheet = function() {
-  const overlay = document.getElementById('sheet-overlay');
-  const menu = document.getElementById('bottom-sheet-menu');
-  if(overlay) overlay.style.display = 'block';
-  if(menu) {
-    setTimeout(() => { menu.classList.add('open'); }, 10);
-    menu.style.transform = "translateY(0)";
-  }
+function openBottomSheet() {
+  document.getElementById('sheet-overlay')?.classList.remove('hidden');
+  document.getElementById('bottom-sheet-menu')?.classList.remove('translate-y-full');
 }
 
-window.closeBottomSheet = function() {
-  const overlay = document.getElementById('sheet-overlay');
-  const menu = document.getElementById('bottom-sheet-menu');
-  if(menu) menu.style.transform = "translateY(100%)";
-  if(overlay) setTimeout(() => { overlay.style.display = 'none'; }, 300);
+function closeBottomSheet() {
+  document.getElementById('sheet-overlay')?.classList.add('hidden');
+  document.getElementById('bottom-sheet-menu')?.classList.add('translate-y-full');
 }
 
-window.applyCharacterPreset = function(profileKey) {
-  const choice = colorProfiles[profileKey];
-  if (!choice) return;
-  document.documentElement.style.setProperty('--character-accent', choice.hex);
-  document.documentElement.style.setProperty('--character-accent-hover', choice.hex);
-  document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
-  currentPresetName = profileKey;
-  localStorage.setItem('dude9anime-preset', profileKey);
-  
-  const streamBox = document.getElementById('stream-dashboard-box');
-  if (streamBox && !streamBox.classList.contains('hidden')) {
-    updateProviderTabsUI();
-  }
-  updateLanguageButtonsUI();
+function homeReturnReset() {
+  switchToView('home');
+  if(document.getElementById('search-input')) document.getElementById('search-input').value = "";
+  if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = "";
 }
 
-function loadSavedTheme() {
-  const saved = localStorage.getItem('dude9anime-preset');
-  if (saved && colorProfiles[saved]) window.applyCharacterPreset(saved);
-}
-
-// ==========================================
-// 3. API ENGINE CONTEXT IMPLEMENTATION (JIKAN API)
-// ==========================================
 async function loadMainHubFeeds() {
   fetchLiveReleasingSchedule(activeScheduleDay);
+  await delay(600);
+
   try {
-    const res = await fetch(`${JIKAN_BASE}/seasons/now?limit=22`);
-    const json = await res.json();
-    const dataset = json.data || [];
-    if(dataset.length > 0) {
-      displayScrollFeed(dataset.slice(0, 10), 'recommendations-scroller');
-      displayGridFeed(dataset.slice(10, 22), 'results-grid');
-      displayTop10Sidebar(dataset.slice(0, 10));
-    }
-  } catch (err) { 
-    const grid = document.getElementById('results-grid');
-    if(grid) grid.innerHTML = "<p class='text-xs font-mono text-gray-600'>Network engine layout fallback routing triggered.</p>"; 
-  }
-}
-
-window.triggerCatalogSearch = async function(fromHeader = false) {
-  const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
-  const field = document.getElementById(queryFieldId);
-  if(!field) return;
-  const query = field.value.trim();
-  if(!query) return alert("Parameter target strings missing expression parameters.");
-
-  const sInput = document.getElementById('search-input');
-  const hInput = document.getElementById('header-search-input');
-  if(sInput) sInput.value = query;
-  if(hInput) hInput.value = query;
-
-  const landing = document.getElementById('landing-portal');
-  if(landing) { landing.classList.add('hidden'); landing.classList.remove('flex'); }
-  const streamBox = document.getElementById('stream-dashboard-box');
-  if(streamBox) streamBox.classList.add('hidden');
-  
-  const catalog = document.getElementById('main-exploration-hub');
-  if(catalog) { catalog.classList.remove('hidden'); catalog.classList.add('block'); }
-  
-  const headerSearch = document.getElementById('header-search-engine');
-  if(headerSearch) { headerSearch.classList.remove('hidden'); headerSearch.classList.add('flex'); }
-
-  const recBlock = document.getElementById('recommendations-container-block');
-  if (recBlock) recBlock.classList.add('hidden');
-  const sideBlock = document.getElementById('sidebar-container-block');
-  if (sideBlock) sideBlock.classList.add('hidden');
-  
-  const splitContainer = document.getElementById('grid-split-container');
-  if(splitContainer) splitContainer.className = "w-full space-y-8";
-  
-  const headerTitle = document.getElementById('grid-header-title');
-  if(headerTitle) headerTitle.innerText = `Query Indexes matching: "${query}"`;
-  
-  const grid = document.getElementById('results-grid');
-  if(grid) grid.innerHTML = "<p class='text-xs text-gray-500 font-mono animate-pulse'>Executing system scan tracking vectors...</p>";
-  
-  try {
-    const res = await fetch(`${JIKAN_BASE}/anime?q=${encodeURIComponent(query)}&limit=16`);
-    const json = await res.json();
-    if(!grid) return;
-    if(!json.data || json.data.length === 0) {
-      grid.innerHTML = "<p class='text-xs text-gray-600 font-mono'>Zero collection nodes matched string expression parameters.</p>";
+    const json = await fetchWithRetry(`${JIKAN_BASE}/top/anime?limit=12`);
+    const dataset = json.data;
+    if(Array.isArray(dataset) && dataset.length > 0) {
+      displayScrollFeed(dataset, 'recommendations-scroller');
     } else {
-      displayGridFeed(json.data, 'results-grid');
+      handleAnikotoScrollerEmpty();
     }
-  } catch (e) { 
-    if(grid) grid.innerHTML = "<p class='text-xs text-red-400 font-mono'>Query sequence engine timeout exception.</p>"; 
+  } catch (err) {
+    handleAnikotoScrollerEmpty();
+  }
+    
+  try {
+    const aniListQuery = `query { Page(page: 1, perPage: 12) { media(sort: TRENDING_DESC, type: ANIME) { id idMal title { english romaji } coverImage { large } episodes } } }`;
+    const graphRes = await fetch('https://graphql.anilist.co', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: aniListQuery })
+    });
+    const graphJson = await graphRes.json();
+    const trendingItems = graphJson.data?.Page?.media || [];
+    if(trendingItems.length > 0) {
+      displayGridFeed(trendingItems, 'results-grid');
+      displayTop10Sidebar(trendingItems);
+    } else {
+      document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>No trending items returned from server.</p>";
+    }
+  } catch (err) {
+    document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500'>Error loading layout catalog channels.</p>";
   }
 }
 
-window.changeScheduleDay = function(targetDay) {
+function handleAnikotoScrollerEmpty() {
+  const scroller = document.getElementById('recommendations-scroller');
+  if (scroller) scroller.innerHTML = "<p class='text-xs text-gray-600 italic'>Scroller engine offline. Use core catalog below.</p>";
+}
+
+async function triggerCatalogSearch(fromHeader = false) {
+  const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
+  const queryInputEl = document.getElementById(queryFieldId);
+  const query = queryInputEl ? queryInputEl.value.trim() : "";
+  
+  if(document.getElementById('search-input')) document.getElementById('search-input').value = query;
+  if(document.getElementById('header-search-input')) document.getElementById('header-search-input').value = query;
+
+  switchToView('catalog');
+
+  const gridHeader = document.getElementById('grid-header-title');
+  if (gridHeader) gridHeader.innerText = query ? `Catalog Matches: "${query}"` : "Trending Global Media Items";
+  
+  const gridResults = document.getElementById('results-grid');
+  if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>Querying database links...</p>";
+  
+  let variables = {};
+  if (query !== "") {
+    variables.q = query;
+  } else {
+    variables.sort = ["TRENDING_DESC"];
+  }
+
+  const aniListSearchQuery = `
+    query ($q: String, $sort: [MediaSort]) {
+      Page(page: 1, perPage: 24) {
+        media(search: $q, sort: $sort, type: ANIME) {
+          id
+          idMal
+          title { english romaji }
+          coverImage { large }
+          episodes
+        }
+      }
+    }`;
+
+  try {
+    const graphRes = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: aniListSearchQuery, variables: variables })
+    });
+    const json = await graphRes.json();
+    const fontItems = json.data?.Page?.media || [];
+    
+    if (gridResults) {
+      if(fontItems.length === 0) {
+        gridResults.innerHTML = "<p class='text-xs text-gray-500'>No anime matches found.</p>";
+      } else {
+        displayGridFeed(fontItems, 'results-grid');
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    if (gridResults) gridResults.innerHTML = "<p class='text-xs text-gray-500'>API communications error.</p>";
+  }
+}
+
+function changeScheduleDay(targetDay) {
   activeScheduleDay = targetDay;
-  document.querySelectorAll('.schedule-tab-btn').forEach(btn => btn.classList.remove('active', 'bg-dark-card', 'text-white'));
-  const activeBtn = document.getElementById(`tab-${targetDay}`);
-  if(activeBtn) activeBtn.classList.add('active', 'bg-dark-card', 'text-white');
+  ['yesterday', 'today', 'tomorrow'].forEach(day => {
+    const b = document.getElementById(`tab-${day}`); 
+    if(b) { 
+      b.className = "schedule-tab-btn py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all";
+      b.style.backgroundColor = 'transparent'; 
+      b.style.color = '#6b7280'; 
+    }
+  });
+  
+  const currentPreset = presets[currentPresetName] || presets.subaru;
+  const act = document.getElementById(`tab-${targetDay}`);
+  if(act) { 
+    act.className = "schedule-tab-btn active py-1.5 rounded-lg uppercase transition-all text-black";
+    act.style.backgroundColor = currentPreset.hex; 
+    act.style.color = currentPreset.textLight ? '#ffffff' : '#000000'; 
+  }
   fetchLiveReleasingSchedule(targetDay);
 }
 
 async function fetchLiveReleasingSchedule(dayMode) {
   const scheduleBox = document.getElementById('schedule-box');
   if(!scheduleBox) return;
-  scheduleBox.innerHTML = '<p class="text-[10px] text-gray-600 font-mono p-4">Syncing timeline calendar coordinates...</p>';
+  scheduleBox.innerHTML = '<p class="text-gray-500 text-[11px] text-center py-4 font-mono">Querying timelines...</p>';
   
-  let currentDayIndex = new Date().getDay();
-  if (dayMode === 'yesterday') currentDayIndex = (currentDayIndex - 1 + 7) % 7;
-  else if (dayMode === 'tomorrow') currentDayIndex = (currentDayIndex + 1) % 7;
-  const targetDayString = weekdays[currentDayIndex];
+  const nowJst = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+  const dayOffsetMap = { 'yesterday': -1, 'today': 0, 'tomorrow': 1 };
+  nowJst.setDate(nowJst.getDate() + dayOffsetMap[dayMode]);
+  nowJst.setHours(0,0,0,0);
+  
+  const startTimestamp = Math.floor(nowJst.getTime() / 1000);
+  const endTimestamp = startTimestamp + 86400;
 
+  const scheduleQuery = `
+    query ($start: Int, $end: Int) { 
+      Page(page: 1, perPage: 25) { 
+        airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME_ASC) { 
+          episode
+          airingAt
+          media { 
+            id 
+            idMal 
+            title { english romaji } 
+            coverImage { large } 
+            episodes 
+          } 
+        } 
+      } 
+    }`;
+  
   try {
-    const response = await fetch(`${JIKAN_BASE}/schedules?filter=${targetDayString}&limit=15`);
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ query: scheduleQuery, variables: { start: startTimestamp, end: endTimestamp } })
+    });
     const json = await response.json();
-    const rawAnimeList = json.data || [];
-    const ongoingAnime = rawAnimeList.filter(anime => anime.airing === true || anime.status === "Currently Airing");
+    const schedules = json.data?.Page?.airingSchedules || [];
     
-    if(ongoingAnime.length === 0) { 
-      scheduleBox.innerHTML = `<p class="text-[11px] text-gray-600 text-center py-4 font-mono">Zero entries active on this timeline.</p>`; 
-      return; 
+    if(schedules.length === 0) {
+      scheduleBox.innerHTML = '<p class="text-gray-600 text-[11px] text-center py-4 font-mono">No items found for this window.</p>';
+      return;
     }
     
     scheduleBox.innerHTML = '';
-    const mapCleanCache = new Map();
-    ongoingAnime.forEach(anime => {
-      const title = anime.title_english || anime.title;
-      if(!mapCleanCache.has(title)) mapCleanCache.set(title, anime);
-    });
-
-    mapCleanCache.forEach(anime => {
-      const title = anime.title_english || anime.title;
-      const broadcastTime = anime.broadcast?.time || "Airing";
-      const imgUrl = anime.images?.jpg?.image_url || "";
-      const div = document.createElement('div');
-      div.className = 'flex items-center justify-between p-2 rounded-xl bg-dark-input border border-dark-border/40 hover:border-accent/40 cursor-pointer transition-colors';
+    schedules.forEach(item => {
+      if (!item.media) return;
+      const title = item.media.title.english || item.media.title.romaji;
+      const airDate = new Date(item.airingAt * 1000);
+      const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       
-      const cleanTitle = title.replace(/'/g, "\\'");
+      const div = document.createElement('div');
+      div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark-border cursor-pointer transition-all";
       div.innerHTML = `
-        <div class="min-w-0 flex-1 pr-2">
-          <div class="text-[11px] font-medium text-gray-300 truncate">${title}</div>
+        <div class="flex flex-col truncate pr-2">
+          <span class="truncate font-medium text-gray-300 text-xs">${title}</span>
+          <span class="text-[9px] text-gray-500">Episode ${item.episode}</span>
         </div>
-        <div class="text-[9px] font-mono bg-neutral-900 text-accent font-bold px-1.5 py-0.5 rounded shrink-0">JST ${broadcastTime}</div>
+        <span class="font-mono text-[10px] text-accent dynamic-accent-text shrink-0">${timeString}</span>
       `;
-      div.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+      div.onclick = () => loadStreamingLayout(item.media.id, item.media.idMal || null, title);
       scheduleBox.appendChild(div);
     });
+    applyCharacterPreset(currentPresetName);
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
+    console.error(error);
+    scheduleBox.innerHTML = `<p class="text-red-500 text-[11px] text-center py-4 font-mono">Failed to parse calendar items.</p>`; 
   }
-}
-
-// ==========================================
-// 4. AIRING TRACK TIMELINE FUNCTIONAL MATRIX
-// ==========================================
-async function initCalendarTimelineLayout() {
-  const daysMatrixContainer = document.getElementById('calendar-days-matrix');
-  const targetList = document.getElementById('airing-chronological-list');
-  
-  if(daysMatrixContainer) daysMatrixContainer.innerHTML = '';
-  if(targetList) targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full animate-pulse"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Rebuilding structural grid layout coordinates...</p>';
-  
-  const currentDayName = weekdays[new Date().getDay()];
-
-  if(daysMatrixContainer) {
-    weekdays.forEach(day => {
-      const btn = document.createElement('button');
-      btn.className = `py-2 rounded-xl border border-dark-border uppercase transition-all tracking-wider ${day === currentDayName ? 'bg-accent text-black font-black' : 'bg-dark-card text-gray-400 hover:text-white'}`;
-      btn.innerText = day.slice(0, 3);
-      btn.id = `calendar-tab-${day}`;
-      btn.onclick = () => selectCalendarTimelineDay(day);
-      daysMatrixContainer.appendChild(btn);
-    });
-  }
-
-  await selectCalendarTimelineDay(currentDayName);
-}
-
-async function selectCalendarTimelineDay(dayName) {
-  document.querySelectorAll('[id^="calendar-tab-"]').forEach(btn => {
-    btn.className = "py-2 rounded-xl border border-dark-border bg-dark-card text-gray-400 hover:text-white uppercase transition-all tracking-wider font-bold";
-  });
-  const activeBtn = document.getElementById(`calendar-tab-${dayName}`);
-  if(activeBtn) activeBtn.className = "py-2 rounded-xl border border-accent bg-accent text-black uppercase transition-all tracking-wider font-black";
-
-  const targetList = document.getElementById('airing-chronological-list');
-  if(targetList) targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Syncing calendar row segments...</p>';
-  
-  try {
-    const res = await fetch(`${JIKAN_BASE}/schedules?filter=${dayName}`);
-    const json = await res.json();
-    calendarCachedDataset = json.data || [];
-    renderCalendarGridItems(calendarCachedDataset);
-  } catch (err) {
-    if(targetList) targetList.innerHTML = '<p class="text-xs text-red-500 font-mono col-span-full">Fail tracking chronological schedule matrix endpoints.</p>';
-  }
-}
-
-function renderCalendarGridItems(dataset) {
-  const targetList = document.getElementById('airing-chronological-list');
-  if(!targetList) return;
-  targetList.innerHTML = '';
-
-  if(dataset.length === 0) {
-    targetList.innerHTML = '<p class="text-xs text-gray-600 font-mono col-span-full">No airing targets scheduled on this interface terminal node.</p>';
-    return;
-  }
-
-  dataset.forEach(anime => {
-    const title = anime.title_english || anime.title;
-    const imgUrl = anime.images?.jpg?.image_url || '';
-    const airTime = anime.broadcast?.time || "Airing";
-    const card = document.createElement('div');
-    card.className = "bg-dark-card border border-dark-border rounded-2xl p-2.5 cursor-pointer hover:border-accent/40 transition-all shadow group flex flex-col justify-between";
-    card.innerHTML = `
-      <div>
-        <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2 relative">
-          <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Cover">
-          <span class="absolute bottom-2 right-2 text-[9px] font-mono font-bold bg-black/80 text-accent border border-accent/20 px-2 py-0.5 rounded backdrop-blur-sm shadow-md">JST ${airTime}</span>
-        </div>
-        <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-0.5 group-hover:text-white">${title}</div>
-      </div>
-    `;
-    const cleanTitle = title.replace(/'/g, "\\'");
-    card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
-    targetList.appendChild(card);
-  });
-}
-
-window.filterCalendarGrid = function() {
-  const searchEl = document.getElementById('calendar-search');
-  if(!searchEl) return;
-  const query = searchEl.value.toLowerCase().trim();
-  if(!query) {
-    renderCalendarGridItems(calendarCachedDataset);
-    return;
-  }
-  const filtered = calendarCachedDataset.filter(anime => {
-    const title = (anime.title_english || anime.title).toLowerCase();
-    return title.includes(query);
-  });
-  renderCalendarGridItems(filtered);
-}
-
-window.resetCalendarGridDay = function() {
-  const searchEl = document.getElementById('calendar-search');
-  if(searchEl) searchEl.value = "";
-  const currentDayName = weekdays[new Date().getDay()];
-  selectCalendarTimelineDay(currentDayName);
-}
-
-async function fetchFullSeasonalReleases() {
-  const grid = document.getElementById('releases-api-grid');
-  if(!grid) return;
-  grid.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Rebuilding layout cards configuration routing grids...</p>';
-  try {
-    const res = await fetch(`${JIKAN_BASE}/seasons/now?limit=20`);
-    const json = await res.json();
-    const dataset = json.data || [];
-    if(dataset.length > 0) {
-      grid.innerHTML = "";
-      dataset.forEach(anime => {
-        const title = anime.title_english || anime.title;
-        const imgUrl = anime.images?.jpg?.image_url || '';
-        const card = document.createElement('div');
-        card.className = "bg-dark-card border border-dark-border rounded-2xl p-2 cursor-pointer hover:border-accent/40 transition-all shadow group";
-        card.innerHTML = `
-          <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2">
-            <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Cover">
-          </div>
-          <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-1">${title}</div>
-        `;
-        const cleanTitle = title.replace(/'/g, "\\'");
-        card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
-        grid.appendChild(card);
-      });
-    }
-  } catch (e) { grid.innerHTML = '<p class="text-xs text-gray-600 font-mono col-span-full">Fail parsing pipeline seasonal assets streams data files.</p>'; }
 }
 
 function displayScrollFeed(animeArray, elementId) {
@@ -498,18 +701,23 @@ function displayScrollFeed(animeArray, elementId) {
   container.innerHTML = '';
   animeArray.forEach(anime => {
     const title = anime.title_english || anime.title;
-    const imgUrl = anime.images?.jpg?.image_url || '';
-    const card = document.createElement('div');
-    card.className = "w-28 shrink-0 bg-dark-card border border-dark-border/60 p-1.5 rounded-2xl cursor-pointer hover:border-accent/40 transition-all shadow group";
-    card.innerHTML = `
-      <div class="aspect-[2/3] rounded-xl overflow-hidden mb-1.5 bg-neutral-900">
-        <img src="${imgUrl}" class="w-full h-full object-cover" alt="Cover">
-      </div>
-      <div class="text-[11px] text-gray-300 font-semibold truncate px-0.5">${title}</div>
-    `;
-    const cleanTitle = title.replace(/'/g, "\\'");
-    card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
-    container.appendChild(card);
+    const imgUrl = anime.images?.jpg?.image_url;
+    const div = document.createElement('div');
+    div.className = "w-28 shrink-0 bg-dark-card border border-dark-border rounded-lg overflow-hidden group cursor-pointer transition-all text-[11px]";
+    div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+    div.onclick = async () => {
+      let linkedAniId = anime.mal_id;
+      try {
+        const lookup = await fetch(`https://graphql.anilist.co`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`, variables: { id: anime.mal_id } })
+        });
+        const res = await lookup.json();
+        linkedAniId = res?.data?.Media?.id || anime.mal_id;
+      } catch(e){}
+      loadStreamingLayout(linkedAniId, anime.mal_id, title);
+    };
+    container.appendChild(div);
   });
 }
 
@@ -517,21 +725,15 @@ function displayGridFeed(animeArray, elementId) {
   const container = document.getElementById(elementId);
   if(!container) return;
   container.innerHTML = '';
-  const cleanArray = animeArray || [];
-  cleanArray.forEach(anime => {
-    const title = anime.title_english || anime.title;
-    const imgUrl = anime.images?.jpg?.image_url || '';
-    const card = document.createElement('div');
-    card.className = "bg-dark-card border border-dark-border/60 p-2 rounded-2xl cursor-pointer hover:border-accent/40 transition-all shadow group";
-    card.innerHTML = `
-      <div class="aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-neutral-900">
-        <img src="${imgUrl}" class="w-full h-full object-cover" alt="Cover">
-      </div>
-      <div class="text-xs text-gray-300 font-semibold truncate px-0.5">${title}</div>
-    `;
-    const cleanTitle = title.replace(/'/g, "\\'");
-    card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
-    container.appendChild(card);
+  animeArray.forEach(anime => {
+    if (!anime.title) return;
+    const title = anime.title.english || anime.title.romaji;
+    const imgUrl = anime.coverImage?.large;
+    const div = document.createElement('div');
+    div.className = "bg-dark-card border border-dark-border rounded-lg overflow-hidden group cursor-pointer transition-all flex flex-col justify-between text-xs";
+    div.innerHTML = `<div class="aspect-[2/3] bg-neutral-900"><img src="${imgUrl}" class="object-cover w-full h-full"></div><div class="p-2"><h4 class="font-semibold text-white truncate">${title}</h4></div>`;
+    div.onclick = () => loadStreamingLayout(anime.id, anime.idMal || null, title);
+    container.appendChild(div);
   });
 }
 
@@ -539,372 +741,538 @@ function displayTop10Sidebar(animeArray) {
   const container = document.getElementById('top10-box');
   if(!container) return;
   container.innerHTML = '';
-  animeArray.forEach((anime, idx) => {
-    const title = anime.title_english || anime.title;
-    const row = document.createElement('div');
-    row.className = "flex items-center space-x-3 p-1.5 rounded-xl hover:bg-neutral-900/40 cursor-pointer transition-colors group";
-    row.innerHTML = `
-      <div class="text-sm font-black font-mono text-gray-600 w-4 text-center group-hover:text-accent">${idx + 1}</div>
-      <div class="flex-1 min-w-0"><div class="text-xs font-medium text-gray-300 truncate">${title}</div></div>
-    `;
-    const cleanTitle = title.replace(/'/g, "\\'");
-    row.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, anime.images?.jpg?.image_url || "");
-    container.appendChild(row);
+  animeArray.slice(0, 6).forEach((anime, idx) => {
+    if (!anime.title) return;
+    const title = anime.title.english || anime.title.romaji;
+    const div = document.createElement('div');
+    div.className = "flex items-center space-x-3 p-2 bg-dark-input rounded-lg border border-dark-border transition-all cursor-pointer";
+    div.innerHTML = `<span class="font-black text-sm text-gray-600 italic w-4 text-center">${idx+1}</span><span class="truncate text-gray-300 font-medium text-xs">${title}</span>`;
+    div.onclick = () => loadStreamingLayout(anime.id, anime.idMal || null, title);
+    container.appendChild(div);
   });
 }
 
-// ==========================================
-// 5. STREAM PIPELINE & INTERACTIVE CONSOLE MODULE
-// ==========================================
-window.switchProvider = function(providerKey) {
-  if (activeProviderKey === providerKey) return;
-  activeProviderKey = providerKey;
-  updateProviderTabsUI();
-  
-  if (window.currentMalId || window.currentAnilistId) {
-    window.routeActiveStreamSource(currentEpisodeIndex);
+async function fetchJikanMetadata(malId) {
+  if (!malId) return;
+  try {
+    const json = await fetchWithRetry(`${JIKAN_BASE}/anime/${malId}`);
+    const anime = json.data;
+
+    document.getElementById('detail-title').innerText = anime.title_english || anime.title || window.activeAnimeTitle;
+    document.getElementById('detail-poster').src = anime.images?.jpg?.large_image_url || '';
+    document.getElementById('detail-synopsis').innerText = anime.synopsis || "No summary available.";
+    
+    const epSnippet = document.getElementById('ep-synopsis-snippet');
+    if (epSnippet) epSnippet.innerText = anime.synopsis || "No summary available.";
+    
+    document.getElementById('detail-type').innerText = anime.type || 'TV';
+    document.getElementById('detail-rating').innerText = anime.score ? `${anime.score}/10` : 'N/A';
+  } catch (err) {
+    document.getElementById('detail-title').innerText = window.activeAnimeTitle;
   }
 }
 
-function updateProviderTabsUI() {
-  const container = document.getElementById('server-source-tabs-bar');
+function injectProviderButtons() {
+  const container = document.getElementById('sub-server-links-grid');
   if (!container) return;
 
-  container.innerHTML = ''; 
+  // Render provider management tabs inside the grid dynamically
+  let tabsWrapper = document.getElementById('server-source-tabs-bar');
+  if (!tabsWrapper) {
+    tabsWrapper = document.createElement('div');
+    tabsWrapper.id = "server-source-tabs-bar";
+    tabsWrapper.className = "flex flex-wrap gap-2 pb-2 border-b border-dark-border overflow-x-auto scrollbar-none";
+    container.parentElement.insertBefore(tabsWrapper, container);
+  }
 
-  const currentActiveHex = document.documentElement.style.getPropertyValue('--character-accent').trim() || '#f97316';
-
-  API_PROVIDERS.forEach(provider => {
+  tabsWrapper.innerHTML = '';
+  API_PROVIDERS.forEach(prov => {
     const btn = document.createElement('button');
-    btn.className = 'server-tab-btn whitespace-nowrap transition-all duration-200';
-    btn.setAttribute('data-provider-id', provider.id);
-    btn.innerHTML = `<span class="font-semibold">${provider.name}</span>`;
-
-    if (provider.id === activeProviderKey) {
-      btn.style.backgroundColor = currentActiveHex;
-      btn.style.color = '#000000';
-      btn.style.borderColor = currentActiveHex;
-      btn.className = "px-3 py-1 text-[10px] font-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0 active";
-    } else {
-      btn.style.backgroundColor = '';
-      btn.style.color = '';
-      btn.style.borderColor = '';
-      btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
-    }
-
-    btn.onclick = () => {
-      if (activeProviderKey === provider.id) return;
-      window.switchProvider(provider.id);
-    };
-
-    container.appendChild(btn);
+    btn.id = `server-${prov.id}`;
+    btn.className = "px-3 py-1.5 rounded-lg border text-[11px] font-bold tracking-wide transition-all安全 whitespace-nowrap bg-dark-input text-gray-400 border-dark-border";
+    btn.innerHTML = `${prov.name} ${prov.status === 'Unstable' ? '⚠️' : ''}`;
+    btn.onclick = () => setProviderSource(prov.id);
+    tabsWrapper.appendChild(btn);
   });
 }
 
-window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, imgUrl = "") {
+window.loadStreamingLayout = async function(anilistId, malId, titleName) {
+  window.currentAnilistId = anilistId;
   window.currentMalId = malId;
-  window.currentAnilistId = ""; 
   window.activeAnimeTitle = titleName;
-  window.activeMaxEpisodes = totalEpisodes;
-  window.activeImgUrl = imgUrl || "";
+
+  const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
+  views.forEach(v => document.getElementById(v)?.classList.add('hidden'));
+  document.getElementById('stream-dashboard-box')?.classList.remove('hidden');
+  document.getElementById('header-search-engine')?.classList.remove('hidden');
   
-  clearTimeout(streamLoadGuard);
-
-  const sections = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
-  sections.forEach(id => {
-    const el = document.getElementById(id);
-    if(el) { el.classList.add('hidden'); el.classList.remove('block', 'flex'); }
-  });
-
-  const streamBox = document.getElementById('stream-dashboard-box');
-  if(streamBox) { streamBox.classList.remove('hidden'); streamBox.classList.add('block'); }
+  const epTitle = document.getElementById('ep-title');
+  if (epTitle) epTitle.innerText = `Watching: ${titleName}`;
   
-  const headerSearch = document.getElementById('header-search-engine');
-  if(headerSearch) { headerSearch.classList.remove('hidden'); headerSearch.classList.add('flex'); }
+  injectProviderButtons();
+  updateLanguageButtonsUI();
+  updateProviderButtonsUI();
   
-  const dTitle = document.getElementById('detail-title');
-  const dPoster = document.getElementById('detail-poster');
-  const dEpisodes = document.getElementById('detail-episodes');
-  const dType = document.getElementById('detail-type');
-  const dRating = document.getElementById('detail-rating');
-  const dSynopsis = document.getElementById('detail-synopsis');
-
-  if(dTitle) dTitle.innerText = titleName;
-  if(dPoster) dPoster.src = window.activeImgUrl;
-  if(dEpisodes) dEpisodes.innerText = totalEpisodes;
-  if(dType) dType.innerText = "TV Series";
-  if(dRating) dRating.innerText = "Syncing...";
-  if(dSynopsis) dSynopsis.innerText = "Requesting tracking parameters from cross-platform database...";
-
-  updateProviderTabsUI();
-  buildEpisodeIndexButtons(totalEpisodes);
-
-  try {
-    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
-    const mapData = await mapRes.json();
-    window.currentAnilistId = mapData.anilistId || mapData.id || malId;
-
-    const epRes = await fetch(`${ANIVEXA_BASE_API}/episodes/${window.currentAnilistId}`);
-    const epData = await epRes.json();
-    
-    if (epData && epData.length > 0) {
-      window.activeMaxEpisodes = epData.length;
-      buildEpisodeIndexButtons(epData.length);
-    }
-  } catch(e) { 
-    console.warn("Backend dynamic map mapping sequence exception fallback to base values.");
-    window.currentAnilistId = malId; 
+  if (malId) {
+    fetchJikanMetadata(malId);
+  } else {
+    document.getElementById('detail-title').innerText = titleName;
   }
 
-  try {
-    const detailRes = await fetch(`${JIKAN_BASE}/anime/${malId}`);
-    const dataJson = await detailRes.json();
-    const info = dataJson.data;
-    if(info) {
-      if(dSynopsis) dSynopsis.innerText = info.synopsis || "No data record description parameters provided.";
-      if(dType) dType.innerText = info.type || "TV";
-      if(dRating) dRating.innerText = info.score || "?.??";
-    }
-  } catch(e) { console.warn("Meta metadata sync non-fatal exception."); }
-
-  window.routeActiveStreamSource(1);
+  await buildEpisodeButtonsGrid(anilistId);
 };
 
-function buildEpisodeIndexButtons(total) {
-  const box = document.getElementById('episode-buttons');
-  if(!box) return;
-  box.innerHTML = '';
-  for (let i = 1; i <= total; i++) {
-    const btn = document.createElement('button');
-    btn.id = `ep-btn-${i}`;
-    btn.innerText = i < 10 ? `0${i}` : i;
-    btn.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
-    btn.onclick = () => window.routeActiveStreamSource(i);
-    box.appendChild(btn);
-  }
-}
+async function buildEpisodeButtonsGrid(anilistId) {
+  const epBox = document.getElementById('episode-buttons');
+  if (!epBox) return;
 
-function buildMirrorStreamLinkGrids(streamData) {
-  const hlsContainer = document.getElementById('internal-player-links-grid') || document.getElementById('hls-links-grid');
-  const embedContainer = document.getElementById('embed-mirrors-links-grid') || document.getElementById('iframe-links-grid');
-  
-  if (hlsContainer) hlsContainer.innerHTML = '';
-  if (embedContainer) embedContainer.innerHTML = '';
-
-  if (hlsContainer) {
-    const mainUrl = streamData.streamUrl || streamData.url;
-    if (mainUrl && (mainUrl.includes('.m3u8') || streamData.type === 'hls')) {
-      const btn = document.createElement('button');
-      btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
-      btn.innerHTML = `<i class="fa-solid fa-play text-accent mr-1.5 text-[9px]"></i>Primary HLS Stream`;
-      btn.onclick = () => {
-        const wrapper = document.getElementById('video-player-wrapper');
-        if(wrapper) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, mainUrl);
-        }
-      };
-      hlsContainer.appendChild(btn);
-    }
-  }
-
-  const mirrors = streamData.sources || streamData.mirrors || [];
-  mirrors.forEach((track, i) => {
-    const linkUrl = track.url || track.link;
-    if (!linkUrl) return;
-
-    const btn = document.createElement('button');
-    btn.className = "p-2.5 text-[11px] font-mono bg-dark-input border border-dark-border rounded-xl text-left hover:border-accent transition-colors truncate text-gray-300";
-    
-    if (linkUrl.includes('.m3u8') || track.type === 'hls' || track.type === 'm3u8') {
-      btn.innerHTML = `<i class="fa-solid fa-bolt text-amber-400 mr-1.5 text-[9px]"></i>HLS Server ${i + 1}`;
-      btn.onclick = () => {
-        if (plyrInstance) { try { plyrInstance.destroy(); } catch(e){} plyrInstance = null; }
-        const wrapper = document.getElementById('video-player-wrapper');
-        if(wrapper) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, linkUrl);
-        }
-      };
-      if (hlsContainer) hlsContainer.appendChild(btn);
-    } else {
-      btn.innerHTML = `<i class="fa-solid fa-link text-indigo-400 mr-1.5 text-[9px]"></i>Mirror Embed ${i + 1}`;
-      btn.onclick = () => {
-        const wrapper = document.getElementById('video-player-wrapper');
-        if (wrapper) {
-          if (plyrInstance) { try { plyrInstance.destroy(); } catch(e){} plyrInstance = null; }
-          wrapper.innerHTML = `<iframe id="video-iframe" src="${linkUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
-        }
-      };
-      if (embedContainer) embedContainer.appendChild(btn);
-    }
-  });
-
-  if (hlsContainer && hlsContainer.children.length === 0) {
-    hlsContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No direct internal players found.</p>`;
-  }
-  if (embedContainer && embedContainer.children.length === 0) {
-    embedContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No absolute mirror links found.</p>`;
-  }
-}
-
-window.routeActiveStreamSource = async function(epIndex) {
-  currentEpisodeIndex = epIndex;
-  
-  document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
-    b.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
-  });
-  const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
-  if(targetBtn) {
-    targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
-  }
-
-  clearTimeout(streamLoadGuard);
-  if (plyrInstance) {
-    try { plyrInstance.destroy(); } catch(e){}
-    plyrInstance = null;
-  }
-
-  const wrapper = document.getElementById('video-player-wrapper');
-  if(!wrapper) return;
-  const anilistId = window.currentAnilistId || window.currentMalId;
-  let targetStreamUrl = "";
+  epBox.innerHTML = '<div class="text-xs text-gray-500 p-2 font-mono"><i class="fa-solid fa-circle-notch animate-spin mr-1.5"></i>Syncing episode feeds...</div>';
 
   try {
-    if (activeProviderKey === 'megaplay') {
-      const activeBaseUrl = PROVIDER_BASES.megaplay;
-      targetStreamUrl = `${activeBaseUrl}/${window.currentMalId}/${epIndex}/${currentLanguage}`;
-      wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
-      buildMirrorStreamLinkGrids({ url: "", sources: [{ url: targetStreamUrl, type: "embed" }] });
-      return;
-    } 
-    else if (activeProviderKey === 'reanime') {
-      targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
-      wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-      const videoElement = document.getElementById('video-iframe');
-      initializeHlsVideo(videoElement, targetStreamUrl);
-      buildMirrorStreamLinkGrids({ url: targetStreamUrl, sources: [] });
-    } 
-    else {
-      const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
-      const streamData = await watchResponse.json();
-      
-      targetStreamUrl = streamData.streamUrl || streamData.url || (streamData.sources && streamData.sources[0]?.url);
-      
-      if (targetStreamUrl) {
-        if (targetStreamUrl.includes('.m3u8') || streamData.type === 'hls' || (streamData.sources && streamData.sources[0]?.type === 'hls')) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, targetStreamUrl);
-        } else {
-          wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
-        }
-        buildMirrorStreamLinkGrids(streamData);
+    const epData = await fetchWithRetry(`${ANIVEXA_BASE_API}/episodes/${anilistId}`);
+    globalEpisodeDataCache = epData;
+
+    let providerList = [];
+    if (epData) {
+      if (Array.isArray(epData)) {
+        const block = epData.find(item => item.provider === activeProviderMode);
+        providerList = block ? block.episodes : [];
+      } else if (epData.episodes && Array.isArray(epData.episodes)) {
+        providerList = epData.episodes;
       } else {
-        throw new Error("Empty target pipeline stream source mapping index.");
+        providerList = epData[activeProviderMode] || [];
       }
     }
+    
+    if (!Array.isArray(providerList) || providerList.length === 0) {
+      const fallbackProvider = API_PROVIDERS.find(p => {
+        if (!epData) return false;
+        if (Array.isArray(epData)) {
+          const b = epData.find(item => item.provider === p.id);
+          return b && b.episodes && b.episodes.length > 0;
+        } else {
+          return epData[p.id] && epData[p.id].length > 0;
+        }
+      });
+
+      if (fallbackProvider) {
+        if (Array.isArray(epData)) {
+          providerList = epData.find(item => item.provider === fallbackProvider.id).episodes;
+        } else {
+          providerList = epData[fallbackProvider.id];
+        }
+      }
+    }
+
+    const totalEpisodesCount = providerList && providerList.length > 0 ? providerList.length : 12;
+    window.activeMaxEpisodes = totalEpisodesCount;
+    epBox.innerHTML = '';
+
+    for (let i = 1; i <= totalEpisodesCount; i++) {
+      const btn = document.createElement('button');
+      btn.id = `ep-btn-${i}`;
+      btn.className = "bg-dark-input text-gray-400 border border-dark-border text-xs font-bold w-10 h-10 rounded-lg transition-all shadow-sm cursor-pointer";
+      btn.innerText = i;
+      btn.onclick = () => launchVideoPlayer(i);
+      epBox.appendChild(btn);
+    }
+
+    document.getElementById('detail-episodes').innerText = totalEpisodesCount;
+    launchVideoPlayer(1);
+
   } catch (err) {
-    console.error("Pipeline failure routing active stream node coordinates:", err);
+    console.error("Failed to map live API episodes:", err);
+    window.activeMaxEpisodes = 12;
+    epBox.innerHTML = '';
+    for (let i = 1; i <= 12; i++) {
+      const btn = document.createElement('button');
+      btn.id = `ep-btn-${i}`;
+      btn.className = "bg-dark-input text-gray-400 border border-dark-border text-xs font-bold w-10 h-10 rounded-lg transition-all cursor-pointer";
+      btn.innerText = i;
+      btn.onclick = () => launchVideoPlayer(i);
+      epBox.appendChild(btn);
+    }
+    launchVideoPlayer(1);
+  }
+}
+
+async function fetchAnivexaStreamList(anilistId, epNum, dubMode) {
+  try {
+    const category = dubMode === 'dub' ? 'dub' : 'sub';
+    const cleanProvider = activeProviderMode.toLowerCase().trim();
+    
+    if (cleanProvider === 'reanime') {
+      const redirectUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${category}/reanime-${epNum}`;
+      return [{
+        name: "ReAnime Core Stream",
+        type: "HLS",
+        url: redirectUrl,
+        isActive: true
+      }];
+    }
+
+    let computedEpId = `${cleanProvider}-${epNum}`;
+    if (globalEpisodeDataCache) {
+      let targetList = [];
+      if (Array.isArray(globalEpisodeDataCache)) {
+        const block = globalEpisodeDataCache.find(item => item.provider === cleanProvider);
+        if (block) targetList = block.episodes || [];
+      } else if (globalEpisodeDataCache.episodes && Array.isArray(globalEpisodeDataCache.episodes)) {
+        targetList = globalEpisodeDataCache.episodes;
+      } else {
+        targetList = globalEpisodeDataCache[cleanProvider] || [];
+      }
+
+      if (targetList && targetList.length > 0) {
+        const matchedEpisodeObj = targetList.find(e => e.number == epNum || e.episode == epNum);
+        if (matchedEpisodeObj && matchedEpisodeObj.id) {
+          computedEpId = matchedEpisodeObj.id;
+        }
+      }
+    }
+
+    const watchUrl = `${ANIVEXA_BASE_API}/watch/${cleanProvider}/${anilistId}/${category}/${computedEpId}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const watchRes = await fetch(watchUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!watchRes.ok) return null;
+    const watchData = await watchRes.json();
+    
+    if (watchData && Array.isArray(watchData.streams)) {
+      return watchData.streams; 
+    } else if (watchData && watchData.url) {
+      const isHLS = watchData.url.includes('.m3u8');
+      return [{ 
+        name: `${activeProviderMode.toUpperCase()} Mirror`, 
+        type: isHLS ? "HLS" : "Embed", 
+        url: watchData.url, 
+        isActive: true 
+      }];
+    }
+    
+    return null;
+  } catch (e) {
+    console.warn(`[Anivexa Stream Router Exception]:`, e);
+    return null;
+  }
+}
+
+function renderSubServerGrid(streams) {
+  const serverGridContainer = document.getElementById('sub-server-links-grid');
+  if (!serverGridContainer) return;
+  serverGridContainer.innerHTML = '';
+
+  const hlsStreams = streams.filter(s => s.url.includes('.m3u8') || (s.type && s.type.toUpperCase() === 'HLS'));
+  const fallbackStreams = streams.filter(s => !s.url.includes('.m3u8') && (!s.type || s.type.toUpperCase() !== 'HLS'));
+
+  if (hlsStreams.length > 0) {
+    const internalGroup = document.createElement('div');
+    internalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4";
+    internalGroup.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-xs text-purple-400"></i>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">HLS Streams (Internal Player)</h3>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">${hlsStreams.length} Available</span>
+      </div>
+      <div id="hls-links-subgrid" class="grid grid-cols-2 gap-2.5"></div>
+    `;
+    serverGridContainer.appendChild(internalGroup);
+    
+    const hlsGrid = document.getElementById('hls-links-subgrid');
+    hlsStreams.forEach((stream, idx) => {
+      createStreamPillElement(stream, `hls-${idx}`, hlsGrid, streams);
+    });
+  }
+
+  if (fallbackStreams.length > 0) {
+    const externalGroup = document.createElement('div');
+    externalGroup.className = "bg-[#111116] border border-zinc-900 rounded-xl p-4 mt-2";
+    externalGroup.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-link text-xs text-zinc-400"></i>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Iframe Embed Mirrors (Side Content)</h3>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700/60 px-2 py-0.5 rounded-full">${fallbackStreams.length} Links</span>
+      </div>
+      <div id="fallback-links-subgrid" class="grid grid-cols-2 gap-2.5"></div>
+    `;
+    serverGridContainer.appendChild(externalGroup);
+    
+    const fallbackGrid = document.getElementById('fallback-links-subgrid');
+    fallbackStreams.forEach((stream, idx) => {
+      createStreamPillElement(stream, `fallback-${idx}`, fallbackGrid, streams);
+    });
+  }
+}
+
+function createStreamPillElement(stream, uniquelyIdentifiedId, parentGridContainer, masterStreamsArray) {
+  const pill = document.createElement('div');
+  pill.id = `stream-link-pill-${uniquelyIdentifiedId}`;
+  pill.className = "bg-[#16161c] border border-zinc-800/80 rounded-xl p-3 flex flex-col justify-between cursor-pointer select-none transition-all hover:scale-[1.01] group";
+  
+  const labelType = stream.url.includes('.m3u8') ? 'HLS' : (stream.type || 'Embed');
+  const typeBadgeStyles = labelType === 'HLS' 
+    ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+    : 'bg-zinc-800 text-zinc-400 border-zinc-700/50';
+
+  pill.innerHTML = `
+    <div class="flex items-start justify-between gap-2">
+      <h4 class="text-xs font-bold text-gray-200 transition-colors server-name-text truncate">${stream.name || 'Mirror Source'}</h4>
+      <span class="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded border tracking-wide uppercase shrink-0 ${typeBadgeStyles}">${labelType}</span>
+    </div>
+    <div class="flex items-center gap-3 text-[10px] text-gray-500 font-mono mt-2.5 pt-2 border-t border-zinc-800/40 group-hover:text-gray-400">
+      <span><i class="fa-regular fa-thumbs-up mr-1.5"></i>--</span>
+      <span><i class="fa-regular fa-thumbs-down mr-1.5"></i>--</span>
+    </div>
+  `;
+
+  if (stream.isActive) {
+    applyActivePillStyles(pill);
+  }
+
+  pill.onclick = () => {
+    masterStreamsArray.forEach((_, idx) => {
+      const p1 = document.getElementById(`stream-link-pill-hls-${idx}`);
+      const p2 = document.getElementById(`stream-link-pill-fallback-${idx}`);
+      if (p1) removeActivePillStyles(p1);
+      if (p2) removeActivePillStyles(p2);
+    });
+
+    applyActivePillStyles(pill);
+    executeStreamRouting(stream.url, labelType);
+  };
+
+  parentGridContainer.appendChild(pill);
+}
+
+function applyActivePillStyles(element) {
+  element.style.backgroundColor = '#ffffff';
+  element.style.borderColor = '#ffffff';
+  const nameTxt = element.querySelector('.server-name-text');
+  if (nameTxt) nameTxt.style.color = '#000000';
+  element.querySelectorAll('span, i').forEach(el => {
+    if (!el.classList.contains('border')) el.style.color = '#4b5563';
+  });
+}
+
+// Fixed UI element clean routines
+function removeActivePillStyles(element) {
+  element.style.backgroundColor = '';
+  element.style.borderColor = '';
+  const nameTxt = element.querySelector('.server-name-text');
+  if (nameTxt) nameTxt.style.color = '';
+  element.querySelectorAll('span, i').forEach(el => {
+    if (!el.classList.contains('border')) el.style.color = '';
+  });
+}
+
+function executeStreamRouting(streamUrl, streamType) {
+  const playerBox = document.getElementById('player-box');
+  if (!playerBox) return;
+  
+  const isHLSSource = (streamType && streamType.toUpperCase() === 'HLS') || streamUrl.includes('.m3u8') || activeProviderMode === 'reanime';
+  
+  if (window.currentHlsInstance) {
+    window.currentHlsInstance.destroy();
+    window.currentHlsInstance = null;
+  }
+  if (window.currentPlyr) {
+    window.currentPlyr.destroy();
+    window.currentPlyr = null;
+  }
+
+  if (isHLSSource) {
+    // Inject clean HTML5 media player
+    playerBox.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+    const videoElement = document.getElementById('video-iframe');
+
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+      window.currentHlsInstance = new Hls({ maxMaxBufferLength: 30, enableWorker: true });
+      window.currentHlsInstance.loadSource(streamUrl);
+      window.currentHlsInstance.attachMedia(videoElement);
+      
+      window.currentHlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+        initializePlyrEngine(videoElement);
+        videoElement.play().catch(() => console.log("Autoplay standby"));
+      });
+
+      window.currentHlsInstance.on(Hls.Events.ERROR, function (event, data) {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              window.currentHlsInstance.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              window.currentHlsInstance.recoverMediaError();
+              break;
+            default:
+              handleStreamMissingNotice();
+              break;
+          }
+        }
+      });
+    } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+      videoElement.src = streamUrl;
+      initializePlyrEngine(videoElement);
+    } else {
+      handleStreamMissingNotice();
+    }
+  } else {
+    // Inject Fallback Embed Iframe
+    playerBox.innerHTML = `<iframe id="video-iframe" class="w-full h-full rounded-xl bg-black" allowfullscreen frameborder="0" src="${streamUrl}"></iframe>`;
+  }
+}
+
+function initializePlyrEngine(videoElement) {
+  try {
+    if (typeof Plyr !== 'undefined' && !window.currentPlyr) {
+      const currentActivePreset = presets[currentPresetName] || presets.subaru;
+      window.currentPlyr = new Plyr(videoElement, {
+        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen'],
+        keyboard: { focused: true, global: true }
+      });
+      document.documentElement.style.setProperty('--plyr-color-main', currentActivePreset.hex);
+    }
+  } catch(err) {
+    console.warn("Plyr binding standby.", err);
+  }
+}
+
+async function launchVideoPlayer(epNum) {
+  currentEpisodeIndex = epNum;
+  updateEpisodeButtonsUI();
+
+  const streamsList = await fetchAnivexaStreamList(window.currentAnilistId, epNum, currentLanguage);
+  
+  if (streamsList && streamsList.length > 0) {
+    renderSubServerGrid(streamsList);
+    
+    const defaultStream = streamsList.find(s => s.isActive && s.url.includes('.m3u8')) 
+      || streamsList.find(s => s.url.includes('.m3u8')) 
+      || streamsList.find(s => s.isActive) 
+      || streamsList[0];
+      
+    const calculatedType = (defaultStream.url.includes('.m3u8') || activeProviderMode === 'reanime') ? 'HLS' : (defaultStream.type || 'Embed');
+    executeStreamRouting(defaultStream.url, calculatedType);
+  } else {
     handleStreamMissingNotice();
   }
 }
 
-function initializeHlsVideo(videoElement, sourceUrl) {
-  if (!videoElement) return;
-  
-  if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(sourceUrl);
-    hls.attachMedia(videoElement);
-    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-      if (typeof Plyr !== 'undefined') {
-        plyrInstance = new Plyr(videoElement, {
-          controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-        });
+function updateEpisodeButtonsUI() {
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#00ff66';
+  const curPreset = presets[currentPresetName] || presets.subaru;
+  const activeTextColor = curPreset.textLight ? '#ffffff' : '#000000';
+
+  for (let i = 1; i <= window.activeMaxEpisodes; i++) {
+    const btn = document.getElementById(`ep-btn-${i}`);
+    if (btn) {
+      if (i === currentEpisodeIndex) {
+        btn.style.backgroundColor = currentActiveHex;
+        btn.style.color = activeTextColor;
+        btn.style.borderColor = currentActiveHex;
+      } else {
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
       }
-    });
-    
-    hls.on(Hls.Events.ERROR, function(event, data) {
-      if (data.fatal) {
-        handleStreamMissingNotice();
-      }
-    });
-  } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-    videoElement.src = sourceUrl;
-    if (typeof Plyr !== 'undefined') {
-      plyrInstance = new Plyr(videoElement, {
-        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-      });
     }
   }
 }
 
-function handleStreamMissingNotice() {
-  const wrapper = document.getElementById('video-player-wrapper');
-  if (!wrapper) return;
-  wrapper.innerHTML = `
-    <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] text-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
-      <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Pipeline Fault</p>
-      <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}.</p>
-      <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
-    </div>`;
-
-  const hlsContainer = document.getElementById('internal-player-links-grid') || document.getElementById('hls-links-grid');
-  const embedContainer = document.getElementById('embed-mirrors-links-grid') || document.getElementById('iframe-links-grid');
-  if (hlsContainer) hlsContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No links available on error route.</p>`;
-  if (embedContainer) embedContainer.innerHTML = `<p class="text-[10px] font-mono text-gray-600 col-span-full">No links available on error route.</p>`;
+function setProviderSource(providerId) {
+  activeProviderMode = providerId;
+  updateProviderButtonsUI();
+  launchVideoPlayer(currentEpisodeIndex);
 }
 
-window.setLanguage = function(lang) {
-  if (currentLanguage === lang) return;
-  currentLanguage = lang;
-  updateLanguageButtonsUI();
+function updateProviderButtonsUI() {
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#00ff66';
+  const curPreset = presets[currentPresetName] || presets.subaru;
+  const activeTextColor = curPreset.textLight ? '#ffffff' : '#000000';
   
-  if (window.currentMalId) {
-    window.routeActiveStreamSource(currentEpisodeIndex);
-  }
-}
-
-function updateLanguageButtonsUI() {
-  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
-  const curPreset = colorProfiles[currentPresetName] || colorProfiles.subaru;
-
-  ['sub', 'dub'].forEach(l => {
-    const btn = document.getElementById(`${l}-btn`);
-    if(!btn) return;
-    if (currentLanguage === l) {
+  API_PROVIDERS.forEach(prov => {
+    const btn = document.getElementById(`server-${prov.id}`);
+    if (!btn) return;
+    if (activeProviderMode === prov.id) {
       btn.style.backgroundColor = currentActiveHex;
-      btn.style.color = '#ffffff'; 
+      btn.style.color = activeTextColor;
       btn.style.borderColor = currentActiveHex;
-      btn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
     } else {
       btn.style.backgroundColor = '';
       btn.style.color = '';
       btn.style.borderColor = '';
-      btn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
     }
   });
 }
 
-// Autoplay Event Handshake Interceptor
+function handleStreamMissingNotice() {
+  const playerBox = document.getElementById('player-box');
+  if (playerBox) {
+    playerBox.innerHTML = `
+      <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/95 text-center p-6 rounded-xl border border-dark-border">
+        <i class="fa-solid fa-triangle-exclamation text-xl text-yellow-500 mb-2 animate-pulse"></i>
+        <p class="text-xs font-semibold text-gray-400 font-mono tracking-wider">
+          Source empty on provider: "${activeProviderMode.toUpperCase()}". Try switching tabs or language configuration.
+        </p>
+      </div>`;
+  }
+}
+
+function setLanguage(lang) {
+  currentLanguage = lang;
+  updateLanguageButtonsUI();
+  if (window.currentAnilistId) {
+    launchVideoPlayer(currentEpisodeIndex);
+  }
+}
+
+function updateLanguageButtonsUI() {
+  const subBtn = document.getElementById('sub-btn');
+  const dubBtn = document.getElementById('dub-btn');
+  if (!subBtn || !dubBtn) return;
+
+  const currentAccentColor = document.querySelector('.dynamic-accent-text')?.style.color || '#00ff66';
+  const curPreset = presets[currentPresetName] || presets.subaru;
+  const activeTextColor = curPreset.textLight ? '#ffffff' : '#000000';
+
+  if (currentLanguage === 'sub') {
+    subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-accent text-black lang-btn active";
+    subBtn.style.backgroundColor = currentAccentColor;
+    subBtn.style.color = activeTextColor;
+
+    dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all lang-btn";
+    dubBtn.style.backgroundColor = '';
+    dubBtn.style.color = '';
+  } else {
+    subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all lang-btn";
+    subBtn.style.backgroundColor = '';
+    subBtn.style.color = '';
+
+    dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-accent text-black lang-btn active";
+    dubBtn.style.backgroundColor = currentAccentColor;
+    dubBtn.style.color = activeTextColor;
+  }
+}
+
+// Autoplay Handshake Interceptor
 window.addEventListener("message", function (event) {
   let data = event.data;
   if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
   if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
     const nextEp = currentEpisodeIndex + 1;
-    if (nextEp <= window.activeMaxEpisodes) {
-      window.routeActiveStreamSource(nextEp);
-    }
+    if (nextEp <= window.activeMaxEpisodes) launchVideoPlayer(nextEp);
   }
 });
 
-// ==========================================
-// 6. LIFE MATRIX BOOT INITIALIZER EXECUTION
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-  loadSavedTheme();
+window.onload = function() {
   startSystemClock();
-});
+  applyCharacterPreset('subaru');
+  switchToView('home');
+};
