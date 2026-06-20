@@ -242,7 +242,15 @@
       <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-5">
         <div class="relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-dark-border shadow-2xl">
           <div id="player-box" class="w-full h-full relative">
-            <iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full rounded-xl bg-black"></iframe>
+            <div id="player-iframe-wrapper" class="w-full h-full">
+              <iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full rounded-xl bg-black"></iframe>
+            </div>
+            <div id="native-player-wrapper" class="hidden w-full h-full"></div>
+            <div id="player-empty-fallback-notice" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/95 p-4 text-center z-10">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2"></i>
+              <p class="text-xs font-semibold text-gray-200 uppercase tracking-wider">Stream Endpoint Missing</p>
+              <p class="text-[11px] text-gray-500 mt-1 max-w-xs">The selected content catalog record map profile does not have active tracks sync verified.</p>
+            </div>
           </div>
         </div>
 
@@ -315,6 +323,7 @@
         <button onclick="applyCharacterPreset('roswaal')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Roswaal L.M.</span><span class="w-2.5 h-2.5 rounded-full bg-[#4f46e5]"></span></button>
         <button onclick="applyCharacterPreset('satella')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Satella</span><span class="w-2.5 h-2.5 rounded-full bg-[#6d28d9]"></span></button>
         <button onclick="applyCharacterPreset('echidna')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Echidna</span><span class="w-2.5 h-2.5 rounded-full bg-[#e2e8f0]"></span></button>
+        <button onclick="applyCharacterPreset('megaplay')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">MegaPlay Theme</span><span class="w-2.5 h-2.5 rounded-full bg-[#00ffff]"></span></button>
       </div>
 
       <div class="pt-2 flex justify-center">
