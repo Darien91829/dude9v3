@@ -58,7 +58,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex flex-col md:flex-row font-['Inter',sans-serif]">
+<body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex font-['Inter',sans-serif]">
 
   <aside id="main-menu-drawer" class="fixed md:sticky top-0 left-0 h-full w-72 md:w-64 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out p-5 bg-[#0f0f12] sidebar border-r border-dark-border flex flex-col justify-between">
     <div>
@@ -94,13 +94,18 @@
           <span class="icon text-base"><i class="fa-solid fa-calendar-days"></i></span> 
           <span class="label font-medium">Airing Track</span>
         </div>
+
+        <div id="watchlist-wrapper-section" class="pt-4 hidden">
+          <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-2 px-2">Saved Collection</span>
+          <div id="my-watchlist-grid" class="space-y-1.5 px-2"></div>
+        </div>
       </nav>
     </div>
   </aside>
 
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden backdrop-blur-sm"></div>
 
-  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+  <div class="flex-1 flex flex-col min-w-0">
     
     <nav class="sticky top-0 z-30 bg-dark-bg/95 backdrop-blur border-b border-dark-border px-6 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-4">
@@ -118,7 +123,7 @@
         <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-accent text-black font-bold px-3 py-1 rounded-lg text-[11px] uppercase tracking-wide">Find</button>
       </div>
 
-      <div class="flex items-center">
+      <div class="flex items-center space-x-2">
         <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-transform active:scale-95" title="Change Layout Palette" aria-label="Open Theme Palette Menu">
           <i class="fa-solid fa-palette text-base"></i>
         </button>
@@ -211,7 +216,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-dark-border pb-3.5">
           <div>
             <h1 class="text-base font-bold tracking-wide uppercase text-white">Airing Schedule Matrix</h1>
-            <p class="text-xs text-gray-500 mt-0.5 font-mono">Real-time localized weekly timeline streams hooked straight via AniList API</p>
+            <p class="text-xs text-gray-500 mt-0.5 font-mono">Real-time localized weekly timeline streams hooked straight via Jikan API</p>
           </div>
           <div class="flex items-center gap-2">
             <div class="relative">
@@ -226,76 +231,40 @@
         <div id="airing-chronological-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2"></div>
       </section>
 
-      <section id="stream-dashboard-box" class="hidden max-w-5xl mx-auto space-y-5">
-        
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          
-          <div class="lg:col-span-2 space-y-5">
-            <div class="relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-dark-border shadow-2xl">
-              <div id="player-box" class="w-full h-full relative">
-                <div id="video-player-wrapper" class="w-full h-full">
-                  <video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>
-                </div>
-              </div>
-            </div>
-
-            <div class="space-y-3 bg-dark-card border border-dark-border p-4 rounded-2xl shadow-xl">
-              <div class="flex items-center justify-between border-b border-dark-border pb-2 mb-2">
-                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Streaming Server Framework</h3>
-                <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0">
-                  <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all">SUB</button>
-                  <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
-                </div>
-              </div>
-
-              <div class="border border-dark-border rounded-xl bg-dark-input overflow-hidden">
-                <button onclick="document.getElementById('internal-dropdown-body').classList.toggle('hidden')" class="w-full bg-[#181726]/40 hover:bg-[#181726]/70 px-4 py-3 flex items-center justify-between text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
-                  <span class="flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400 text-[10px]"></i> Internal Player Providers (HLS)</span>
-                  <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
-                </button>
-                <div id="internal-dropdown-body" class="p-3 bg-dark-card/40 border-t border-dark-border/40 space-y-2">
-                  <div id="server-source-tabs-bar" class="flex flex-wrap gap-1.5 pb-2 border-b border-dark-border/30">
-                    </div>
-                  <div class="space-y-1">
-                    <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Active HLS Pipeline Tracks:</span>
-                    <div id="hls-streams-container" class="flex flex-wrap gap-2">
-                      <p class="text-[11px] text-gray-500 italic font-mono">Select an internal provider engine above...</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="border border-dark-border rounded-xl bg-dark-input overflow-hidden">
-                <button onclick="document.getElementById('external-dropdown-body').classList.toggle('hidden')" class="w-full bg-[#181726]/40 hover:bg-[#181726]/70 px-4 py-3 flex items-center justify-between text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
-                  <span class="flex items-center gap-2"><i class="fa-solid fa-server text-indigo-400 text-[10px]"></i> External Embed Mirrors (Working Framework)</span>
-                  <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
-                </button>
-                <div id="external-dropdown-body" class="p-3 bg-dark-card/40 border-t border-dark-border/40">
-                  <div id="iframe-mirrors-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    </div>
-                </div>
-              </div>
-
-            </div>
+      <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-5">
+        <div class="relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-dark-border shadow-2xl">
+          <div id="player-box" class="w-full h-full relative">
+            <iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full rounded-xl bg-black"></iframe>
           </div>
-
-          <div class="space-y-5">
-            <div class="bg-dark-card border border-dark-border rounded-2xl p-4 flex flex-row items-start text-left gap-4 shadow-xl">
-              <div class="w-20 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-xl overflow-hidden shadow-md shrink-0">
-                <img id="detail-poster" src="" class="w-full h-full object-cover" alt="Active Cover Poster">
-              </div>
-              <div class="space-y-1.5 flex-1 min-w-0">
-                <h2 id="detail-title" class="text-xs font-bold text-white tracking-wide truncate">---</h2>
-                <p id="detail-synopsis" class="text-[11px] text-gray-400 leading-relaxed max-h-16 overflow-y-auto pr-1 scrollbar-none">Initializing data records...</p>
-                <div class="pt-2 grid grid-cols-2 gap-2 text-[9px] text-gray-500 font-mono border-t border-dark-border/40">
-                  <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Format</span><span id="detail-type" class="text-gray-300 font-bold">--</span></div>
-                  <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Score</span><span id="detail-rating" class="text-gray-300 font-bold">--</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
+          <div class="flex items-center gap-4">
+            <h3 id="ep-title" class="text-xs font-bold uppercase tracking-wider text-white">Watching: ---</h3>
+          </div>
+          
+          <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
+            <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all active bg-accent text-black">SUB</button>
+            <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
+          </div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 shadow-xl">
+          <div class="w-28 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-xl overflow-hidden shadow-md shrink-0">
+            <img id="detail-poster" src="" class="w-full h-full object-cover" alt="Active Cover Poster">
+          </div>
+          <div class="space-y-2.5 flex-1 w-full">
+            <h2 id="detail-title" class="text-base font-bold text-white tracking-wide">---</h2>
+            <p id="detail-synopsis" class="text-xs text-gray-400 leading-relaxed max-h-24 overflow-y-auto pr-1 scrollbar-none">Initializing data records...</p>
+            <div class="border-t border-dark-border/60 pt-3 grid grid-cols-3 gap-2 text-[10px] text-gray-500 font-mono">
+              <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Media Format</span><span id="detail-type" class="text-gray-300 font-bold">--</span></div>
+              <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Total Tracks</span><span id="detail-episodes" class="text-gray-300 font-bold">--</span></div>
+              <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">MAL Score</span><span id="detail-rating" class="text-gray-300 font-bold">--</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="sub-server-links-grid" class="space-y-4 mb-4"></div>
 
         <div class="bg-dark-card border border-dark-border rounded-2xl p-5 space-y-4 shadow-xl">
           <div class="flex items-center justify-between">
@@ -309,26 +278,6 @@
         </div>
       </section>
     </main>
-
-    <footer class="mt-auto border-t border-dark-border bg-[#0b0b0d] py-6 px-6 sm:px-8">
-      <div class="max-w-7xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-          <span class="text-white font-bold text-sm tracking-wide select-none">
-            TheDude9 <span class="dynamic-accent-text text-accent">Anime Hub</span>
-          </span>
-        </div>
-        
-        <p class="text-[11px] text-gray-600 order-3 sm:order-2 font-medium">
-          &copy; 2026 TheDude9. All rights reserved.
-        </p>
-        
-        <div class="flex items-center gap-6 text-[11px] font-semibold text-gray-500 order-2 sm:order-3">
-          <a href="#" class="hover:text-accent transition-colors">Terms</a>
-          <a href="#" class="hover:text-accent transition-colors">Privacy</a>
-          <a href="#" class="hover:text-accent transition-colors">Contact</a>
-        </div>
-      </div>
-    </footer>
   </div>
 
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm"></div>
@@ -341,59 +290,40 @@
       </div>
       
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-medium">
-        <button onclick="applyCharacterPreset('umi')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#4169e1]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Umi Sonoda</span><span class="w-3 h-3 rounded-full bg-[#4169e1] shrink-0 ml-1 shadow-[0_0_8px_rgba(65,105,225,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('alya')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#a1a1aa]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Alya Kujou</span><span class="w-3 h-3 rounded-full bg-[#a1a1aa] shrink-0 ml-1 shadow-[0_0_8px_rgba(161,161,170,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#f97316]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Subaru N.</span><span class="w-3 h-3 rounded-full bg-[#f97316] shrink-0 ml-1 shadow-[0_0_8px_rgba(249,115,22,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#c084fc]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Emilia</span><span class="w-3 h-3 rounded-full bg-[#c084fc] shrink-0 ml-1 shadow-[0_0_8px_rgba(192,132,252,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('rem')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#38bdf8]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Rem</span><span class="w-3 h-3 rounded-full bg-[#38bdf8] shrink-0 ml-1 shadow-[0_0_8px_rgba(56,189,248,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('ram')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#fb7185]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Ram</span><span class="w-3 h-3 rounded-full bg-[#fb7185] shrink-0 ml-1 shadow-[0_0_8px_rgba(251,113,133,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('beatrice')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#fbbf24]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Beatrice</span><span class="w-3 h-3 rounded-full bg-[#fbbf24] shrink-0 ml-1 shadow-[0_0_8px_rgba(251,191,36,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('felt')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#eab308]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Felt</span><span class="w-3 h-3 rounded-full bg-[#eab308] shrink-0 ml-1 shadow-[0_0_8px_rgba(234,179,8,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('reinhard')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#dc2626]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Reinhard v.A.</span><span class="w-3 h-3 rounded-full bg-[#dc2626] shrink-0 ml-1 shadow-[0_0_8px_rgba(220,38,38,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#059669]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Crusch K.</span><span class="w-3 h-3 rounded-full bg-[#059669] shrink-0 ml-1 shadow-[0_0_8px_rgba(5,150,105,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#d97706]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Felix A.</span><span class="w-3 h-3 rounded-full bg-[#d97706] shrink-0 ml-1 shadow-[0_0_8px_rgba(217,119,6,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('priscilla')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#ef4444]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Priscilla B.</span><span class="w-3 h-3 rounded-full bg-[#ef4444] shrink-0 ml-1 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('anastasia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#f472b6]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Anastasia H.</span><span class="w-3 h-3 rounded-full bg-[#f472b6] shrink-0 ml-1 shadow-[0_0_8px_rgba(244,114,182,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('julius')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#818cf8]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Julius J.</span><span class="w-3 h-3 rounded-full bg-[#818cf8] shrink-0 ml-1 shadow-[0_0_8px_rgba(129,140,248,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('wilhelm')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#94a3b8]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Wilhelm v.A.</span><span class="w-3 h-3 rounded-full bg-[#94a3b8] shrink-0 ml-1 shadow-[0_0_8px_rgba(148,163,184,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('roswaal')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#4f46e5]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Roswaal L.M.</span><span class="w-3 h-3 rounded-full bg-[#4f46e5] shrink-0 ml-1 shadow-[0_0_8px_rgba(79,70,229,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('satella')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#6d28d9]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Satella</span><span class="w-3 h-3 rounded-full bg-[#6d28d9] shrink-0 ml-1 shadow-[0_0_8px_rgba(109,40,217,0.4)]"></span></button>
-        <button onclick="applyCharacterPreset('echidna')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-[#e4e4e7]/50 transition-colors group"><span class="text-gray-300 group-hover:text-white font-medium truncate">Echidna</span><span class="w-3 h-3 rounded-full bg-[#e4e4e7] shrink-0 ml-1 shadow-[0_0_8px_rgba(228,228,231,0.4)]"></span></button>
+        <button onclick="applyCharacterPreset('umi')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Umi Sonoda</span><span class="w-2.5 h-2.5 rounded-full bg-[#4169e1]"></span></button>
+        <button onclick="applyCharacterPreset('alya')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Alya Kujou</span><span class="w-2.5 h-2.5 rounded-full bg-[#a1a1aa]"></span></button>
+        <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Subaru N.</span><span class="w-2.5 h-2.5 rounded-full bg-[#f97316]"></span></button>
+        <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Emilia</span><span class="w-2.5 h-2.5 rounded-full bg-[#c084fc]"></span></button>
+        <button onclick="applyCharacterPreset('rem')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Rem</span><span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span></button>
+        <button onclick="applyCharacterPreset('ram')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Ram</span><span class="w-2.5 h-2.5 rounded-full bg-[#fb7185]"></span></button>
+        <button onclick="applyCharacterPreset('beatrice')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Beatrice</span><span class="w-2.5 h-2.5 rounded-full bg-[#fbbf24]"></span></button>
+        <button onclick="applyCharacterPreset('felt')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Felt</span><span class="w-2.5 h-2.5 rounded-full bg-[#eab308]"></span></button>
+        <button onclick="applyCharacterPreset('reinhard')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Reinhard v.A.</span><span class="w-2.5 h-2.5 rounded-full bg-[#dc2626]"></span></button>
+        <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Crusch K.</span><span class="w-2.5 h-2.5 rounded-full bg-[#059669]"></span></button>
+        <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Felix A.</span><span class="w-2.5 h-2.5 rounded-full bg-[#d97706]"></span></button>
+        <button onclick="applyCharacterPreset('priscilla')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Priscilla B.</span><span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span></button>
+        <button onclick="applyCharacterPreset('anastasia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Anastasia H.</span><span class="w-2.5 h-2.5 rounded-full bg-[#f472b6]"></span></button>
+        <button onclick="applyCharacterPreset('julius')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Julius J.</span><span class="w-2.5 h-2.5 rounded-full bg-[#818cf8]"></span></button>
+        <button onclick="applyCharacterPreset('wilhelm')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Wilhelm v.A.</span><span class="w-2.5 h-2.5 rounded-full bg-[#94a3b8]"></span></button>
+        <button onclick="applyCharacterPreset('roswaal')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Roswaal L.M.</span><span class="w-2.5 h-2.5 rounded-full bg-[#4f46e5]"></span></button>
+        <button onclick="applyCharacterPreset('satella')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Satella</span><span class="w-2.5 h-2.5 rounded-full bg-[#6d28d9]"></span></button>
+        <button onclick="applyCharacterPreset('echidna')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Echidna</span><span class="w-2.5 h-2.5 rounded-full bg-[#e4e4e7]"></span></button>
       </div>
       
       <button onclick="closeBottomSheet()" class="w-full bg-dark-input text-gray-400 font-bold py-2.5 rounded-xl text-xs uppercase border border-dark-border hover:bg-neutral-900 transition-colors">Close Customizer</button>
     </div>
   </div>
 
-  <script>
+  <script type="module">
     // ==========================================
     // 1. GLOBAL STATE INITIALIZATION
     // ==========================================
-    const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
-
-    const PROVIDER_BASES = {
-      megaplay: "https://megaplay.buzz/stream/mal"
-    };
-
-    const API_PROVIDERS = [
-      { id: 'megaplay', name: 'MegaPlay' },
-      { id: 'allmanga', name: 'AllManga' },
-      { id: 'reanime', name: 'ReAnime' },
-      { id: 'anikoto', name: 'AniKoto' },
-      { id: 'animeegg', name: 'AnimeGG' },
-      { id: 'anineko', name: 'AniNeko' },
-      { id: 'anidbapp', name: 'AniDB App' },
-      { id: 'animepahe', name: 'AnimePahe' }
-    ];
-
-    let activeProviderKey = 'megaplay';
+    const MAL_PLAYER_BASE = "https://megaplay.buzz/stream/mal";
     let currentEpisodeIndex = 1;
     let currentLanguage = 'sub';
-    let plyrInstance = null;
     let streamLoadGuard = null;
     
     window.currentMalId = "";
-    window.currentAnilistId = "";
     window.activeAnimeTitle = "";
     window.activeMaxEpisodes = 12;
     window.activeImgUrl = "";
@@ -479,7 +409,6 @@
 
     window.homeReturnReset = function() {
       clearTimeout(streamLoadGuard);
-      if(plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
       window.switchToView('home');
       document.getElementById('search-input').value = "";
       document.getElementById('header-search-input').value = "";
@@ -518,27 +447,6 @@
       document.documentElement.style.setProperty('--character-accent-hover', choice.hex);
       document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
       localStorage.setItem('dude9anime-preset', profileKey);
-      
-      const hex = choice.hex;
-      const subBtn = document.getElementById('sub-btn');
-      const dubBtn = document.getElementById('dub-btn');
-      if (subBtn && currentLanguage === 'sub') {
-        subBtn.style.backgroundColor = hex;
-        subBtn.style.color = '#000000';
-      }
-      if (dubBtn && currentLanguage === 'dub') {
-        dubBtn.style.backgroundColor = hex;
-        dubBtn.style.color = '#000000';
-      }
-
-      if (document.getElementById('stream-dashboard-box').style.display === 'block') {
-        updateProviderTabsUI();
-        const targetBtn = document.getElementById(`ep-btn-${currentEpisodeIndex}`);
-        if(targetBtn) {
-          targetBtn.style.backgroundColor = hex;
-          targetBtn.style.borderColor = hex;
-        }
-      }
     }
 
     function loadSavedTheme() {
@@ -745,104 +653,102 @@
       selectCalendarTimelineDay(currentDayName);
     }
 
-    // ==========================================
-    // 5. RENDERING CORE PIPELINES
-    // ==========================================
-    function displayScrollFeed(items, containerId) {
-      const box = document.getElementById(containerId);
-      box.innerHTML = '';
-      items.forEach(anime => {
-        const title = anime.title_english || anime.title;
-        const img = anime.images?.jpg?.image_url || '';
-        const score = anime.score || '?.??';
-        const item = document.createElement('div');
-        item.className = "w-32 shrink-0 bg-dark-card border border-dark-border/80 rounded-2xl p-2 cursor-pointer hover:border-accent/30 transition-colors group";
-        
-        const cleanTitle = title.replace(/'/g, "\\'");
-        item.innerHTML = `
-          <div class="aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-neutral-900 relative">
-            <img src="${img}" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300">
-            <span class="absolute top-1.5 left-1.5 text-[8px] font-black bg-black/80 border border-white/5 text-yellow-400 px-1.5 py-0.5 rounded-md backdrop-blur-sm shadow"><i class="fa-solid fa-star text-[7px] mr-0.5"></i>${score}</span>
-          </div>
-          <div class="text-[11px] font-semibold text-gray-300 truncate group-hover:text-white px-0.5">${title}</div>
-        `;
-        item.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, img);
-        box.appendChild(item);
-      });
-    }
-
-    function displayGridFeed(items, containerId) {
-      const grid = document.getElementById(containerId);
-      grid.innerHTML = '';
-      items.forEach(anime => {
-        const title = anime.title_english || anime.title;
-        const img = anime.images?.jpg?.image_url || '';
-        const typ = anime.type || 'TV';
-        const card = document.createElement('div');
-        card.className = "bg-dark-card border border-dark-border rounded-2xl p-2.5 cursor-pointer hover:border-accent/40 transition-all shadow group flex flex-col justify-between";
-        
-        const cleanTitle = title.replace(/'/g, "\\'");
-        card.innerHTML = `
-          <div>
-            <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2 relative">
-              <img src="${img}" class="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300">
-              <span class="absolute bottom-1.5 left-1.5 text-[8px] font-mono font-bold bg-black/80 text-gray-400 px-1.5 py-0.5 rounded tracking-wider border border-white/5">${typ}</span>
-            </div>
-            <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-0.5 group-hover:text-white">${title}</div>
-          </div>
-        `;
-        card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, img);
-        grid.appendChild(card);
-      });
-    }
-
-    function displayTop10Sidebar(items) {
-      const box = document.getElementById('top10-box');
-      box.innerHTML = '';
-      items.forEach((anime, idx) => {
-        const title = anime.title_english || anime.title;
-        const score = anime.score || '?.??';
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2 rounded-xl bg-dark-input/50 border border-dark-border/40 hover:border-accent/20 cursor-pointer transition-colors";
-        
-        const cleanTitle = title.replace(/'/g, "\\'");
-        row.innerHTML = `
-          <div class="flex items-center min-w-0 pr-2">
-            <span class="text-xs font-mono font-black text-gray-600 w-5 tracking-tighter text-center">${idx + 1}</span>
-            <div class="text-[11px] font-medium text-gray-300 truncate">${title}</div>
-          </div>
-          <div class="text-[9px] font-mono font-bold text-yellow-500 bg-neutral-900 border border-dark-border px-1.5 py-0.5 rounded shrink-0"><i class="fa-solid fa-star text-[7px] mr-0.5"></i>${score}</div>
-        `;
-        row.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, anime.images?.jpg?.image_url || '');
-        box.appendChild(row);
-      });
-    }
-
     async function fetchFullSeasonalReleases() {
-      const targetGrid = document.getElementById('releases-api-grid');
-      targetGrid.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full animate-pulse"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Sourcing Jikan database arrays...</p>';
+      const grid = document.getElementById('releases-api-grid');
+      grid.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Rebuilding layout cards configuration routing grids...</p>';
       try {
-        const res = await fetch("https://api.jikan.moe/v4/seasons/now?limit=25");
+        const res = await fetch("https://api.jikan.moe/v4/seasons/now?limit=20");
         const json = await res.json();
         const dataset = json.data || [];
-        if(dataset.length === 0) {
-          targetGrid.innerHTML = '<p class="text-xs text-gray-600 font-mono col-span-full">No updates matched current execution indexes.</p>';
-          return;
+        if(dataset.length > 0) {
+          grid.innerHTML = "";
+          dataset.forEach(anime => {
+            const title = anime.title_english || anime.title;
+            const imgUrl = anime.images?.jpg?.image_url || '';
+            const card = document.createElement('div');
+            card.className = "bg-dark-card border border-dark-border rounded-2xl p-2 cursor-pointer hover:border-accent/40 transition-all shadow group";
+            card.innerHTML = `
+              <div class="aspect-[3/4] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2">
+                <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              </div>
+              <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-1">${title}</div>
+            `;
+            const cleanTitle = title.replace(/'/g, "\\'");
+            card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+            grid.appendChild(card);
+          });
         }
-        displayGridFeed(dataset, 'releases-api-grid');
-      } catch (e) { targetGrid.innerHTML = '<p class="text-xs text-red-500 font-mono col-span-full">Fail parsing release feeds.</p>'; }
+      } catch (e) { grid.innerHTML = '<p class="text-xs text-gray-600 font-mono col-span-full">Fail parsing pipeline seasonal assets streams data files.</p>'; }
+    }
+
+    function displayScrollFeed(animeArray, elementId) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      animeArray.forEach(anime => {
+        const title = anime.title_english || anime.title;
+        const imgUrl = anime.images?.jpg?.image_url || '';
+        const card = document.createElement('div');
+        card.className = "w-28 shrink-0 bg-dark-card border border-dark-border/60 p-1.5 rounded-2xl cursor-pointer hover:border-accent/40 transition-all shadow group";
+        card.innerHTML = `
+          <div class="aspect-[2/3] rounded-xl overflow-hidden mb-1.5 bg-neutral-900">
+            <img src="${imgUrl}" class="w-full h-full object-cover">
+          </div>
+          <div class="text-[11px] text-gray-300 font-semibold truncate px-0.5">${title}</div>
+        `;
+        const cleanTitle = title.replace(/'/g, "\\'");
+        card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+        container.appendChild(card);
+      });
+    }
+
+    function displayGridFeed(animeArray, elementId) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      animeArray.forEach(anime => {
+        const title = anime.title_english || anime.title;
+        const imgUrl = anime.images?.jpg?.image_url || '';
+        const card = document.createElement('div');
+        card.className = "bg-dark-card border border-dark-border/60 p-2 rounded-2xl cursor-pointer hover:border-accent/40 transition-all shadow group";
+        card.innerHTML = `
+          <div class="aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-neutral-900">
+            <img src="${imgUrl}" class="w-full h-full object-cover">
+          </div>
+          <div class="text-xs text-gray-300 font-semibold truncate px-0.5">${title}</div>
+        `;
+        const cleanTitle = title.replace(/'/g, "\\'");
+        card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+        container.appendChild(card);
+      });
+    }
+
+    function displayTop10Sidebar(animeArray) {
+      const container = document.getElementById('top10-box');
+      container.innerHTML = '';
+      animeArray.forEach((anime, idx) => {
+        const title = anime.title_english || anime.title;
+        const imgUrl = anime.images?.jpg?.image_url || '';
+        const row = document.createElement('div');
+        row.className = "flex items-center space-x-3 p-1.5 rounded-xl hover:bg-neutral-900/40 cursor-pointer transition-colors group";
+        row.innerHTML = `
+          <div class="text-sm font-black font-mono text-gray-600 w-4 text-center group-hover:text-accent">${idx + 1}</div>
+          <div class="flex-1 min-w-0"><div class="text-xs font-medium text-gray-300 truncate">${title}</div></div>
+        `;
+        const cleanTitle = title.replace(/'/g, "\\'");
+        row.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+        container.appendChild(row);
+      });
     }
 
     // ==========================================
-    // 6. STREAMING ENGINE INTERACTION & PROVIDERS
+    // 5. STREAM PIPELINE & INTERACTIVE CONSOLE MODULE
     // ==========================================
-    window.loadStreamingLayout = async function(malId, title, episodesMax, posterImg) {
-      clearTimeout(streamLoadGuard);
+    window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, imgUrl = "") {
       window.currentMalId = malId;
-      window.currentAnilistId = "";
-      window.activeAnimeTitle = title;
-      window.activeMaxEpisodes = episodesMax || 12;
-      window.activeImgUrl = posterImg;
+      window.activeAnimeTitle = titleName;
+      window.activeMaxEpisodes = totalEpisodes;
+      window.activeImgUrl = imgUrl || "https://images.alphacoders.com/134/1344238.png";
+      
+      clearTimeout(streamLoadGuard);
 
       document.getElementById('landing-portal').style.display = 'none';
       document.getElementById('main-exploration-hub').style.display = 'none';
@@ -851,371 +757,102 @@
       document.getElementById('stream-dashboard-box').style.display = 'block';
       document.getElementById('header-search-engine').style.display = 'flex';
 
-      const viewTitle = document.getElementById('view-indicator-title');
-      if(viewTitle) viewTitle.innerText = "Console Core Player Active";
+      document.getElementById('ep-title').innerText = `Watching: ${titleName}`;
+      document.getElementById('detail-title').innerText = titleName;
+      document.getElementById('detail-poster').src = window.activeImgUrl;
+      document.getElementById('detail-episodes').innerText = totalEpisodes;
 
-      document.querySelectorAll('#detail-poster').forEach(img => img.src = posterImg || '');
-      document.querySelectorAll('#detail-title').forEach(h2 => h2.innerText = title);
-      document.querySelectorAll('#detail-synopsis').forEach(p => p.innerText = "Querying description parameters database...");
-      document.querySelectorAll('#detail-type').forEach(s => s.innerText = "--");
-      document.querySelectorAll('#detail-rating').forEach(s => s.innerText = "--");
+      document.getElementById('detail-type').innerText = "TV Series";
+      document.getElementById('detail-rating').innerText = "Syncing...";
+      document.getElementById('detail-synopsis').innerText = "Requesting Jikan API documentation files database metrics...";
 
-      updateProviderTabsUI();
-      buildEpisodeIndexButtons(window.activeMaxEpisodes);
+      const epBox = document.getElementById('episode-buttons');
+      epBox.innerHTML = '';
+      for (let i = 1; i <= totalEpisodes; i++) {
+        const btn = document.createElement('button');
+        btn.className = "bg-dark-input hover:bg-neutral-900 border border-dark-border text-gray-400 font-bold px-3 py-1.5 rounded-lg text-xs min-w-[36px] tracking-wide transition-all ep-btn shadow-sm";
+        btn.id = `ep-choice-${i}`;
+        btn.innerText = `${i}`;
+        btn.onclick = () => launchVideoPlayer(i);
+        epBox.appendChild(btn);
+      }
 
       try {
-        const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
-        const mapData = await mapRes.json();
-        window.currentAnilistId = mapData.anilistId || mapData.id || malId;
-
-        const epRes = await fetch(`${ANIVEXA_BASE_API}/episodes/${window.currentAnilistId}`);
-        const epData = await epRes.json();
-        
-        if (epData && epData.length > 0) {
-          window.activeMaxEpisodes = epData.length;
-          buildEpisodeIndexButtons(epData.length);
+        const detailRes = await fetch(`https://api.jikan.moe/v4/anime/${malId}`);
+        const dataJson = await detailRes.json();
+        const info = dataJson.data;
+        if(info) {
+          document.getElementById('detail-synopsis').innerText = info.synopsis || "No meta documentation registered.";
+          document.getElementById('detail-type').innerText = info.type || "TV";
+          document.getElementById('detail-rating').innerText = info.score || "N/A";
         }
-      } catch(e) { 
-        console.warn("Backend dynamic map mapping sequence exception fallback to base values.");
-        window.currentAnilistId = malId; 
-      }
+      } catch(e) { console.warn("Meta metadata folder route fail mapping parameters."); }
 
-      window.routeActiveStreamSource(1);
-      
-      try {
-        const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}`);
-        const json = await res.json();
-        const data = json.data;
-        if(data) {
-          document.querySelectorAll('#detail-synopsis').forEach(p => p.innerText = data.synopsis || "No data record description parameters provided.");
-          document.querySelectorAll('#detail-type').forEach(s => s.innerText = data.type || "TV");
-          document.querySelectorAll('#detail-rating').forEach(s => s.innerText = data.score || "?.??");
-        }
-      } catch(e) { console.warn("Meta sync engine non-fatal exception."); }
-    }
+      launchVideoPlayer(1);
+    };
 
-    function buildEpisodeIndexButtons(total) {
-      const box = document.getElementById('episode-buttons');
-      box.innerHTML = '';
-      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
-      
-      for (let i = 1; i <= total; i++) {
-        const btn = document.createElement('button');
-        btn.id = `ep-btn-${i}`;
-        btn.innerText = i < 10 ? `0${i}` : i;
-        
-        if (i === currentEpisodeIndex) {
-          btn.className = "min-w-[40px] h-9 text-xs font-mono font-black text-black rounded-xl border shadow-lg flex items-center justify-center scale-105";
-          btn.style.backgroundColor = activeColor;
-          btn.style.borderColor = activeColor;
-        } else {
-          btn.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
-          btn.style.backgroundColor = '';
-          btn.style.borderColor = '';
-        }
-        
-        btn.onclick = () => window.routeActiveStreamSource(i);
-        box.appendChild(btn);
-      }
-    }
-
-    window.switchProvider = function(providerKey) {
-      if (activeProviderKey === providerKey) return;
-      activeProviderKey = providerKey;
-      updateProviderTabsUI();
-      if (window.currentMalId) {
-        window.routeActiveStreamSource(currentEpisodeIndex);
-      }
-    }
-
-    function updateProviderTabsUI() {
-      const targetBar = document.getElementById('server-source-tabs-bar');
-      if (!targetBar) return;
-      
-      targetBar.innerHTML = '';
-      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
-      
-      API_PROVIDERS.forEach(provider => {
-        if (provider.id === 'megaplay') return;
-        
-        const btn = document.createElement('button');
-        btn.id = `provider-${provider.id}`;
-        btn.innerText = provider.name;
-        
-        if (provider.id === activeProviderKey) {
-          btn.className = "px-3 py-1 text-[10px] font-black text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
-          btn.style.backgroundColor = activeColor;
-        } else {
-          btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-[#1c1b2e] border border-dark-border/40 shrink-0";
-          btn.style.backgroundColor = '';
-        }
-        
-        btn.onclick = () => window.switchProvider(provider.id);
-        targetBar.appendChild(btn);
+    function launchVideoPlayer(epNum) {
+      currentEpisodeIndex = epNum;
+      document.querySelectorAll('.ep-btn').forEach(b => {
+        b.className = "bg-dark-input hover:bg-neutral-900 border border-dark-border text-gray-400 font-bold px-3 py-1.5 rounded-lg text-xs min-w-[36px] tracking-wide transition-all ep-btn shadow-sm";
       });
-    }
-
-    window.loadDirectHlsStream = function(url, streamLabel = 'Default Track') {
-      if (!url) return;
-      if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
-      
-      const wrapper = document.getElementById('video-player-wrapper');
-      wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-      const videoElement = document.getElementById('video-iframe');
-      
-      initializeHlsVideo(videoElement, url);
-      
-      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
-      document.querySelectorAll('.hls-track-btn').forEach(btn => {
-        btn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]";
-        btn.style.color = '';
-        btn.style.borderColor = '';
-        btn.style.backgroundColor = '';
-      });
-      const targetBtn = document.getElementById(`hls-track-${btoa(url).replace(/=/g, '')}`);
-      if(targetBtn) {
-        targetBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all bg-opacity-10";
-        targetBtn.style.color = activeColor;
-        targetBtn.style.borderColor = activeColor;
-        targetBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.1)';
-      }
-    }
-
-    window.loadAlternativeIframeMirror = function(mirrorType, url = null) {
-      if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
-      const wrapper = document.getElementById('video-player-wrapper');
-      let targetUrl = url;
-      
-      if (mirrorType === 'megaplay') {
-        targetUrl = `${PROVIDER_BASES.megaplay}/${window.currentMalId}/${currentEpisodeIndex}/${currentLanguage}`;
-      } else if (!targetUrl) {
-        targetUrl = `https://vidsrc.me/embed/anime?mal=${window.currentMalId}&ep=${currentEpisodeIndex}`;
+      const activeBtn = document.getElementById(`ep-choice-${epNum}`);
+      if (activeBtn) {
+        activeBtn.className = "dynamic-accent-bg bg-accent text-black border border-accent font-black px-3 py-1.5 rounded-lg text-xs min-w-[36px] tracking-wide transition-all ep-btn shadow-md shadow-accent/10";
       }
       
-      wrapper.innerHTML = `<iframe id="video-iframe" src="${targetUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+      const playerBox = document.getElementById('player-box');
+      if (!playerBox) return;
       
-      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
-      document.querySelectorAll('.mirror-item-btn').forEach(btn => {
-        btn.className = "mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
-        btn.style.color = '';
-        btn.style.borderColor = '';
-        btn.style.backgroundColor = '';
-      });
-      const targetBtn = document.getElementById(`mirror-${mirrorType}`);
-      if(targetBtn) {
-        targetBtn.className = "mirror-item-btn w-full text-left p-2.5 rounded-xl flex items-center justify-between transition-colors font-bold border";
-        targetBtn.style.color = activeColor;
-        targetBtn.style.borderColor = activeColor;
-        targetBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.05)';
-      }
-    }
-
-    window.routeActiveStreamSource = async function(epIndex) {
-      currentEpisodeIndex = epIndex;
-      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
+      playerBox.innerHTML = '<iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>';
+      const iframe = document.getElementById('video-iframe');
+      iframe.src = `${MAL_PLAYER_BASE}/${window.currentMalId}/${epNum}/${currentLanguage}`;
       
-      document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
-        b.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
-        b.style.backgroundColor = '';
-        b.style.borderColor = '';
-      });
-      const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
-      if(targetBtn) {
-        targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black text-black rounded-xl border shadow-lg flex items-center justify-center scale-105";
-        targetBtn.style.backgroundColor = activeColor;
-        targetBtn.style.borderColor = activeColor;
-      }
-
       clearTimeout(streamLoadGuard);
-      if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
-
-      const wrapper = document.getElementById('video-player-wrapper');
-      wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-      const videoElement = document.getElementById('video-iframe');
-
-      const hlsContainer = document.getElementById('hls-streams-container');
-      const mirrorContainer = document.getElementById('iframe-mirrors-container');
-      
-      hlsContainer.innerHTML = '<p class="text-[11px] text-gray-600 font-mono animate-pulse">Scanning server nodes...</p>';
-      
-      mirrorContainer.innerHTML = `
-        <button id="mirror-megaplay" onclick="loadAlternativeIframeMirror('megaplay')" class="mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
-          <span class="flex items-center gap-2"><i class="fa-solid fa-server text-gray-500"></i> MegaPlay Main Mirror <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1 py-0.2 rounded font-bold border border-emerald-800/30">Active</span></span>
-          <i class="fa-solid fa-play text-[9px] text-gray-600"></i>
-        </button>
-        <button id="mirror-vidsrc" onclick="loadAlternativeIframeMirror('vidsrc')" class="mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
-          <span class="flex items-center gap-2"><i class="fa-solid fa-server text-gray-500"></i> VidSrc Mirror Backup <span class="text-[9px] bg-neutral-800 text-gray-400 px-1 py-0.2 rounded font-bold">Embed</span></span>
-          <i class="fa-solid fa-play text-[9px] text-gray-600"></i>
-        </button>
-      `;
-
-      const anilistId = window.currentAnilistId || window.currentMalId;
-      let targetStreamUrl = "";
-
-      try {
-        if (activeProviderKey === 'megaplay') {
-          hlsContainer.innerHTML = '<p class="text-[11px] text-gray-500 italic font-mono">MegaPlay operates via external framework layout mirror engines.</p>';
-          window.loadAlternativeIframeMirror('megaplay');
-          return;
-        } 
-        else if (activeProviderKey === 'reanime') {
-          targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
-          
-          const uniqueId = btoa(targetStreamUrl).replace(/=/g, '');
-          hlsContainer.innerHTML = `
-            <button id="hls-track-${uniqueId}" onclick="loadDirectHlsStream('${targetStreamUrl}', 'ReAnime Stream')" class="hls-track-btn px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all">
-              <i class="fa-solid fa-bolt mr-1.5"></i>ReAnime Stream Track (Auto)
-            </button>
-          `;
-          
-          const targetHlsBtn = document.getElementById(`hls-track-${uniqueId}`);
-          if (targetHlsBtn) {
-            targetHlsBtn.style.color = activeColor;
-            targetHlsBtn.style.borderColor = activeColor;
-            targetHlsBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.1)';
-          }
-
-          initializeHlsVideo(videoElement, targetStreamUrl);
-        } 
-        else {
-          const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
-          const streamData = await watchResponse.json();
-          
-          targetStreamUrl = streamData.streamUrl || streamData.url || (streamData.sources && streamData.sources[0]?.url);
-          
-          if (targetStreamUrl) {
-            hlsContainer.innerHTML = '';
-            const rawSources = streamData.sources || [{ url: targetStreamUrl, quality: 'Default Track' }];
-            
-            rawSources.forEach((src, sIdx) => {
-              const label = src.quality || `HLS Node Track ${sIdx + 1}`;
-              const sUrl = src.url;
-              const uniqueId = btoa(sUrl).replace(/=/g, '');
-              
-              const sBtn = document.createElement('button');
-              sBtn.id = `hls-track-${uniqueId}`;
-              
-              if (sIdx === 0) {
-                sBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all";
-                sBtn.style.color = activeColor;
-                sBtn.style.borderColor = activeColor;
-                sBtn.style.backgroundColor = 'rgba(' + (getComputedStyle(document.documentElement).getPropertyValue('--character-accent-rgb').trim() || '0,255,102') + ', 0.1)';
-              } else {
-                sBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]";
-              }
-              
-              sBtn.innerHTML = `<i class="fa-solid fa-circle-play mr-1.5"></i>${label}`;
-              sBtn.onclick = () => loadDirectHlsStream(sUrl, label);
-              hlsContainer.appendChild(sBtn);
-
-              if (sIdx > 0) {
-                const mirBtn = document.createElement('button');
-                mirBtn.className = "mirror-item-btn w-full text-left p-2.5 rounded-xl bg-dark-card border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
-                mirBtn.innerHTML = `<span><i class="fa-solid fa-network-wired mr-2 text-gray-500"></i>Provider Sub-Mirror ${sIdx + 1}</span><i class="fa-solid fa-angle-right text-[10px]"></i>`;
-                mirBtn.onclick = () => loadAlternativeIframeMirror(`sub-${sIdx}`, sUrl);
-                mirrorContainer.appendChild(mirBtn);
-              }
-            });
-
-            initializeHlsVideo(videoElement, targetStreamUrl);
-          } else {
-            throw new Error("Empty stream track object response.");
-          }
-        }
-      } catch (err) {
-        console.error("Pipeline failure routing active stream node coordinates:", err);
-        handleStreamMissingNotice();
-      }
+      streamLoadGuard = setTimeout(() => handleStreamMissingNotice(), 8000);
     }
 
-    function initializeHlsVideo(videoElement, sourceUrl) {
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(sourceUrl);
-        hls.attachMedia(videoElement);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          plyrInstance = new Plyr(videoElement, {
-            controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-          });
-          plyrInstance.on('ended', () => {
-            const nextEp = currentEpisodeIndex + 1;
-            if (nextEp <= window.activeMaxEpisodes) {
-              window.routeActiveStreamSource(nextEp);
-            }
-          });
-        });
-        hls.on(Hls.Events.ERROR, function(event, data) {
-          if (data.fatal) {
-            console.warn("HLS Engine captured a fatal networking context error. Trying fallbacks.");
-            handleStreamMissingNotice();
-          }
-        });
-      } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-        videoElement.src = sourceUrl;
-        plyrInstance = new Plyr(videoElement, {
-          controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-        });
-        plyrInstance.on('ended', () => {
-          const nextEp = currentEpisodeIndex + 1;
-          if (nextEp <= window.activeMaxEpisodes) {
-            window.routeActiveStreamSource(nextEp);
-          }
-        });
-        videoElement.addEventListener('error', function() {
-          handleStreamMissingNotice();
-        });
+    function handleStreamMissingNotice() {
+      document.getElementById('player-box').innerHTML = `
+        <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] color-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
+          <p class="text-sm font-black text-accent tracking-wider uppercase mb-1 drop-shadow-[0_0_15px_rgba(var(--character-accent-rgb),0.4)]">⚠️ Video Streaming Mirror Unavailable</p>
+          <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The requested third-party layout API mirror could not parse structural folder routes mapping for this episodic file tracking stream block.</p>
+          <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
+        </div>`;
+    }
+
+    window.setLanguage = function(lang) {
+      currentLanguage = lang;
+      const subBtn = document.getElementById('sub-btn');
+      const dubBtn = document.getElementById('dub-btn');
+      
+      if(lang === 'sub') {
+        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-accent text-black";
+        dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+      } else {
+        subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+        dubBtn.className = "px-3.5 py-1 text-xs font-bold bg-accent text-black";
       }
+      launchVideoPlayer(currentEpisodeIndex);
     }
 
     window.addEventListener("message", function (event) {
       let data = event.data;
       if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
-      if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished" || data.event === "onEnded")) {
-        const nextEp = currentEpisodeIndex + 1;
-        if (nextEp <= window.activeMaxEpisodes) {
-          window.routeActiveStreamSource(nextEp);
-        }
+      if (data && (data.event === "playing" || data.event === "ready")) {
+        clearTimeout(streamLoadGuard);
+      }
+      if (data && data.event === "error") {
+        clearTimeout(streamLoadGuard);
+        handleStreamMissingNotice();
       }
     });
 
-    function handleStreamMissingNotice() {
-      console.log("HLS parsing broken or unreturned links. Activating seamless MegaPlay embed failover layout.");
-      
-      const hlsContainer = document.getElementById('hls-streams-container');
-      if (hlsContainer) {
-        hlsContainer.innerHTML = '<p class="text-[11px] text-amber-500/90 font-mono"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Direct stream link offline. Auto-rerouted to system embed framework mirrors below.</p>';
-      }
-      
-      loadAlternativeIframeMirror('megaplay');
-    }
-
-    window.setLanguage = function(lang) {
-      if (currentLanguage === lang) return;
-      currentLanguage = lang;
-      const subBtn = document.getElementById('sub-btn');
-      const dubBtn = document.getElementById('dub-btn');
-      const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--character-accent').trim() || '#00ff66';
-      
-      if (lang === 'sub') {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-black";
-        subBtn.style.backgroundColor = activeColor;
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-        dubBtn.style.backgroundColor = '';
-      } else {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-        subBtn.style.backgroundColor = '';
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-black";
-        dubBtn.style.backgroundColor = activeColor;
-      }
-      if (window.currentMalId) {
-        window.routeActiveStreamSource(currentEpisodeIndex);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      loadSavedTheme();
-      startSystemClock();
-    });
+    // ==========================================
+    // 6. LIFE MATRIX BOOT INITIALIZER EXECUTION
+    // ==========================================
+    loadSavedTheme();
+    startSystemClock();
   </script>
 </body>
 </html>
