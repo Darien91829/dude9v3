@@ -226,40 +226,69 @@
         <div id="airing-chronological-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2"></div>
       </section>
 
-      <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-5">
-        <div class="relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-dark-border shadow-2xl">
-          <div id="player-box" class="w-full h-full relative">
-            <div id="video-player-wrapper" class="w-full h-full">
-              <video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
-          <div class="flex items-center space-x-2 w-full sm:w-auto overflow-hidden">
-            <span class="text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase pl-1 shrink-0">Server:</span>
-            <div id="server-source-tabs-bar" class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 overflow-x-auto scrollbar-none gap-1 w-full sm:w-auto">
-              </div>
-          </div>
+      <section id="stream-dashboard-box" class="hidden max-w-5xl mx-auto space-y-5">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
-          <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
-            <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all">SUB</button>
-            <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
-          </div>
-        </div>
-
-        <div class="bg-dark-card border border-dark-border rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 shadow-xl">
-          <div class="w-28 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-xl overflow-hidden shadow-md shrink-0">
-            <img id="detail-poster" src="" class="w-full h-full object-cover" alt="Active Cover Poster">
-          </div>
-          <div class="space-y-2.5 flex-1 w-full">
-            <h2 id="detail-title" class="text-base font-bold text-white tracking-wide">---</h2>
-            <p id="detail-synopsis" class="text-xs text-gray-400 leading-relaxed max-h-24 overflow-y-auto pr-1 scrollbar-none">Initializing data records...</p>
-            <div class="border-t border-dark-border/60 pt-3 grid grid-cols-3 gap-2 text-[10px] text-gray-500 font-mono">
-              <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Media Format</span><span id="detail-type" class="text-gray-300 font-bold">--</span></div>
-              <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Total Tracks</span><span id="detail-episodes" class="text-gray-300 font-bold">--</span></div>
-              <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">MAL Score</span><span id="detail-rating" class="text-gray-300 font-bold">--</span></div>
+          <div class="lg:col-span-2 space-y-5">
+            <div class="relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-dark-border shadow-2xl">
+              <div id="player-box" class="w-full h-full relative">
+                <div id="video-player-wrapper" class="w-full h-full">
+                  <video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>
+                </div>
+              </div>
             </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
+              <div class="flex items-center space-x-2 w-full sm:w-auto overflow-hidden">
+                <span class="text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase pl-1 shrink-0">Server:</span>
+                <div id="server-source-tabs-bar" class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 overflow-x-auto scrollbar-none gap-1 w-full sm:w-auto">
+                </div>
+              </div>
+              
+              <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
+                <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all">SUB</button>
+                <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
+              </div>
+            </div>
+
+            <div class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-3 shadow-xl">
+              <div class="border-b border-dark-border pb-2 flex items-center justify-between">
+                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">The HLS Streams (Internal Player)</h3>
+                <span class="text-[9px] font-mono bg-emerald-950/80 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800/40 font-bold">Direct Source</span>
+              </div>
+              <div id="hls-streams-container" class="flex flex-wrap gap-2">
+                <p class="text-[11px] text-gray-500 italic font-mono">Initializing streaming pipelines...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            
+            <div class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-3 shadow-xl">
+              <div class="border-b border-dark-border pb-2 flex items-center justify-between">
+                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Iframe Embed Mirrors (Side Content)</h3>
+                <span class="text-[9px] font-mono bg-indigo-950/80 text-indigo-400 px-2 py-0.5 rounded border border-indigo-800/40 font-bold">Web Mirror</span>
+              </div>
+              <div id="iframe-mirrors-container" class="space-y-1.5 max-h-48 overflow-y-auto pr-0.5 scrollbar-none">
+                <p class="text-[11px] text-gray-500 italic font-mono">Compiling mirror structures...</p>
+              </div>
+            </div>
+
+            <div class="bg-dark-card border border-dark-border rounded-2xl p-4 flex flex-row items-start text-left gap-4 shadow-xl">
+              <div class="w-20 aspect-[2/3] bg-neutral-900 border border-dark-border rounded-xl overflow-hidden shadow-md shrink-0">
+                <img id="detail-poster" src="" class="w-full h-full object-cover" alt="Active Cover Poster">
+              </div>
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <h2 id="detail-title" class="text-xs font-bold text-white tracking-wide truncate">---</h2>
+                <p id="detail-synopsis" class="text-[11px] text-gray-400 leading-relaxed max-h-16 overflow-y-auto pr-1 scrollbar-none">Initializing data records...</p>
+                <div class="pt-2 grid grid-cols-2 gap-2 text-[9px] text-gray-500 font-mono border-t border-dark-border/40">
+                  <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Format</span><span id="detail-type" class="text-gray-300 font-bold">--</span></div>
+                  <div><span class="text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Score</span><span id="detail-rating" class="text-gray-300 font-bold">--</span></div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -597,7 +626,7 @@
           scheduleBox.appendChild(div);
         });
       } catch (error) { 
-        scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
+        scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
       }
     }
 
@@ -734,7 +763,7 @@
         card.innerHTML = `
           <div>
             <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2 relative">
-              <img src="${img}" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300">
+              <img src="${img}" class="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300">
               <span class="absolute bottom-1.5 left-1.5 text-[8px] font-mono font-bold bg-black/80 text-gray-400 px-1.5 py-0.5 rounded tracking-wider border border-white/5">${typ}</span>
             </div>
             <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-0.5 group-hover:text-white">${title}</div>
@@ -803,12 +832,12 @@
       const viewTitle = document.getElementById('view-indicator-title');
       if(viewTitle) viewTitle.innerText = "Console Core Player Active";
 
-      document.getElementById('detail-poster').src = posterImg || '';
-      document.getElementById('detail-title').innerText = title;
-      document.getElementById('detail-synopsis').innerText = "Querying description parameters database...";
-      document.getElementById('detail-type').innerText = "--";
-      document.getElementById('detail-episodes').innerText = episodesMax || "--";
-      document.getElementById('detail-rating').innerText = "--";
+      // Update all poster references across panels
+      document.querySelectorAll('#detail-poster').forEach(img => img.src = posterImg || '');
+      document.querySelectorAll('#detail-title').forEach(h2 => h2.innerText = title);
+      document.querySelectorAll('#detail-synopsis').forEach(p => p.innerText = "Querying description parameters database...");
+      document.querySelectorAll('#detail-type').forEach(s => s.innerText = "--");
+      document.querySelectorAll('#detail-rating').forEach(s => s.innerText = "--");
 
       updateProviderTabsUI();
       buildEpisodeIndexButtons(window.activeMaxEpisodes);
@@ -837,10 +866,9 @@
         const json = await res.json();
         const data = json.data;
         if(data) {
-          document.getElementById('detail-synopsis').innerText = data.synopsis || "No data record description parameters provided.";
-          document.getElementById('detail-type').innerText = data.type || "TV";
-          document.getElementById('detail-episodes').innerText = data.episodes || window.activeMaxEpisodes || "??";
-          document.getElementById('detail-rating').innerText = data.score || "?.??";
+          document.querySelectorAll('#detail-synopsis').forEach(p => p.innerText = data.synopsis || "No data record description parameters provided.");
+          document.querySelectorAll('#detail-type').forEach(s => s.innerText = data.type || "TV");
+          document.querySelectorAll('#detail-rating').forEach(s => s.innerText = data.score || "?.??");
         }
       } catch(e) { console.warn("Meta sync engine non-fatal exception."); }
     }
@@ -888,6 +916,42 @@
       });
     }
 
+    // Direct HLS Source Loading Switcher
+    window.loadDirectHlsStream = function(url, streamLabel = 'Default Track') {
+      if (!url) return;
+      if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+      
+      const wrapper = document.getElementById('video-player-wrapper');
+      wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+      const videoElement = document.getElementById('video-iframe');
+      
+      initializeHlsVideo(videoElement, url);
+      
+      // Update UI feedback on selected stream track
+      document.querySelectorAll('.hls-track-btn').forEach(btn => btn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]");
+      const targetBtn = document.getElementById(`hls-track-${btoa(url).replace(/=/g, '')}`);
+      if(targetBtn) targetBtn.className = "hls-track-btn px-3 py-1.5 rounded-xl border border-accent bg-accent/10 text-accent font-bold transition-all text-[11px]";
+    }
+
+    // Alternative Embed Mirror Injector
+    window.loadAlternativeIframeMirror = function(mirrorType, url = null) {
+      if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+      const wrapper = document.getElementById('video-player-wrapper');
+      let targetUrl = url;
+      
+      if (mirrorType === 'megaplay') {
+        targetUrl = `${PROVIDER_BASES.megaplay}/${window.currentMalId}/${currentEpisodeIndex}/${currentLanguage}`;
+      } else if (!targetUrl) {
+        targetUrl = `https://vidsrc.me/embed/anime?mal=${window.currentMalId}&ep=${currentEpisodeIndex}`;
+      }
+      
+      wrapper.innerHTML = `<iframe id="video-iframe" src="${targetUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+      
+      document.querySelectorAll('.mirror-item-btn').forEach(btn => btn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors");
+      const targetBtn = document.getElementById(`mirror-${mirrorType}`);
+      if(targetBtn) targetBtn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-accent/5 border border-accent/40 text-accent flex items-center justify-between transition-colors font-bold";
+    }
+
     window.routeActiveStreamSource = async function(epIndex) {
       currentEpisodeIndex = epIndex;
       document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
@@ -897,27 +961,47 @@
       if(targetBtn) targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
 
       clearTimeout(streamLoadGuard);
-      if (plyrInstance) {
-        plyrInstance.destroy();
-        plyrInstance = null;
-      }
+      if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
 
       const wrapper = document.getElementById('video-player-wrapper');
       wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
       const videoElement = document.getElementById('video-iframe');
+
+      const hlsContainer = document.getElementById('hls-streams-container');
+      const mirrorContainer = document.getElementById('iframe-mirrors-container');
+      
+      hlsContainer.innerHTML = '<p class="text-[11px] text-gray-600 font-mono animate-pulse">Scanning server nodes...</p>';
+      
+      // Seed side content embed mirror elements standard options
+      mirrorContainer.innerHTML = `
+        <button id="mirror-megaplay" onclick="loadAlternativeIframeMirror('megaplay')" class="mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
+          <span><i class="fa-solid fa-server mr-2 text-gray-500"></i>MegaPlay Mirror (External Embed)</span>
+          <i class="fa-solid fa-play text-[9px] text-gray-600"></i>
+        </button>
+        <button id="mirror-vidsrc" onclick="loadAlternativeIframeMirror('vidsrc')" class="mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors">
+          <span><i class="fa-solid fa-server mr-2 text-gray-500"></i>VidSrc Alternative Mirror</span>
+          <i class="fa-solid fa-play text-[9px] text-gray-600"></i>
+        </button>
+      `;
 
       const anilistId = window.currentAnilistId || window.currentMalId;
       let targetStreamUrl = "";
 
       try {
         if (activeProviderKey === 'megaplay') {
-          const activeBaseUrl = PROVIDER_BASES.megaplay;
-          targetStreamUrl = `${activeBaseUrl}/${window.currentMalId}/${epIndex}/${currentLanguage}`;
-          wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+          hlsContainer.innerHTML = '<p class="text-[11px] text-gray-500 italic font-mono">MegaPlay operates purely via iframe layout configuration mirrors.</p>';
+          window.loadAlternativeIframeMirror('megaplay');
           return;
         } 
         else if (activeProviderKey === 'reanime') {
           targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
+          
+          const uniqueId = btoa(targetStreamUrl).replace(/=/g, '');
+          hlsContainer.innerHTML = `
+            <button id="hls-track-${uniqueId}" onclick="loadDirectHlsStream('${targetStreamUrl}', 'ReAnime Stream')" class="hls-track-btn px-3 py-1.5 rounded-xl border border-accent bg-accent/10 text-accent font-bold transition-all text-[11px]">
+              <i class="fa-solid fa-bolt mr-1.5"></i>ReAnime Stream Track (Auto)
+            </button>
+          `;
           initializeHlsVideo(videoElement, targetStreamUrl);
         } 
         else {
@@ -927,6 +1011,31 @@
           targetStreamUrl = streamData.streamUrl || streamData.url || (streamData.sources && streamData.sources[0]?.url);
           
           if (targetStreamUrl) {
+            hlsContainer.innerHTML = '';
+            const rawSources = streamData.sources || [{ url: targetStreamUrl, quality: 'Default Track' }];
+            
+            rawSources.forEach((src, sIdx) => {
+              const label = src.quality || `HLS Node Track ${sIdx + 1}`;
+              const sUrl = src.url;
+              const uniqueId = btoa(sUrl).replace(/=/g, '');
+              
+              const sBtn = document.createElement('button');
+              sBtn.id = `hls-track-${uniqueId}`;
+              sBtn.className = sIdx === 0 ? "hls-track-btn px-3 py-1.5 rounded-xl border border-accent bg-accent/10 text-accent font-bold transition-all text-[11px]" : "hls-track-btn px-3 py-1.5 rounded-xl border border-dark-border bg-dark-input text-gray-400 hover:text-white transition-all text-[11px]";
+              sBtn.innerHTML = `<i class="fa-solid fa-circle-play mr-1.5"></i>${label}`;
+              sBtn.onclick = () => loadDirectHlsStream(sUrl, label);
+              hlsContainer.appendChild(sBtn);
+
+              // Extract any alternative frames as mirrors
+              if (sIdx > 0) {
+                const mirBtn = document.createElement('button');
+                mirBtn.className = "mirror-item-btn w-full text-left p-2 rounded-xl bg-dark-input border border-dark-border hover:border-accent/40 text-xs text-gray-300 flex items-center justify-between transition-colors";
+                mirBtn.innerHTML = `<span><i class="fa-solid fa-network-wired mr-2 text-gray-500"></i>Provider Sub-Mirror ${sIdx + 1}</span><i class="fa-solid fa-angle-right text-[10px]"></i>`;
+                mirBtn.onclick = () => loadAlternativeIframeMirror(`sub-${sIdx}`, sUrl);
+                mirrorContainer.appendChild(mirBtn);
+              }
+            });
+
             initializeHlsVideo(videoElement, targetStreamUrl);
           } else {
             throw new Error("Empty target stream index layout context.");
@@ -947,7 +1056,6 @@
           plyrInstance = new Plyr(videoElement, {
             controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
           });
-          // Native video stream continuous autoplay hook
           plyrInstance.on('ended', () => {
             const nextEp = currentEpisodeIndex + 1;
             if (nextEp <= window.activeMaxEpisodes) {
@@ -990,7 +1098,7 @@
       wrapper.innerHTML = `
         <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] text-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
           <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Pipeline Fault</p>
-          <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}.</p>
+          <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}. Try using the side content mirrors.</p>
           <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
         </div>`;
     }
