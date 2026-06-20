@@ -105,7 +105,7 @@ body {
 }
 
 .scroll-row::-webkit-scrollbar { 
-  height: 4px; 
+  height: 5px; 
 }
 
 .scroll-row::-webkit-scrollbar-track { 
@@ -114,13 +114,13 @@ body {
 }
 
 .scroll-row::-webkit-scrollbar-thumb { 
-  background: rgba(var(--accent-color-rgb), 0.25); 
+  background: var(--character-accent, #3b3b4a); 
   border-radius: 10px; 
   transition: background-color 0.2s ease;
 }
 
 .scroll-row::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
+  background: var(--character-accent-hover, #4e4e63);
 }
 
 /* ==========================================================================
@@ -145,7 +145,7 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
+  background: var(--character-accent, #f97316);
 }
 
 /* Global scroll container blanking utility class override */
