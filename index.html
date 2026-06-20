@@ -47,6 +47,12 @@
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
+
+    /* Sub/Dub Active Button Styling states */
+    .lang-btn.active {
+      background-color: var(--character-accent);
+      color: #000000 !important;
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -234,18 +240,19 @@
       <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-5">
         <div class="relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-dark-border shadow-2xl">
           <div id="player-box" class="w-full h-full relative">
-            <iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full rounded-xl bg-black"></iframe>
+            <div id="video-player-wrapper" class="w-full h-full">
+              <iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full rounded-xl bg-black"></iframe>
+            </div>
           </div>
         </div>
 
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
-          <div class="flex items-center gap-4">
-            <h3 id="ep-title" class="text-xs font-bold uppercase tracking-wider text-white">Watching: ---</h3>
+          <div class="overflow-x-auto scrollbar-none flex items-center gap-2 server-tabs-container py-0.5" id="server-source-tabs-bar">
           </div>
           
           <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
-            <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all active bg-accent text-black">SUB</button>
-            <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
+            <button id="sub-btn" onclick="setLanguage('sub')" class="lang-btn active px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white">SUB</button>
+            <button id="dub-btn" onclick="setLanguage('dub')" class="lang-btn px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white">DUB</button>
           </div>
         </div>
 
@@ -801,10 +808,10 @@
         activeBtn.className = "dynamic-accent-bg bg-accent text-black border border-accent font-black px-3 py-1.5 rounded-lg text-xs min-w-[36px] tracking-wide transition-all ep-btn shadow-md shadow-accent/10";
       }
       
-      const playerBox = document.getElementById('player-box');
-      if (!playerBox) return;
+      const playerWrapper = document.getElementById('video-player-wrapper');
+      if (!playerWrapper) return;
       
-      playerBox.innerHTML = '<iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>';
+      playerWrapper.innerHTML = '<iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>';
       const iframe = document.getElementById('video-iframe');
       iframe.src = `${MAL_PLAYER_BASE}/${window.currentMalId}/${epNum}/${currentLanguage}`;
       
@@ -813,7 +820,7 @@
     }
 
     function handleStreamMissingNotice() {
-      document.getElementById('player-box').innerHTML = `
+      document.getElementById('video-player-wrapper').innerHTML = `
         <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] color-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
           <p class="text-sm font-black text-accent tracking-wider uppercase mb-1 drop-shadow-[0_0_15px_rgba(var(--character-accent-rgb),0.4)]">⚠️ Video Streaming Mirror Unavailable</p>
           <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The requested third-party layout API mirror could not parse structural folder routes mapping for this episodic file tracking stream block.</p>
@@ -827,11 +834,11 @@
       const dubBtn = document.getElementById('dub-btn');
       
       if(lang === 'sub') {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-accent text-black";
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+        subBtn.classList.add('active');
+        dubBtn.classList.remove('active');
       } else {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold bg-accent text-black";
+        subBtn.classList.remove('active');
+        dubBtn.classList.add('active');
       }
       launchVideoPlayer(currentEpisodeIndex);
     }
