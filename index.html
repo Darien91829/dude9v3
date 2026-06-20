@@ -61,176 +61,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <script>
-    // Navigation Router Core Engine
-    function switchToView(viewId) {
-      // Hide all content sections
-      document.getElementById('landing-portal').classList.add('hidden');
-      document.getElementById('main-exploration-hub').classList.add('hidden');
-      document.getElementById('releases-focus-view').classList.add('hidden');
-      document.getElementById('calendar-focus-view').classList.add('hidden');
-      document.getElementById('stream-dashboard-box').classList.add('hidden');
-
-      // Update Header Search bar visibility depending on the view context
-      const headerSearch = document.getElementById('header-search-engine');
-      if (viewId === 'home') {
-        document.getElementById('landing-portal').classList.remove('hidden');
-        headerSearch.classList.add('hidden');
-        updateIndicatorTitle('Welcome Portal');
-      } else if (viewId === 'catalog') {
-        document.getElementById('main-exploration-hub').classList.remove('hidden');
-        headerSearch.classList.remove('hidden');
-        updateIndicatorTitle('Catalog Index');
-      } else if (viewId === 'releases') {
-        document.getElementById('releases-focus-view').classList.remove('hidden');
-        headerSearch.classList.remove('hidden');
-        updateIndicatorTitle('Seasonal Releases');
-      } else if (viewId === 'calendar') {
-        document.getElementById('calendar-focus-view').classList.remove('hidden');
-        headerSearch.classList.remove('hidden');
-        updateIndicatorTitle('Airing Track');
-      } else if (viewId === 'stream') {
-        document.getElementById('stream-dashboard-box').classList.remove('hidden');
-        headerSearch.classList.remove('hidden');
-        updateIndicatorTitle('Streaming Terminal');
-      }
-
-      // Sync active state sidebar CSS links classes
-      const navItems = {
-        'home': 'side-nav-home',
-        'catalog': 'side-nav-catalog',
-        'releases': 'side-nav-releases',
-        'calendar': 'side-nav-calendar'
-      };
-
-      Object.keys(navItems).forEach(key => {
-        const element = document.getElementById(navItems[key]);
-        if (element) {
-          if (key === viewId) {
-            element.classList.add('active');
-          } else {
-            element.classList.remove('active');
-          }
-        }
-      });
-
-      // Close structural mobile drawers automatically upon view changing
-      const drawer = document.getElementById('main-menu-drawer');
-      const overlay = document.getElementById('menu-overlay');
-      if (!drawer.classList.contains('-translate-x-full')) {
-        drawer.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-      }
-    }
-
-    function updateIndicatorTitle(titleText) {
-      const titleNode = document.getElementById('view-indicator-title');
-      if (titleNode) titleNode.textContent = titleText;
-    }
-
-    function homeReturnReset() {
-      switchToView('home');
-    }
-
-    // Drawer Interface Layout Handlers
-    function toggleMainMenu() {
-      const drawer = document.getElementById('main-menu-drawer');
-      const overlay = document.getElementById('menu-overlay');
-      if (drawer.classList.contains('-translate-x-full')) {
-        drawer.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-      } else {
-        drawer.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-      }
-    }
-
-    function openBottomSheet() {
-      document.getElementById('bottom-sheet-menu').classList.remove('translate-y-full');
-      document.getElementById('sheet-overlay').classList.remove('hidden');
-    }
-
-    function closeBottomSheet() {
-      document.getElementById('bottom-sheet-menu').classList.add('translate-y-full');
-      document.getElementById('sheet-overlay').classList.add('hidden');
-    }
-
-    // Character UI Accent System Configuration Mapping Data presets
-    const themePresets = {
-      umi: { accent: '#4169e1', hover: '#3152c7', rgb: '65, 105, 225' },
-      alya: { accent: '#a1a1aa', hover: '#71717a', rgb: '161, 161, 170' },
-      subaru: { accent: '#f97316', hover: '#ea580c', rgb: '249, 115, 22' },
-      emilia: { accent: '#c084fc', hover: '#a855f7', rgb: '192, 132, 252' },
-      rem: { accent: '#38bdf8', hover: '#0ea5e9', rgb: '56, 189, 248' },
-      ram: { accent: '#fb7185', hover: '#f43f5e', rgb: '251, 113, 133' },
-      beatrice: { accent: '#fbbf24', hover: '#f59e0b', rgb: '251, 191, 36' },
-      felt: { accent: '#eab308', hover: '#ca8a04', rgb: '234, 179, 8' },
-      reinhard: { accent: '#dc2626', hover: '#b91c1c', rgb: '220, 38, 38' },
-      crusch: { accent: '#059669', hover: '#047857', rgb: '5, 150, 105' },
-      felix: { accent: '#d97706', hover: '#b45309', rgb: '217, 119, 6' },
-      priscilla: { accent: '#ef4444', hover: '#dc2626', rgb: '239, 68, 68' },
-      anastasia: { accent: '#f472b6', hover: '#ec4899', rgb: '244, 114, 182' },
-      julius: { accent: '#818cf8', hover: '#6366f1', rgb: '129, 140, 248' },
-      wilhelm: { accent: '#94a3b8', hover: '#64748b', rgb: '148, 163, 184' },
-      roswaal: { accent: '#4f46e5', hover: '#4338ca', rgb: '79, 70, 229' },
-      satella: { accent: '#6d28d9', hover: '#5b21b6', rgb: '109, 40, 217' },
-      echidna: { accent: '#e4e4e7', hover: '#d4d4d8', rgb: '228, 228, 231' }
-    };
-
-    function applyCharacterPreset(presetKey) {
-      const config = themePresets[presetKey];
-      if (config) {
-        document.documentElement.style.setProperty('--character-accent', config.accent);
-        document.documentElement.style.setProperty('--character-accent-hover', config.hover);
-        document.documentElement.style.setProperty('--character-accent-rgb', config.rgb);
-      }
-      closeBottomSheet();
-    }
-
-    // Search Engine Action Hook Stubs (Triggers Catalog View)
-    function triggerCatalogSearch(isHeader) {
-      const query = isHeader ? document.getElementById('header-search-input').value : document.getElementById('search-input').value;
-      console.log("Searching catalog pipeline pipeline node for query:", query);
-      switchToView('catalog');
-    }
-
-    // Toggle SUB/DUB Button States
-    function setLanguage(lang) {
-      document.getElementById('sub-btn').classList.remove('active');
-      document.getElementById('dub-btn').classList.remove('active');
-      if (lang === 'sub') {
-        document.getElementById('sub-btn').classList.add('active');
-      } else {
-        document.getElementById('dub-btn').classList.add('active');
-      }
-    }
-
-    // Schedule Day Tabs Controller Layout State Active Sync
-    function changeScheduleDay(dayId) {
-      document.getElementById('tab-yesterday').classList.remove('active', 'bg-neutral-800', 'text-white');
-      document.getElementById('tab-today').classList.remove('active', 'bg-neutral-800', 'text-white');
-      document.getElementById('tab-tomorrow').classList.remove('active', 'bg-neutral-800', 'text-white');
-      
-      const targetBtn = document.getElementById('tab-' + dayId);
-      targetBtn.classList.add('active', 'bg-neutral-800', 'text-white');
-    }
-
-    // Initialize real-time Clock sync tick parameters
-    window.addEventListener('DOMContentLoaded', () => {
-      setInterval(() => {
-        const clockNode = document.getElementById('live-24h-clock');
-        if (clockNode) {
-          const now = new Date();
-          // Simulating JST Time offset loop calculations roughly for standard display UI elements
-          const jstTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (3600000 * 9));
-          clockNode.textContent = jstTime.toISOString().substr(11, 8) + ' JST';
-        }
-      }, 1000);
-    });
-  </script>
+  <script src="script.js" defer></script>
 </head>
 <body class="bg-dark-bg text-gray-200 min-h-screen relative overflow-x-hidden flex font-['Inter',sans-serif]">
 
@@ -354,7 +188,7 @@
               
               <div class="grid grid-cols-3 gap-1 bg-dark-input p-1 rounded-xl border border-dark-border/60 text-[10px] font-bold text-center">
                 <button id="tab-yesterday" onclick="changeScheduleDay('yesterday')" class="schedule-tab-btn py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all">Yest</button>
-                <button id="tab-today" onclick="changeScheduleDay('today')" class="schedule-tab-btn active py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all bg-neutral-800 text-white">Today</button>
+                <button id="tab-today" onclick="changeScheduleDay('today')" class="schedule-tab-btn active py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all">Today</button>
                 <button id="tab-tomorrow" onclick="changeScheduleDay('tomorrow')" class="schedule-tab-btn py-1.5 rounded-lg text-gray-500 hover:text-gray-300 uppercase transition-all">Tomw</button>
               </div>
               
