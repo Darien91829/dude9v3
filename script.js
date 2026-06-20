@@ -71,7 +71,7 @@ window.currentPlyr = null;
 window.streamLoadGuard = null;
 
 const presets = {
-  subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false, rgb: '249, 115, 22' },
+  subaru: { hex: 'rgb(0, 255, 102)', bg: '#050505', card: '#111111', input: '#1a1a1e', textLight: true, rgb: '0, 255, 102' },
   emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true, rgb: '192, 132, 252' },
   rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false, rgb: '56, 189, 248' },
   ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false, rgb: '251, 113, 133' },
@@ -126,8 +126,19 @@ function applyCharacterPreset(name) {
   updateLanguageButtonsUI();
   if (window.currentAnilistId) updateEpisodeButtonsUI();
   
-  const tabAct = document.getElementById(`tab-${activeScheduleDay}`);
-  if(tabAct) { tabAct.style.backgroundColor = p.hex; tabAct.style.color = p.textLight ? '#ffffff' : '#000000'; }
+  // Clean tab updates mapping directly to active layout selections
+  ['yesterday', 'today', 'tomorrow'].forEach(day => {
+    const b = document.getElementById(`tab-${day}`);
+    if (b) {
+      if (day === activeScheduleDay) {
+        b.style.backgroundColor = p.hex;
+        b.style.color = p.textLight ? '#ffffff' : '#000000';
+      } else {
+        b.style.backgroundColor = 'transparent';
+        b.style.color = '#6b7280';
+      }
+    }
+  });
 
   document.querySelectorAll('.consumet-card-item').forEach(card => {
     card.addEventListener('mouseenter', () => card.style.borderColor = `${p.hex}4d`);
@@ -175,11 +186,11 @@ function renderCalendarGridStructure() {
   const todayDayIndex = new Date().getDay(); 
   const daysFull = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const daysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const currentAccentColor = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const currentAccentColor = document.querySelector('.dynamic-accent-text')?.style.color || 'rgb(0, 255, 102)';
   
   for (let i = 0; i < 7; i++) {
     const dayBox = document.createElement('button');
-    dayBox.className = "calendar-matrix-day bg-[#16161a] border border-gray-800/80 rounded-xl py-3 px-1 flex flex-col items-center justify-center text-[11px] font-bold text-gray-400 transition-all select-none hover:border-gray-600";
+    dayBox.className = "calendar-matrix-day bg-[#111111] border border-[#1c1c1e] rounded-xl py-3 px-1 flex flex-col items-center justify-center text-[11px] font-bold text-gray-400 transition-all select-none hover:border-gray-600";
     
     dayBox.innerHTML = `
       <span class="text-[9px] text-gray-500 uppercase tracking-tight mb-0.5">${daysShort[i].slice(0,2)}</span>
@@ -218,7 +229,7 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
 
   listContainer.innerHTML = `
     <div class="text-center py-8 text-xs text-gray-500">
-      <i class="fa-solid fa-circle-notch animate-spin text-sm mr-2 text-orange-500 dynamic-accent-text"></i> Syncing AniList broadcast tracks...
+      <i class="fa-solid fa-circle-notch animate-spin text-sm mr-2 text-emerald-500 dynamic-accent-text"></i> Syncing AniList broadcast tracks...
     </div>
   `;
 
@@ -310,7 +321,7 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
       }
 
       let listHtml = `
-        <div class="flex items-center justify-between border-b border-dark/60 pb-2 mb-3">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
           <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">${displayDayLabel}</h3>
           <span class="text-[10px] text-gray-500 font-medium font-mono">${animeList.length} titles</span>
         </div>
@@ -328,13 +339,13 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
           <div onclick="switchToView('catalog'); loadStreamingLayout(${anime.id}, ${anime.idMal || 'null'}, '${title.replace(/'/g, "\\\\'")}')"
                class="flex items-center justify-between p-2 rounded-xl bg-transparent hover:bg-neutral-900/40 cursor-pointer transition-all group">
             <div class="flex items-center gap-3 min-w-0">
-              <img src="${anime.coverImage?.large}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-dark/40">
+              <img src="${anime.coverImage?.large}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-zinc-800">
               <div class="min-w-0">
                 <h4 class="text-xs font-semibold text-gray-200 group-hover:text-white transition-colors truncate">${title}</h4>
                 <p class="text-[10px] text-gray-500 mt-0.5 font-mono">${anime.type || 'TV'} &bull; Ep ${item.episode} &bull; Score: ${scoreDisplay}</p>
               </div>
             </div>
-            <span class="text-[10px] font-mono font-bold text-gray-400 shrink-0 bg-zinc-900/80 px-2 py-1 rounded border border-dark/40">${airTime}</span>
+            <span class="text-[10px] font-mono font-bold text-gray-400 shrink-0 bg-zinc-900/80 px-2 py-1 rounded border border-zinc-800">${airTime}</span>
           </div>
         `;
       });
@@ -353,7 +364,7 @@ async function fetchAndRenderChronologicalList(filterTerm = "") {
     listContainer.innerHTML = `
       <div class="text-center py-6">
         <p class="text-xs text-red-500 mb-3">AniList data hub temporary standby.</p>
-        <button onclick="fetchAndRenderChronologicalList()" class="bg-orange-500 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
+        <button onclick="fetchAndRenderChronologicalList()" class="bg-emerald-500 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
       </div>`;
   }
 }
@@ -407,7 +418,7 @@ async function loadRecentReleases() {
       `;
 
       cardFrame.addEventListener('mouseenter', () => {
-        const currentHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+        const currentHex = document.querySelector('.dynamic-accent-text')?.style.color || 'rgb(0, 255, 102)';
         cardFrame.style.borderColor = `${currentHex}4d`;
         const cTitle = cardFrame.querySelector('.consumet-card-title');
         if (cTitle) cTitle.style.color = currentHex;
@@ -443,7 +454,7 @@ async function loadRecentReleases() {
     targetGrid.innerHTML = `
       <div class="col-span-full py-8 text-center">
         <p class="text-xs text-red-500 mb-3">Server temporarily busy.</p>
-        <button onclick="loadRecentReleases()" class="bg-orange-500 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
+        <button onclick="loadRecentReleases()" class="bg-emerald-500 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-transform active:scale-95">Retry Connection</button>
       </div>`;
   }
 }
@@ -627,19 +638,16 @@ async function triggerCatalogSearch(fromHeader = false) {
 
 function changeScheduleDay(targetDay) {
   activeScheduleDay = targetDay;
-  ['yesterday', 'today', 'tomorrow'].forEach(day => {
-    const b = document.getElementById(`tab-${day}`); if(b) { b.style.backgroundColor = 'transparent'; b.style.color = '#6b7280'; }
-  });
-  const currentPreset = presets[currentPresetName] || presets.subaru;
-  const act = document.getElementById(`tab-${targetDay}`);
-  if(act) { act.style.backgroundColor = currentPreset.hex; act.style.color = currentPreset.textLight ? '#ffffff' : '#000000'; }
+  
+  // Re-run preset assignment immediately to update navigation style classes cleanly
+  applyCharacterPreset(currentPresetName);
   fetchLiveReleasingSchedule(targetDay);
 }
 
 async function fetchLiveReleasingSchedule(dayMode) {
   const scheduleBox = document.getElementById('schedule-box');
   if(!scheduleBox) return;
-  scheduleBox.innerHTML = '<p class="text-gray-500 text-[11px]">Querying timelines...</p>';
+  scheduleBox.innerHTML = '<p class="text-gray-500 text-[11px] p-2"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Updating timeline...</p>';
   
   const nowJst = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
   const dayOffsetMap = { 'yesterday': -1, 'today': 0, 'tomorrow': 1 };
@@ -676,33 +684,44 @@ async function fetchLiveReleasingSchedule(dayMode) {
     const schedules = json.data?.Page?.airingSchedules || [];
     
     if(schedules.length === 0) {
-      scheduleBox.innerHTML = '<p class="text-gray-600 text-[11px]">No items found for this window.</p>';
+      scheduleBox.innerHTML = '<p class="text-gray-600 text-[11px] p-2">No ongoing broadcasts scheduled.</p>';
       return;
     }
     
     scheduleBox.innerHTML = '';
+    
+    // De-duplicate items inside current streaming tracks
+    const mapCleanCache = new Map();
     schedules.forEach(item => {
       if (!item.media) return;
       const title = item.media.title.english || item.media.title.romaji;
+      if (!mapCleanCache.has(title)) {
+        mapCleanCache.set(title, item);
+      }
+    });
+
+    mapCleanCache.forEach(item => {
+      const title = item.media.title.english || item.media.title.romaji;
       const airDate = new Date(item.airingAt * 1000);
       const timeString = airDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      const imgUrl = item.media.coverImage?.large || "";
       
       const div = document.createElement('div');
-      div.className = "flex items-center justify-between p-2 bg-dark-input rounded-lg border border-dark/40 cursor-pointer transition-all";
+      div.className = "scroll-row flex items-center justify-between p-2 rounded-xl bg-[#111111] border border-[#1c1c1e] hover:border-zinc-800 transition-all cursor-pointer mb-2";
       div.innerHTML = `
-        <div class="flex flex-col truncate pr-2">
-          <span class="truncate font-medium text-gray-300">${title}</span>
-          <span class="text-[9px] text-gray-500">Episode ${item.episode}</span>
+        <div class="flex items-center gap-3 min-w-0" onclick="switchToView('catalog'); loadStreamingLayout(${item.media.id}, ${item.media.idMal || 'null'}, '${title.replace(/'/g, "\\'")}')">
+          <div class="min-w-0">
+            <div class="text-xs font-semibold text-gray-200 truncate">${title}</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Episode ${item.episode}</div>
+          </div>
         </div>
-        <span class="font-mono text-[10px] text-orange-400 dynamic-accent-text shrink-0">${timeString}</span>
+        <span class="text-[10px] font-mono font-bold text-emerald-400 shrink-0 bg-neutral-900/80 px-2 py-1 rounded border border-[#1c1c1e]">JST ${timeString}</span>
       `;
-      div.onclick = () => loadStreamingLayout(item.media.id, item.media.idMal || null, title);
       scheduleBox.appendChild(div);
     });
-    applyCharacterPreset(currentPresetName);
   } catch (error) { 
     console.error(error);
-    scheduleBox.innerHTML = '<p class="text-red-500 text-[11px]">Failed to parse calendar items.</p>'; 
+    scheduleBox.innerHTML = '<p class="text-red-500 text-[11px] p-2">Failed to sync broadcast calendar.</p>'; 
   }
 }
 
@@ -1263,7 +1282,7 @@ async function launchVideoPlayer(epNum) {
 }
 
 function updateEpisodeButtonsUI() {
-  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || 'rgb(0, 255, 102)';
   const curPreset = presets[currentPresetName] || presets.subaru;
 
   for (let i = 1; i <= window.activeMaxEpisodes; i++) {
@@ -1293,7 +1312,7 @@ function setProviderSource(providerId) {
 }
 
 function updateProviderButtonsUI() {
-  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || 'rgb(0, 255, 102)';
   const curPreset = presets[currentPresetName] || presets.subaru;
   
   API_PROVIDERS.forEach(prov => {
@@ -1330,7 +1349,7 @@ function setLanguage(lang) {
 }
 
 function updateLanguageButtonsUI() {
-  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || '#f97316';
+  const currentActiveHex = document.querySelector('.dynamic-accent-text')?.style.color || 'rgb(0, 255, 102)';
   const curPreset = presets[currentPresetName] || presets.subaru;
 
   ['sub', 'dub'].forEach(l => {
