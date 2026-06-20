@@ -101,13 +101,6 @@
         </div>
       </nav>
     </div>
-
-    <div class="pt-4 border-t border-dark-border">
-      <button onclick="openProfileModal()" class="w-full bg-dark-card border border-dark-border hover:border-gray-700 p-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 text-gray-300 font-bold tracking-wide">
-        <i class="fa-solid fa-user-shield text-sm text-accent dynamic-accent-text"></i>
-        <span id="drawer-profile-btn-text">Sync Secure Storage</span>
-      </button>
-    </div>
   </aside>
 
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden backdrop-blur-sm"></div>
@@ -223,19 +216,19 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-dark-border pb-3.5">
           <div>
             <h1 class="text-base font-bold tracking-wide uppercase text-white">Airing Schedule Matrix</h1>
-            <p class="text-xs text-gray-500 mt-0.5 font-mono">Real-time localized weekly timeline streams hooked straight via AniList API</p>
+            <p class="text-xs text-gray-500 mt-0.5 font-mono">Real-time localized weekly timeline streams hooked straight via Jikan API</p>
           </div>
           <div class="flex items-center gap-2">
             <div class="relative">
               <i class="fa-solid fa-magnifying-glass text-gray-600 absolute left-3 top-2.5 text-[10px]"></i>
-              <input type="text" id="calendar-search" placeholder="Filter tracked items..." class="bg-dark-card border border-dark-border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:outline-none w-44 text-gray-300 focus:border-accent/40">
+              <input type="text" id="calendar-search" oninput="filterCalendarGrid()" placeholder="Filter tracked items..." class="bg-dark-card border border-dark-border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:outline-none w-44 text-gray-300 focus:border-accent/40">
             </div>
-            <button id="jump-today-btn" class="bg-dark-card border border-dark-border text-gray-400 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors">Reset</button>
+            <button id="jump-today-btn" onclick="resetCalendarGridDay()" class="bg-dark-card border border-dark-border text-gray-400 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors">Reset</button>
           </div>
         </div>
         
-        <div id="calendar-days-matrix" class="grid grid-cols-4 sm:grid-cols-7 gap-2 w-full"></div>
-        <div id="airing-chronological-list" class="space-y-6 pt-2"></div>
+        <div id="calendar-days-matrix" class="grid grid-cols-4 sm:grid-cols-7 gap-2 w-full text-xs font-bold text-center"></div>
+        <div id="airing-chronological-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2"></div>
       </section>
 
       <section id="stream-dashboard-box" class="hidden max-w-4xl mx-auto space-y-5">
@@ -248,10 +241,6 @@
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
           <div class="flex items-center gap-4">
             <h3 id="ep-title" class="text-xs font-bold uppercase tracking-wider text-white">Watching: ---</h3>
-            
-            <button id="watchlist-toggle-btn" onclick="window.toggleWatchlistEntry()" class="bg-dark-input hover:bg-neutral-900 border border-dark-border rounded-lg px-3 py-1.5 text-[11px] font-bold flex items-center space-x-1.5 transition-all">
-              <span>+</span> <span>Add to List</span>
-            </button>
           </div>
           
           <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
@@ -291,11 +280,6 @@
     </main>
   </div>
 
-  <div id="auth-modal" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center p-4 backdrop-blur-md">
-    <div id="modal-content-box" class="w-full max-w-sm bg-[#131318] border border-dark-border rounded-2xl p-6 flex flex-col space-y-4 shadow-2xl text-center">
-       </div>
-  </div>
-
   <div id="sheet-overlay" onclick="closeBottomSheet()" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm"></div>
   
   <div id="bottom-sheet-menu" class="fixed bottom-0 left-0 w-full bg-[#131318] border-t border-dark-border rounded-t-2xl p-6 z-50 transform translate-y-full transition-transform duration-300 ease-out max-h-[80vh] overflow-y-auto shadow-2xl">
@@ -308,7 +292,6 @@
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-medium">
         <button onclick="applyCharacterPreset('umi')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Umi Sonoda</span><span class="w-2.5 h-2.5 rounded-full bg-[#4169e1]"></span></button>
         <button onclick="applyCharacterPreset('alya')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Alya Kujou</span><span class="w-2.5 h-2.5 rounded-full bg-[#a1a1aa]"></span></button>
-        
         <button onclick="applyCharacterPreset('subaru')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Subaru N.</span><span class="w-2.5 h-2.5 rounded-full bg-[#f97316]"></span></button>
         <button onclick="applyCharacterPreset('emilia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Emilia</span><span class="w-2.5 h-2.5 rounded-full bg-[#c084fc]"></span></button>
         <button onclick="applyCharacterPreset('rem')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Rem</span><span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span></button>
@@ -332,10 +315,6 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
     // ==========================================
     // 1. GLOBAL STATE INITIALIZATION
     // ==========================================
@@ -344,15 +323,14 @@
     let currentLanguage = 'sub';
     let streamLoadGuard = null;
     
-    window.currentUser = null;
-    window.userWatchlist = [];
-    window.isLoginMode = true;
     window.currentMalId = "";
     window.activeAnimeTitle = "";
     window.activeMaxEpisodes = 12;
     window.activeImgUrl = "";
     
     let activeScheduleDay = 'today';
+    let calendarCachedDataset = [];
+    const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
     const colorProfiles = {
       umi: { hex: '#4169e1', rgb: '65, 105, 225' },
@@ -376,189 +354,7 @@
     };
 
     // ==========================================
-    // 2. FIREBASE WORKSPACE CONTEXT PIPELINE
-    // ==========================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyCjMNzlM-TqGf5Q34rgmtzH9OG4jb40Jaw",
-      authDomain: "dude9anime.firebaseapp.com",
-      projectId: "dude9anime",
-      storageBucket: "dude9anime.firebasestorage.app",
-      messagingSenderId: "943197492354",
-      appId: "1:943197492354:web:8a9ad93a497aee3a6cd09b",
-      measurementId: "G-12B452FLD7"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    onAuthStateChanged(auth, async (user) => {
-      const btnText = document.getElementById('drawer-profile-btn-text');
-      if (user) {
-        window.currentUser = user;
-        if(btnText) btnText.innerText = user.email.split('@')[0].toUpperCase();
-        await syncUserWatchlistData();
-      } else {
-        window.currentUser = null;
-        window.userWatchlist = [];
-        if(btnText) btnText.innerText = "Sync Secure Storage";
-        const wlWrapper = document.getElementById('watchlist-wrapper-section');
-        if (wlWrapper) wlWrapper.style.display = 'none';
-      }
-      updateWatchlistButtonUI();
-    });
-
-    async function syncUserWatchlistData() {
-      if (!window.currentUser) return;
-      const docRef = doc(db, "users", window.currentUser.uid);
-      try {
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          window.userWatchlist = docSnap.data().watchlist || [];
-        } else {
-          await setDoc(docRef, { watchlist: [] });
-          window.userWatchlist = [];
-        }
-        renderWatchlistGridRow();
-      } catch (e) { console.error("Cloud synchronization mapping fail:", e); }
-    }
-
-    function renderWatchlistGridRow() {
-      const wrapper = document.getElementById('watchlist-wrapper-section');
-      const grid = document.getElementById('my-watchlist-grid');
-      if (!wrapper || !grid) return;
-      grid.innerHTML = "";
-
-      if (!window.currentUser || window.userWatchlist.length === 0) {
-        wrapper.style.display = 'none';
-        return;
-      }
-
-      wrapper.style.display = 'block';
-      window.userWatchlist.forEach(anime => {
-        const card = document.createElement('div');
-        card.className = "flex items-center space-x-3 p-1.5 rounded-xl bg-dark-card border border-dark-border/40 hover:border-accent/40 cursor-pointer transition-all overflow-hidden group";
-        card.innerHTML = `
-          <img src="${anime.img}" class="w-8 h-11 object-cover rounded-lg shadow shrink-0">
-          <div class="min-w-0 flex-1">
-            <div class="text-[11px] font-semibold text-gray-200 truncate group-hover:text-white">${anime.title}</div>
-            <div class="text-[9px] font-mono text-gray-500 mt-0.5">${anime.eps} Episodes</div>
-          </div>
-        `;
-        // Fixed safe parameters string escaping inside module boundaries
-        card.onclick = () => {
-          toggleMainMenu();
-          window.loadStreamingLayout(anime.id, anime.title, anime.eps, anime.img);
-        };
-        grid.appendChild(card);
-      });
-    }
-
-    window.toggleWatchlistEntry = async function() {
-      if (!window.currentUser) {
-        alert("Authentication context required! Tap profile button beneath menu drawer to verify cloud status.");
-        return;
-      }
-
-      const docRef = doc(db, "users", window.currentUser.uid);
-      const entryItem = { 
-        id: String(window.currentMalId), 
-        title: window.activeAnimeTitle, 
-        eps: window.activeMaxEpisodes, 
-        img: window.activeImgUrl 
-      };
-      
-      const alreadySaved = window.userWatchlist.some(a => String(a.id) === String(window.currentMalId));
-
-      try {
-        if (alreadySaved) {
-          const matchItem = window.userWatchlist.find(a => String(a.id) === String(window.currentMalId));
-          window.userWatchlist = window.userWatchlist.filter(a => String(a.id) !== String(window.currentMalId));
-          await updateDoc(docRef, { watchlist: arrayRemove(matchItem || entryItem) });
-        } else {
-          window.userWatchlist.push(entryItem);
-          await updateDoc(docRef, { watchlist: arrayUnion(entryItem) });
-        }
-        updateWatchlistButtonUI();
-        renderWatchlistGridRow();
-      } catch(err) { alert("Fail array structure manipulation on active collection cloud layer."); }
-    };
-
-    function updateWatchlistButtonUI() {
-      const btn = document.getElementById('watchlist-toggle-btn');
-      if(!btn) return;
-      const alreadySaved = window.userWatchlist.some(a => String(a.id) === String(window.currentMalId));
-      if (alreadySaved) {
-        btn.innerHTML = `<i class="fa-solid fa-bookmark text-accent"></i> <span class="text-accent">Saved inside List</span>`;
-      } else {
-        btn.innerHTML = `<i class="fa-solid fa-plus"></i> <span>Add to List</span>`;
-      }
-    }
-
-    window.openProfileModal = function() {
-      document.getElementById('auth-modal').style.display = 'flex';
-      renderModalContent();
-    };
-
-    window.closeProfileModal = function() {
-      document.getElementById('auth-modal').style.display = 'none';
-    };
-
-    window.toggleAuthMode = function() {
-      window.isLoginMode = !window.isLoginMode;
-      renderModalContent();
-    };
-
-    function renderModalContent() {
-      const container = document.getElementById('modal-content-box');
-      if (window.currentUser) {
-        container.innerHTML = `
-          <h3 class="text-sm font-bold tracking-wider text-white uppercase">Cloud Status Sync</h3>
-          <p class="text-xs text-gray-500 leading-relaxed">Secure credentials authenticated successfully for account record:<br><b class="text-gray-200">${window.currentUser.email}</b></p>
-          <button id="signout-submit-btn" class="w-full bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 text-red-400 font-bold py-2 rounded-xl text-xs uppercase tracking-wide transition-colors">Terminate Context Session</button>
-          <button class="w-full bg-dark-input text-gray-500 font-bold py-2 rounded-xl text-xs uppercase border border-dark-border" onclick="window.closeProfileModal()">Close Panel</button>
-        `;
-        document.getElementById('signout-submit-btn').onclick = window.handleLogOut;
-      } else {
-        container.innerHTML = `
-          <h3 class="text-sm font-bold tracking-wider text-white uppercase">${window.isLoginMode ? 'Profile Authorization' : 'Register Pipeline'}</h3>
-          <div class="space-y-2">
-            <input type="email" id="auth-email" placeholder="Identifier Email" class="w-full bg-dark-input border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-accent/40">
-            <input type="password" id="auth-pass" placeholder="Secure Password Phrase" class="w-full bg-dark-input border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-accent/40">
-          </div>
-          <button id="auth-submit-btn" class="w-full dynamic-accent-bg bg-accent text-black font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider">${window.isLoginMode ? 'Verify Access' : 'Create Context'}</button>
-          <p class="text-[11px] text-gray-500 cursor-pointer hover:underline" id="switch-auth-link">
-            ${window.isLoginMode ? "Need storage workspace setup? Register Here" : "Possess pre-configured profile records? Secure login"}
-          </p>
-          <button class="w-full bg-dark-input text-gray-500 font-bold py-2 rounded-xl text-xs uppercase border border-dark-border" onclick="window.closeProfileModal()">Cancel</button>
-        `;
-        document.getElementById('auth-submit-btn').onclick = window.processAuthSubmission;
-        document.getElementById('switch-auth-link').onclick = window.toggleAuthMode;
-      }
-    }
-
-    window.processAuthSubmission = async function() {
-      const email = document.getElementById('auth-email').value.trim();
-      const pass = document.getElementById('auth-pass').value.trim();
-      if(!email || !pass) return alert("All profile sequence attributes parameters required.");
-
-      try {
-        if (window.isLoginMode) {
-          await signInWithEmailAndPassword(auth, email, pass);
-        } else {
-          await createUserWithEmailAndPassword(auth, email, pass);
-        }
-        window.closeProfileModal();
-      } catch (err) { alert(err.message); }
-    };
-
-    window.handleLogOut = async function() {
-      await signOut(auth);
-      window.closeProfileModal();
-    };
-
-    // ==========================================
-    // 3. INTERFACE OPERATIONS MANAGER (UI / VIEWS)
+    // 2. INTERFACE OPERATIONS MANAGER (UI / VIEWS)
     // ==========================================
     window.switchToView = function(viewTarget) {
       document.getElementById('landing-portal').style.display = 'none';
@@ -595,7 +391,7 @@
         document.getElementById('calendar-focus-view').style.display = 'block';
         document.getElementById('side-nav-calendar').classList.add('active');
         if(viewTitle) viewTitle.innerText = "Broadcasting Track Scheduler";
-        alert("AniList Core sync requires external setup. Displaying structural grid matrix layout instead.");
+        initCalendarTimelineLayout();
       }
     }
 
@@ -659,12 +455,12 @@
     }
 
     // ==========================================
-    // 4. API ENGINE CONTEXT IMPLEMENTATION (JIKAN API)
+    // 3. API ENGINE CONTEXT IMPLEMENTATION (JIKAN API)
     // ==========================================
     async function loadMainHubFeeds() {
       fetchLiveReleasingSchedule(activeScheduleDay);
       try {
-        const res = await fetch("https://api.jikan.moe/v4/top/anime?limit=22");
+        const res = await fetch("https://api.jikan.moe/v4/seasons/now?limit=22");
         const json = await res.json();
         const dataset = json.data || [];
         if(dataset.length > 0) {
@@ -718,7 +514,6 @@
     async function fetchLiveReleasingSchedule(dayMode) {
       const scheduleBox = document.getElementById('schedule-box');
       scheduleBox.innerHTML = '<p class="text-[10px] text-gray-600 font-mono p-4">Syncing timeline calendar coordinates...</p>';
-      const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
       
       let currentDayIndex = new Date().getDay();
       if (dayMode === 'yesterday') currentDayIndex = (currentDayIndex - 1 + 7) % 7;
@@ -763,6 +558,99 @@
       } catch (error) { 
         scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
       }
+    }
+
+    // ==========================================
+    // 4. AIRING TRACK TIMELINE FUNCTIONAL MATRIX
+    // ==========================================
+    async function initCalendarTimelineLayout() {
+      const daysMatrixContainer = document.getElementById('calendar-days-matrix');
+      const targetList = document.getElementById('airing-chronological-list');
+      
+      daysMatrixContainer.innerHTML = '';
+      targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full animate-pulse"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Rebuilding structural grid layout coordinates...</p>';
+      
+      const currentDayName = weekdays[new Date().getDay()];
+
+      weekdays.forEach(day => {
+        const btn = document.createElement('button');
+        btn.className = `py-2 rounded-xl border border-dark-border uppercase transition-all tracking-wider ${day === currentDayName ? 'bg-accent text-black font-black' : 'bg-dark-card text-gray-400 hover:text-white'}`;
+        btn.innerText = day.slice(0, 3);
+        btn.id = `calendar-tab-${day}`;
+        btn.onclick = () => selectCalendarTimelineDay(day);
+        daysMatrixContainer.appendChild(btn);
+      });
+
+      await selectCalendarTimelineDay(currentDayName);
+    }
+
+    async function selectCalendarTimelineDay(dayName) {
+      document.querySelectorAll('[id^="calendar-tab-"]').forEach(btn => {
+        btn.className = "py-2 rounded-xl border border-dark-border bg-dark-card text-gray-400 hover:text-white uppercase transition-all tracking-wider font-bold";
+      });
+      const activeBtn = document.getElementById(`calendar-tab-${dayName}`);
+      if(activeBtn) activeBtn.className = "py-2 rounded-xl border border-accent bg-accent text-black uppercase transition-all tracking-wider font-black";
+
+      const targetList = document.getElementById('airing-chronological-list');
+      targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Syncing calendar row segments...</p>';
+      
+      try {
+        const res = await fetch(`https://api.jikan.moe/v4/schedules?filter=${dayName}`);
+        const json = await res.json();
+        calendarCachedDataset = json.data || [];
+        renderCalendarGridItems(calendarCachedDataset);
+      } catch (err) {
+        targetList.innerHTML = '<p class="text-xs text-red-500 font-mono col-span-full">Fail tracking chronological schedule matrix endpoints.</p>';
+      }
+    }
+
+    function renderCalendarGridItems(dataset) {
+      const targetList = document.getElementById('airing-chronological-list');
+      targetList.innerHTML = '';
+
+      if(dataset.length === 0) {
+        targetList.innerHTML = '<p class="text-xs text-gray-600 font-mono col-span-full">No airing targets scheduled on this interface terminal node.</p>';
+        return;
+      }
+
+      dataset.forEach(anime => {
+        const title = anime.title_english || anime.title;
+        const imgUrl = anime.images?.jpg?.image_url || '';
+        const airTime = anime.broadcast?.time || "Airing";
+        const card = document.createElement('div');
+        card.className = "bg-dark-card border border-dark-border rounded-2xl p-2.5 cursor-pointer hover:border-accent/40 transition-all shadow group flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2 relative">
+              <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <span class="absolute bottom-2 right-2 text-[9px] font-mono font-bold bg-black/80 text-accent border border-accent/20 px-2 py-0.5 rounded backdrop-blur-sm shadow-md">JST ${airTime}</span>
+            </div>
+            <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-0.5 group-hover:text-white">${title}</div>
+          </div>
+        `;
+        const cleanTitle = title.replace(/'/g, "\\'");
+        card.onclick = () => window.loadStreamingLayout(anime.mal_id, cleanTitle, anime.episodes || 12, imgUrl);
+        targetList.appendChild(card);
+      });
+    }
+
+    window.filterCalendarGrid = function() {
+      const query = document.getElementById('calendar-search').value.toLowerCase().trim();
+      if(!query) {
+        renderCalendarGridItems(calendarCachedDataset);
+        return;
+      }
+      const filtered = calendarCachedDataset.filter(anime => {
+        const title = (anime.title_english || anime.title).toLowerCase();
+        return title.includes(query);
+      });
+      renderCalendarGridItems(filtered);
+    }
+
+    window.resetCalendarGridDay = function() {
+      document.getElementById('calendar-search').value = "";
+      const currentDayName = weekdays[new Date().getDay()];
+      selectCalendarTimelineDay(currentDayName);
     }
 
     async function fetchFullSeasonalReleases() {
@@ -860,7 +748,6 @@
       window.activeMaxEpisodes = totalEpisodes;
       window.activeImgUrl = imgUrl || "https://images.alphacoders.com/134/1344238.png";
       
-      updateWatchlistButtonUI();
       clearTimeout(streamLoadGuard);
 
       document.getElementById('landing-portal').style.display = 'none';
