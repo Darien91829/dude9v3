@@ -47,20 +47,6 @@
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
-    
-    /* Theme Adaptations */
-    .dynamic-accent-bg {
-      background-color: var(--character-accent) !important;
-    }
-    .dynamic-accent-text {
-      color: var(--character-accent) !important;
-    }
-    .dynamic-accent-border {
-      border-color: var(--character-accent) !important;
-    }
-    .dynamic-accent-bg-hover:hover {
-      background-color: var(--character-accent-hover) !important;
-    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -78,8 +64,8 @@
     <div>
       <div class="pb-5 flex items-center justify-between border-b border-dark-border mb-6">
         <div onclick="homeReturnReset()" class="flex flex-col items-start leading-none font-black select-none cursor-pointer group">
-          <span class="text-xl tracking-wide text-white">TheDude<span class="dynamic-accent-text">9</span></span>
-          <span class="text-[9px] tracking-[0.2em] dynamic-accent-bg text-black px-2 py-0.5 rounded ml-4 mt-1 uppercase font-bold shadow-sm">A N I M E</span>
+          <span class="text-xl tracking-wide text-white">TheDude<span class="dynamic-accent-text text-accent">9</span></span>
+          <span class="text-[9px] tracking-[0.2em] dynamic-accent-bg bg-accent text-black px-2 py-0.5 rounded ml-4 mt-1 uppercase font-bold shadow-sm">A N I M E</span>
         </div>
         <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Close menu">
           <i class="fa-solid fa-xmark text-xl"></i>
@@ -129,7 +115,7 @@
           <i class="fa-solid fa-magnifying-glass text-xs"></i>
         </span>
         <input type="text" id="header-search-input" placeholder="Query content index databases..." class="w-full bg-dark-input border border-dark-border rounded-xl pl-9 pr-20 py-2 text-xs focus:outline-none text-gray-300 focus:border-accent/40" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(true); }">
-        <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg text-black font-bold px-3 py-1 rounded-lg text-[11px] uppercase tracking-wide">Find</button>
+        <button onclick="triggerCatalogSearch(true)" class="absolute right-1.5 top-1.5 dynamic-accent-bg bg-accent text-black font-bold px-3 py-1 rounded-lg text-[11px] uppercase tracking-wide">Find</button>
       </div>
 
       <div class="flex items-center">
@@ -144,8 +130,8 @@
       <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-20 px-4 rounded-3xl border border-dark-border mb-10 bg-gradient-to-b from-neutral-900/20 to-transparent shadow-xl">
         <div class="max-w-xl w-full space-y-6">
           <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
-            <span class="text-5xl md:text-6xl tracking-wide text-white">TheDude<span class="dynamic-accent-text transition-all duration-200">9</span></span>
-            <span class="text-[10px] tracking-[0.3em] dynamic-accent-bg text-black px-3 py-1 rounded-md mt-3 transform translate-x-8 font-bold uppercase shadow-lg">A N I M E</span>
+            <span class="text-5xl md:text-6xl tracking-wide text-white">TheDude<span class="dynamic-accent-text text-accent transition-all duration-200">9</span></span>
+            <span class="text-[10px] tracking-[0.3em] dynamic-accent-bg bg-accent text-black px-3 py-1 rounded-md mt-3 transform translate-x-8 font-bold uppercase shadow-lg">A N I M E</span>
           </div>
           <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">Integrated API tracking pipeline linking fast streaming nodes, minimal designs, and custom UI skins.</p>
           
@@ -153,11 +139,11 @@
             <div class="flex items-center bg-dark-card p-1.5 rounded-xl border border-dark-border shadow-2xl focus-within:border-accent/40 transition-colors">
               <i class="fa-solid fa-magnifying-glass text-gray-500 ml-3 mr-2 text-xs"></i>
               <input type="text" id="search-input" placeholder="Search catalog tracks..." class="w-full bg-transparent pr-2 text-xs focus:outline-none text-white placeholder-gray-600" onkeydown="if(event.key === 'Enter') { event.preventDefault(); triggerCatalogSearch(false); }">
-              <button onclick="triggerCatalogSearch(false)" class="dynamic-accent-bg text-black font-bold px-4 py-1.5 rounded-lg text-[11px] uppercase tracking-wide shrink-0">Search</button>
+              <button onclick="triggerCatalogSearch(false)" class="dynamic-accent-bg bg-accent text-black font-bold px-4 py-1.5 rounded-lg text-[11px] uppercase tracking-wide shrink-0">Search</button>
             </div>
           </div>
           <div class="pt-4">
-            <button onclick="switchToView('catalog')" class="dynamic-accent-bg text-black shadow-lg px-8 py-3 rounded-full font-bold text-xs uppercase tracking-widest transition-transform hover:scale-[1.03] active:scale-95">Open Main Index</button>
+            <button onclick="switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black shadow-lg px-8 py-3 rounded-full font-bold text-xs uppercase tracking-widest transition-transform hover:scale-[1.03] active:scale-95">Open Main Index</button>
           </div>
         </div>
       </section>
@@ -177,7 +163,7 @@
             
             <div class="space-y-4">
               <div class="border-b border-dark-border pb-2">
-                <h2 id="grid-header-title" class="text-[11px] font-bold uppercase tracking-wider dynamic-accent-text">Trending Media Records</h2>
+                <h2 id="grid-header-title" class="text-[11px] font-bold uppercase tracking-wider dynamic-accent-text text-accent">Trending Media Records</h2>
               </div>
               <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 <p class="text-xs text-gray-500 font-mono"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Mapping records...</p>
@@ -323,7 +309,7 @@
       <div class="max-w-7xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-2">
           <span class="text-white font-bold text-sm tracking-wide select-none">
-            TheDude9 <span class="dynamic-accent-text">Anime Hub</span>
+            TheDude9 <span class="dynamic-accent-text text-accent">Anime Hub</span>
           </span>
         </div>
         
@@ -528,17 +514,14 @@
       document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
       localStorage.setItem('dude9anime-preset', profileKey);
       
-      // Real-time synchronization adjustments across complex layouts
-      updateLanguageButtonsUI();
       if (document.getElementById('stream-dashboard-box').style.display === 'block') {
         updateProviderTabsUI();
-        window.routeActiveStreamSource(currentEpisodeIndex);
       }
     }
 
     function loadSavedTheme() {
-      const saved = localStorage.getItem('dude9anime-preset') || 'subaru';
-      if (colorProfiles[saved]) window.applyCharacterPreset(saved);
+      const saved = localStorage.getItem('dude9anime-preset');
+      if (saved && colorProfiles[saved]) window.applyCharacterPreset(saved);
     }
 
     // ==========================================
@@ -643,7 +626,7 @@
           scheduleBox.appendChild(div);
         });
       } catch (error) { 
-        scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
+        scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
       }
     }
 
@@ -661,7 +644,7 @@
 
       weekdays.forEach(day => {
         const btn = document.createElement('button');
-        btn.className = `py-2 rounded-xl border border-dark-border uppercase transition-all tracking-wider ${day === currentDayName ? 'dynamic-accent-bg text-black font-black' : 'bg-dark-card text-gray-400 hover:text-white'}`;
+        btn.className = `py-2 rounded-xl border border-dark-border uppercase transition-all tracking-wider ${day === currentDayName ? 'bg-accent text-black font-black' : 'bg-dark-card text-gray-400 hover:text-white'}`;
         btn.innerText = day.slice(0, 3);
         btn.id = `calendar-tab-${day}`;
         btn.onclick = () => selectCalendarTimelineDay(day);
@@ -675,8 +658,8 @@
       document.querySelectorAll('[id^="calendar-tab-"]').forEach(btn => {
         btn.className = "py-2 rounded-xl border border-dark-border bg-dark-card text-gray-400 hover:text-white uppercase transition-all tracking-wider font-bold";
       });
-      const activeBtn = document.getElementById::(`calendar-tab-${dayName}`);
-      if(activeBtn) activeBtn.className = "py-2 rounded-xl border-accent dynamic-accent-bg text-black uppercase transition-all tracking-wider font-black";
+      const activeBtn = document.getElementById(`calendar-tab-${dayName}`);
+      if(activeBtn) activeBtn.className = "py-2 rounded-xl border border-accent bg-accent text-black uppercase transition-all tracking-wider font-black";
 
       const targetList = document.getElementById('airing-chronological-list');
       targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Syncing calendar row segments...</p>';
@@ -923,7 +906,7 @@
         btn.innerText = provider.name;
         
         if (provider.id === activeProviderKey) {
-          btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
+          btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
         } else {
           btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
         }
@@ -975,7 +958,7 @@
         b.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
       });
       const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
-      if(targetBtn) targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
+      if(targetBtn) targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
 
       clearTimeout(streamLoadGuard);
       if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
@@ -1116,30 +1099,24 @@
         <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] text-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
           <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Pipeline Fault</p>
           <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}. Try using the side content mirrors.</p>
-          <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg transform active:scale-95 transition-transform">Return to Navigation Engine</button>
+          <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
         </div>`;
     }
 
     window.setLanguage = function(lang) {
       if (currentLanguage === lang) return;
       currentLanguage = lang;
-      updateLanguageButtonsUI();
-      if (window.currentMalId) {
-        window.routeActiveStreamSource(currentEpisodeIndex);
-      }
-    }
-
-    function updateLanguageButtonsUI() {
       const subBtn = document.getElementById('sub-btn');
       const dubBtn = document.getElementById('dub-btn');
-      if(!subBtn || !dubBtn) return;
-      
-      if (currentLanguage === 'sub') {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg text-black";
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all bg-transparent";
+      if (lang === 'sub') {
+        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
+        dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
       } else {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all bg-transparent";
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg text-black";
+        subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+        dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
+      }
+      if (window.currentMalId) {
+        window.routeActiveStreamSource(currentEpisodeIndex);
       }
     }
 
