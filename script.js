@@ -29,7 +29,7 @@ const API_PROVIDERS = [
 const MOCK_OFFLINE_EPISODES_PAYLOAD = [
   {
     provider: "allmanga",
-    episodes: [
+    episodes = [
       { number: 1, id: "mock-ep-1", title: "Episode 1 (Offline Server Mirror)" },
       { number: 2, id: "mock-ep-2", title: "Episode 2 (Offline Server Mirror)" },
       { number: 3, id: "mock-ep-3", title: "Episode 3 (Offline Server Mirror)" },
@@ -425,7 +425,7 @@ async function loadRecentReleases() {
         loadStreamingLayout(mappedId, anime.mal_id, anime.title_english || anime.title);
       });
 
-      targetGrid.appendChild(anime);
+      targetGrid.appendChild(cardFrame);
     });
 
   } catch (error) {
@@ -1216,12 +1216,12 @@ async function launchVideoPlayer(epNum) {
       const iframe = document.getElementById('video-iframe');
       const targetMalId = window.currentMalId || 1; 
       
+      // OPTION 1 FIX: Clean existing timer structures completely 
+      clearTimeout(window.streamLoadGuard);
+      window.streamLoadGuard = null;
+
       // Inject MegaPlay source parameter pathing details 
       iframe.src = `${MEGAPLAY_PLAYER_BASE}/${targetMalId}/${epNum}/${currentLanguage}`;
-
-      // Set up asynchronous postMessage payload checking loop to guard timeouts
-      clearTimeout(window.streamLoadGuard);
-      window.streamLoadGuard = setTimeout(() => handleStreamMissingNotice(), 8000);
     }
     return;
   }
@@ -1279,6 +1279,7 @@ function setProviderSource(providerId) {
   
   // Wipe background timeout threads when switching provider nodes
   clearTimeout(window.streamLoadGuard);
+  window.streamLoadGuard = null;
   
   launchVideoPlayer(currentEpisodeIndex);
 }
@@ -1359,12 +1360,15 @@ window.addEventListener("message", function (event) {
   // Clear the missing stream watchdog if MegaPlay returns structural play actions
   if (data.event === "playing" || data.event === "ready") {
     clearTimeout(window.streamLoadGuard);
+    window.streamLoadGuard = null;
     return;
   }
   
   // Strict check for legitimate streaming errors
   if (data.event === "error" || data.status === "error") {
     clearTimeout(window.streamLoadGuard);
+    window.streamLoadGuard = null;
+    
     // Only fire missing warning overlay if the player hasn't initialized any source
     const targetIframe = document.getElementById('video-iframe');
     if (targetIframe && targetIframe.src === "") {
