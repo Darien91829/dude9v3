@@ -30,7 +30,6 @@
       --character-accent-rgb: 0, 255, 102;
     }
     
-    /* Global Scroller Configuration Hide Rules */
     .scrollbar-none::-webkit-scrollbar { display: none; }
     .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
     
@@ -41,14 +40,12 @@
       border-radius: 0px 12px 12px 0px;
     }
 
-    /* Core Video Context Controls Fixes */
     .plyr {
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
-    /* Sub/Dub Active Button Styling states */
     .lang-btn.active {
       background-color: var(--character-accent);
       color: #000000 !important;
@@ -75,7 +72,7 @@
           <span class="text-xl tracking-wide text-white">TheDude<span class="dynamic-accent-text text-accent">9</span></span>
           <span class="text-[9px] tracking-[0.2em] dynamic-accent-bg bg-accent text-black px-2 py-0.5 rounded ml-4 mt-1 uppercase font-bold shadow-sm">A N I M E</span>
         </div>
-        <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Close menu">
+        <button onclick="toggleMainMenu()" class="text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center">
           <i class="fa-solid fa-xmark text-xl"></i>
         </button>
       </div>
@@ -102,11 +99,6 @@
           <span class="icon text-base"><i class="fa-solid fa-calendar-days"></i></span> 
           <span class="label font-medium">Airing Track</span>
         </div>
-
-        <div id="watchlist-wrapper-section" class="pt-4 hidden">
-          <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-2 px-2">Saved Collection</span>
-          <div id="my-watchlist-grid" class="space-y-1.5 px-2"></div>
-        </div>
       </nav>
     </div>
   </aside>
@@ -114,10 +106,9 @@
   <div id="menu-overlay" onclick="toggleMainMenu()" class="fixed inset-0 bg-black/70 hidden z-40 md:hidden backdrop-blur-sm"></div>
 
   <div class="flex-1 flex flex-col min-w-0">
-    
     <nav class="sticky top-0 z-30 bg-dark-bg/95 backdrop-blur border-b border-dark-border px-6 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Open menu">
+        <button onclick="toggleMainMenu()" class="text-xl text-gray-400 hover:text-white p-2 md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center">
           <i class="fa-solid fa-bars"></i>
         </button>
         <div id="view-indicator-title" class="text-xs font-bold uppercase tracking-widest text-gray-500 hidden md:block select-none font-mono">Welcome Portal</div>
@@ -132,14 +123,13 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-transform active:scale-95" title="Change Layout Palette" aria-label="Open Theme Palette Menu">
+        <button onclick="openBottomSheet()" class="text-gray-400 hover:text-white p-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-transform active:scale-95" title="Change Layout Palette">
           <i class="fa-solid fa-palette text-base"></i>
         </button>
       </div>
     </nav>
 
     <main class="max-w-7xl w-full mx-auto px-4 md:px-6 py-6 flex-1">
-
       <section id="landing-portal" class="flex flex-col justify-center items-center text-center py-20 px-4 rounded-3xl border border-dark-border mb-10 bg-gradient-to-b from-neutral-900/20 to-transparent shadow-xl">
         <div class="max-w-xl w-full space-y-6">
           <div class="flex flex-col items-center justify-center leading-none font-black select-none py-4">
@@ -164,7 +154,6 @@
       <section id="main-exploration-hub" class="hidden space-y-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div class="lg:col-span-2 space-y-8" id="grid-split-container">
-            
             <div id="recommendations-container-block" class="space-y-4">
               <div class="border-b border-dark-border pb-2 flex items-center justify-between">
                 <h2 class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Seasonal Global Highlights (Jikan Sync)</h2>
@@ -260,9 +249,14 @@
           </div>
           
           <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
-            <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all active bg-accent text-black">SUB</button>
-            <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all">DUB</button>
+            <button id="sub-btn" onclick="setLanguage('sub')" class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all lang-btn">SUB</button>
+            <button id="dub-btn" onclick="setLanguage('dub')" class="px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all lang-btn">DUB</button>
           </div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-3 shadow-xl">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2 font-mono">Select Stream Engine Provider Source</span>
+          <div id="sub-server-links-grid" class="flex flex-wrap gap-2"></div>
         </div>
 
         <div class="bg-dark-card border border-dark-border rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 shadow-xl">
@@ -279,8 +273,6 @@
             </div>
           </div>
         </div>
-
-        <div id="sub-server-links-grid" class="space-y-4 mb-4"></div>
 
         <div class="bg-dark-card border border-dark-border rounded-2xl p-5 space-y-4 shadow-xl">
           <div class="flex items-center justify-between">
@@ -315,7 +307,8 @@
         <button onclick="applyCharacterPreset('beatrice')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Beatrice</span><span class="w-2.5 h-2.5 rounded-full bg-[#fbbf24]"></span></button>
         <button onclick="applyCharacterPreset('felt')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Felt</span><span class="w-2.5 h-2.5 rounded-full bg-[#eab308]"></span></button>
         <button onclick="applyCharacterPreset('reinhard')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Reinhard v.A.</span><span class="w-2.5 h-2.5 rounded-full bg-[#dc2626]"></span></button>
-        <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Crusch K.</span><span class="w-2.5 h-2.5 rounded-full bg-[#059669]"></span></button> <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Felix A.</span><span class="w-2.5 h-2.5 rounded-full bg-[#d97706]"></span></button>
+        <button onclick="applyCharacterPreset('crusch')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Crusch K.</span><span class="w-2.5 h-2.5 rounded-full bg-[#059669]"></span></button> 
+        <button onclick="applyCharacterPreset('felix')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Felix A.</span><span class="w-2.5 h-2.5 rounded-full bg-[#d97706]"></span></button>
         <button onclick="applyCharacterPreset('priscilla')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Priscilla B.</span><span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span></button>
         <button onclick="applyCharacterPreset('anastasia')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Anastasia H.</span><span class="w-2.5 h-2.5 rounded-full bg-[#f472b6]"></span></button>
         <button onclick="applyCharacterPreset('julius')" class="flex items-center justify-between p-2.5 rounded-xl border border-dark-border bg-dark-input hover:border-gray-700 transition-colors"><span class="text-gray-400">Julius J.</span><span class="w-2.5 h-2.5 rounded-full bg-[#6366f1]"></span></button>
@@ -331,34 +324,5 @@
       </div>
     </div>
   </div>
-
-  <script>
-    window.setLanguage = function(lang) {
-      currentLanguage = lang;
-      const subBtn = document.getElementById('sub-btn');
-      const dubBtn = document.getElementById('dub-btn');
-      
-      if(lang === 'sub') {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-accent text-black";
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-      } else {
-        subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-        dubBtn.className = "px-3.5 py-1 text-xs font-bold bg-accent text-black";
-      }
-      launchVideoPlayer(currentEpisodeIndex);
-    }
-
-    window.addEventListener("message", function (event) {
-      let data = event.data;
-      if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
-      if (data && (data.event === "playing" || data.event === "ready")) {
-        clearTimeout(streamLoadGuard);
-      }
-      if (data && data.event === "error") {
-        clearTimeout(streamLoadGuard);
-        handleStreamMissingNotice();
-      }
-    });
-  </script>
 </body>
 </html>
