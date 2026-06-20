@@ -236,13 +236,10 @@
         </div>
 
         <div class="flex flex-col sm:flex-row items-center justify-between bg-dark-card border border-dark-border p-3 rounded-xl gap-3 shadow-xl">
-          <div class="flex items-center space-x-2 w-full sm:w-auto">
-            <span class="text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase pl-1">Server Pipeline:</span>
-            <div id="provider-select-group" class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 overflow-x-auto scrollbar-none gap-1">
-              <button id="provider-megaplay" onclick="switchProvider('megaplay')" class="px-3 py-1 text-[10px] font-bold rounded-lg transition-all uppercase tracking-wider">MegaPlay</button>
-              <button id="provider-anikoto" onclick="switchProvider('anikoto')" class="px-3 py-1 text-[10px] font-bold rounded-lg transition-all uppercase tracking-wider">Anikoto</button>
-              <button id="provider-multistream" onclick="switchProvider('multistream')" class="px-3 py-1 text-[10px] font-bold rounded-lg transition-all uppercase tracking-wider">MultiStream</button>
-            </div>
+          <div class="flex items-center space-x-2 w-full sm:w-auto overflow-hidden">
+            <span class="text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase pl-1 shrink-0">Server:</span>
+            <div id="server-source-tabs-bar" class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 overflow-x-auto scrollbar-none gap-1 w-full sm:w-auto">
+              </div>
           </div>
           
           <div class="flex items-center bg-dark-input p-1 rounded-xl border border-dark-border/60 shrink-0 self-end sm:self-auto">
@@ -319,18 +316,31 @@
     // ==========================================
     // 1. GLOBAL STATE INITIALIZATION
     // ==========================================
-    const streamingProviders = {
-      megaplay: "https://megaplay.buzz/stream/mal",
-      anikoto: "https://anikoto.cc/api/v2/stream/mal",
-      multistream: "https://multistream.io/embed/mal"
+    const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
+
+    const PROVIDER_BASES = {
+      megaplay: "https://megaplay.buzz/stream/mal"
     };
+
+    const API_PROVIDERS = [
+      { id: 'megaplay', name: 'MegaPlay' },
+      { id: 'allmanga', name: 'AllManga' },
+      { id: 'reanime', name: 'ReAnime' },
+      { id: 'anikoto', name: 'AniKoto' },
+      { id: 'animegg', name: 'AnimeGG' },
+      { id: 'anineko', name: 'AniNeko' },
+      { id: 'anidbapp', name: 'AniDB App' },
+      { id: 'animepahe', name: 'AnimePahe' }
+    ];
 
     let activeProviderKey = 'megaplay';
     let currentEpisodeIndex = 1;
     let currentLanguage = 'sub';
+    let plyrInstance = null;
     let streamLoadGuard = null;
     
     window.currentMalId = "";
+    window.currentAnilistId = "";
     window.activeAnimeTitle = "";
     window.activeMaxEpisodes = 12;
     window.activeImgUrl = "";
@@ -416,6 +426,7 @@
 
     window.homeReturnReset = function() {
       clearTimeout(streamLoadGuard);
+      if(plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
       window.switchToView('home');
       document.getElementById('search-input').value = "";
       document.getElementById('header-search-input').value = "";
@@ -455,7 +466,6 @@
       document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
       localStorage.setItem('dude9anime-preset', profileKey);
       
-      // Forces re-render of active dynamic nodes to match theme shifts cleanly
       if (document.getElementById('stream-dashboard-box').style.display === 'block') {
         updateProviderTabsUI();
       }
@@ -759,6 +769,7 @@
     window.loadStreamingLayout = async function(malId, title, episodesMax, posterImg) {
       clearTimeout(streamLoadGuard);
       window.currentMalId = malId;
+      window.currentAnilistId = "";
       window.activeAnimeTitle = title;
       window.activeMaxEpisodes = episodesMax || 12;
       window.activeImgUrl = posterImg;
@@ -782,6 +793,24 @@
 
       updateProviderTabsUI();
       buildEpisodeIndexButtons(window.activeMaxEpisodes);
+
+      try {
+        const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
+        const mapData = await mapRes.json();
+        window.currentAnilistId = mapData.anilistId || mapData.id || malId;
+
+        const epRes = await fetch(`${ANIVEXA_BASE_API}/episodes/${window.currentAnilistId}`);
+        const epData = await epRes.json();
+        
+        if (epData && epData.length > 0) {
+          window.activeMaxEpisodes = epData.length;
+          buildEpisodeIndexButtons(epData.length);
+        }
+      } catch(e) { 
+        console.warn("Backend dynamic map mapping sequence exception fallback to base values.");
+        window.currentAnilistId = malId; 
+      }
+
       window.routeActiveStreamSource(1);
       
       try {
@@ -791,12 +820,8 @@
         if(data) {
           document.getElementById('detail-synopsis').innerText = data.synopsis || "No data record description parameters provided.";
           document.getElementById('detail-type').innerText = data.type || "TV";
-          document.getElementById('detail-episodes').innerText = data.episodes || episodesMax || "??";
+          document.getElementById('detail-episodes').innerText = data.episodes || window.activeMaxEpisodes || "??";
           document.getElementById('detail-rating').innerText = data.score || "?.??";
-          if(data.episodes && data.episodes !== window.activeMaxEpisodes) {
-            window.activeMaxEpisodes = data.episodes;
-            buildEpisodeIndexButtons(data.episodes);
-          }
         }
       } catch(e) { console.warn("Meta sync engine non-fatal exception."); }
     }
@@ -818,23 +843,33 @@
       if (activeProviderKey === providerKey) return;
       activeProviderKey = providerKey;
       updateProviderTabsUI();
-      window.routeActiveStreamSource(currentEpisodeIndex);
+      if (window.currentMalId) {
+        window.routeActiveStreamSource(currentEpisodeIndex);
+      }
     }
 
     function updateProviderTabsUI() {
-      const buttons = ['megaplay', 'anikoto', 'multistream'];
-      buttons.forEach(p => {
-        const btn = document.getElementById(`provider-${p}`);
-        if (!btn) return;
-        if (p === activeProviderKey) {
-          btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm";
+      const targetBar = document.getElementById('server-source-tabs-bar');
+      if (!targetBar) return;
+      
+      targetBar.innerHTML = '';
+      API_PROVIDERS.forEach(provider => {
+        const btn = document.createElement('button');
+        btn.id = `provider-${provider.id}`;
+        btn.innerText = provider.name;
+        
+        if (provider.id === activeProviderKey) {
+          btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
         } else {
-          btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent";
+          btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
         }
+        
+        btn.onclick = () => window.switchProvider(provider.id);
+        targetBar.appendChild(btn);
       });
     }
 
-    window.routeActiveStreamSource = function(epIndex) {
+    window.routeActiveStreamSource = async function(epIndex) {
       currentEpisodeIndex = epIndex;
       document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
         b.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
@@ -842,35 +877,82 @@
       const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
       if(targetBtn) targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
 
-      // Dynamically picks base engine matching the active selection parameter
-      const providerBase = streamingProviders[activeProviderKey];
-      const languageFlag = (currentLanguage === 'dub') ? '?translation=dub' : '';
-      const targetUrl = `${providerBase}/${window.currentMalId}/${currentEpisodeIndex}${languageFlag}`;
-      
-      // Reset player target environment frame container
+      clearTimeout(streamLoadGuard);
+      if (plyrInstance) {
+        plyrInstance.destroy();
+        plyrInstance = null;
+      }
+
       const wrapper = document.getElementById('video-player-wrapper');
       wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-      
       const videoElement = document.getElementById('video-iframe');
-      
+
+      const anilistId = window.currentAnilistId || window.currentMalId;
+      let targetStreamUrl = "";
+
+      try {
+        if (activeProviderKey === 'megaplay') {
+          const activeBaseUrl = PROVIDER_BASES.megaplay;
+          targetStreamUrl = `${activeBaseUrl}/${window.currentMalId}/${epIndex}/${currentLanguage}`;
+          wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+          return;
+        } 
+        else if (activeProviderKey === 'reanime') {
+          targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
+          initializeHlsVideo(videoElement, targetStreamUrl);
+        } 
+        else {
+          const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
+          const streamData = await watchResponse.json();
+          
+          targetStreamUrl = streamData.streamUrl || streamData.url || (streamData.sources && streamData.sources[0]?.url);
+          
+          if (targetStreamUrl) {
+            initializeHlsVideo(videoElement, targetStreamUrl);
+          } else {
+            throw new Error("Empty target stream index layout context.");
+          }
+        }
+      } catch (err) {
+        console.error("Pipeline failure routing active stream node coordinates:", err);
+        handleStreamMissingNotice();
+      }
+    }
+
+    function initializeHlsVideo(videoElement, sourceUrl) {
       if (Hls.isSupported()) {
         const hls = new Hls();
-        hls.loadSource(targetUrl);
+        hls.loadSource(sourceUrl);
         hls.attachMedia(videoElement);
         hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          new Plyr(videoElement, {
-            controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen']
+          plyrInstance = new Plyr(videoElement, {
+            controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
           });
         });
+        hls.on(Hls.Events.ERROR, function(event, data) {
+          if (data.fatal) handleStreamMissingNotice();
+        });
       } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-        videoElement.src = targetUrl;
-        new Plyr(videoElement, {
-          controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen']
+        videoElement.src = sourceUrl;
+        plyrInstance = new Plyr(videoElement, {
+          controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
         });
       }
     }
 
+    function handleStreamMissingNotice() {
+      const wrapper = document.getElementById('video-player-wrapper');
+      if (!wrapper) return;
+      wrapper.innerHTML = `
+        <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] text-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
+          <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Pipeline Fault</p>
+          <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}.</p>
+          <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
+        </div>`;
+    }
+
     window.setLanguage = function(lang) {
+      if (currentLanguage === lang) return;
       currentLanguage = lang;
       const subBtn = document.getElementById('sub-btn');
       const dubBtn = document.getElementById('dub-btn');
@@ -881,14 +963,18 @@
         subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
         dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
       }
-      window.routeActiveStreamSource(currentEpisodeIndex);
+      if (window.currentMalId) {
+        window.routeActiveStreamSource(currentEpisodeIndex);
+      }
     }
 
     // ==========================================
     // 7. SYSTEM LIFE CYCLE BOOTSTRAPPER
     // ==========================================
-    loadSavedTheme();
-    startSystemClock();
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSavedTheme();
+      startSystemClock();
+    });
   </script>
 </body>
 </html>
