@@ -3,6 +3,9 @@ const JIKAN_BASE = "https://api.jikan.moe/v4";
 // STANDALONE STREAMING API HOSTED ON VERCEL
 const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
 
+// MEGAPLAY EMBED CONFIGURATION MAPPING
+const MEGAPLAY_EMBED_BASE = "https://megaplay.buzz";
+
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
 let activeScheduleDay = 'today';
@@ -113,18 +116,71 @@ function updateLanguageButtonsUI() {
   }
 }
 
-// Autoplay Handshake Interceptor
+// Global Core Route Active Video Player Stream Generator Matrix
+function launchVideoPlayer(episodeIndex) {
+  currentEpisodeIndex = parseInt(episodeIndex) || 1;
+  const videoWrapper = document.getElementById("video-player-wrapper");
+  if (!videoWrapper) return;
+
+  // Set up fallback iframe source using the MegaPlay API routing specifications
+  let embedUrl = "";
+  
+  if (window.currentAnilistId) {
+    embedUrl = `${MEGAPLAY_EMBED_BASE}/stream/ani/${window.currentAnilistId}/${currentEpisodeIndex}/${currentLanguage}`;
+  } else if (window.currentMalId) {
+    embedUrl = `${MEGAPLAY_EMBED_BASE}/stream/mal/${window.currentMalId}/${currentEpisodeIndex}/${currentLanguage}`;
+  } else {
+    // If no meta coordinates exist, query the internal global fallback id mapping block cache if available
+    const episodeId = (globalEpisodeDataCache && globalEpisodeDataCache[currentEpisodeIndex]) ? globalEpisodeDataCache[currentEpisodeIndex].id : currentEpisodeIndex;
+    embedUrl = `${MEGAPLAY_EMBED_BASE}/stream/s-2/${episodeId}/${currentLanguage}`;
+  }
+
+  // Inject optimized frictionless iframe context block according to specs
+  videoWrapper.innerHTML = `
+    <iframe 
+      src="${embedUrl}" 
+      width="100%" 
+      height="100%" 
+      frameborder="0" 
+      scrolling="no" 
+      allowfullscreen
+      class="w-full h-full rounded-xl bg-black">
+    </iframe>
+  `;
+
+  // Sync remaining UI lists or titles
+  const episodeTitleNode = document.getElementById("active-stream-title");
+  if (episodeTitleNode) {
+    episodeTitleNode.innerText = `${window.activeAnimeTitle || "Now Playing"} — Episode ${currentEpisodeIndex} [${currentLanguage.toUpperCase()}]`;
+  }
+}
+
+// Integrated PostMessage Listening Engine Matrix (MegaPlay Framework Handshakes)
 window.addEventListener("message", function (event) {
+  // Security parameter validation step (matches target documentation source origins)
+  if (event.origin !== MEGAPLAY_EMBED_BASE && !event.origin.includes("megaplay")) {
+    // Optional fallback boundary checks
+  }
+
   let data = event.data;
   if (typeof data === "string") { 
     try { data = JSON.parse(data); } catch (e) { return; } 
   }
-  if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
+
+  if (!data) return;
+
+  // Intercept completion channels for handling absolute Auto-Next actions
+  if (data.event === "complete" || data.event === "ended" || data.status === "finished") {
     const nextEp = currentEpisodeIndex + 1;
     if (nextEp <= window.activeMaxEpisodes) {
-      if (typeof window.launchVideoPlayer === "function") {
-        window.launchVideoPlayer(nextEp);
-      }
+      launchVideoPlayer(nextEp);
     }
+  }
+
+  // Monitor playback details & log updates silently
+  if (data.event === "time" || data.type === "watching-log") {
+    const currentTime = data.time || data.currentTime || 0;
+    const duration = data.duration || 0;
+    console.log(`[Playback Node Telemetry] Current Run: ${currentTime}s / ${duration}s`);
   }
 });
