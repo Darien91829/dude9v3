@@ -1,22 +1,35 @@
 // ==========================================
 // 1. GLOBAL STATE INITIALIZATION
 // ==========================================
-// Replaced hardcoded string engine with a comprehensive tracking map coordinate system
+// CENTRALIZED VERCEL BACKEND PIPELINE SOURCE URL
+const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
+
+// Re-established hardcoded mirror tracker for megaplay fallback endpoints
 const PROVIDER_BASES = {
-  allmanga: "https://allmanga.buzz/stream/mal",
-  megaplay: "https://megaplay.buzz/stream/mal",
-  reanime: "https://reanime.buzz/stream/mal",
-  anikoto: "https://anikoto.buzz/stream/mal",
-  animegg: "https://animegg.buzz/stream/mal",
-  animeneko: "https://animeneko.buzz/stream/mal"
+  megaplay: "https://megaplay.buzz/stream/mal"
 };
 
-let currentProvider = 'megaplay'; // Default initialized starting state anchor
+// 8 operational backend tracking providers including MegaPlay
+const API_PROVIDERS = [
+  { id: 'megaplay', name: 'MegaPlay' },
+  { id: 'allmanga', name: 'AllManga' },
+  { id: 'reanime', name: 'ReAnime' },
+  { id: 'anikoto', name: 'AniKoto' },
+  { id: 'animegg', name: 'AnimeGG' },
+  { id: 'anineko', name: 'AniNeko' },
+  { id: 'anidbapp', name: 'AniDB App' },
+  { id: 'animepahe', name: 'AnimePahe' }
+];
+
+let activeProviderKey = 'megaplay'; // Default initialized starting state anchor back to megaplay
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
+let plyrInstance = null;
 let streamLoadGuard = null;
 
+// Track matching ID maps across standard environments globally
 window.currentMalId = "";
+window.currentAnilistId = "";
 window.activeAnimeTitle = "";
 window.activeMaxEpisodes = 12;
 window.activeImgUrl = "";
@@ -102,6 +115,7 @@ window.toggleMainMenu = function() {
 
 window.homeReturnReset = function() {
   clearTimeout(streamLoadGuard);
+  if(plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
   window.switchToView('home');
   document.getElementById('search-input').value = "";
   document.getElementById('header-search-input').value = "";
@@ -140,6 +154,10 @@ window.applyCharacterPreset = function(profileKey) {
   document.documentElement.style.setProperty('--character-accent-hover', choice.hex);
   document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
   localStorage.setItem('dude9anime-preset', profileKey);
+  
+  if (document.getElementById('stream-dashboard-box').style.display === 'block') {
+    updateProviderTabsUI();
+  }
 }
 
 function loadSavedTheme() {
@@ -249,7 +267,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
       scheduleBox.appendChild(div);
     });
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
+    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
   }
 }
 
@@ -361,7 +379,7 @@ async function fetchFullSeasonalReleases() {
         const card = document.createElement('div');
         card.className = "bg-dark-card border border-dark-border rounded-2xl p-2 cursor-pointer hover:border-accent/40 transition-all shadow group";
         card.innerHTML = `
-          <div class="aspect-[3/4] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2">
+          <div class="aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 mb-2">
             <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Cover">
           </div>
           <div class="text-xs font-semibold tracking-wide text-gray-200 truncate px-1">${title}</div>
@@ -397,7 +415,8 @@ function displayScrollFeed(animeArray, elementId) {
 function displayGridFeed(animeArray, elementId) {
   const container = document.getElementById(elementId);
   container.innerHTML = '';
-  animeArray.forEach(anime => {
+  const cleanArray = animeArray || [];
+  cleanArray.forEach(anime => {
     const title = anime.title_english || anime.title;
     const imgUrl = anime.images?.jpg?.image_url || '';
     const card = document.createElement('div');
@@ -434,31 +453,45 @@ function displayTop10Sidebar(animeArray) {
 // ==========================================
 // 5. STREAM PIPELINE & INTERACTIVE CONSOLE MODULE
 // ==========================================
-// Added active system switcher tool to dynamically rebind scraping endpoints
-window.setScraperProvider = function(providerKey) {
-  if (!PROVIDER_BASES[providerKey]) return;
-  currentProvider = providerKey;
+// Handles programmatic engine switching across UI tabs mapping configurations
+window.switchProvider = function(providerKey) {
+  if (activeProviderKey === providerKey) return;
+  activeProviderKey = providerKey;
+  updateProviderTabsUI();
   
-  // Handles active selection switching for DOM elements matching UI button maps
-  document.querySelectorAll('[id^="provider-btn-"]').forEach(btn => {
-    btn.className = "bg-dark-input text-gray-400 border border-dark-border px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all";
-  });
-  const activeBtn = document.getElementById(`provider-btn-${providerKey}`);
-  if (activeBtn) {
-    activeBtn.className = "dynamic-accent-bg bg-accent text-black border border-accent font-black px-3 py-1.5 rounded-xl text-xs tracking-wide shadow-md";
-  }
-
-  // Forces instantaneous player execution reload if mid-session content routing exists
   if (window.currentMalId) {
-    launchVideoPlayer(currentEpisodeIndex);
+    window.routeActiveStreamSource(currentEpisodeIndex);
   }
+}
+
+// Rewritten button map UI update synchronization loops to handle any arbitrary configuration lists
+function updateProviderTabsUI() {
+  const targetBar = document.getElementById('server-source-tabs-bar');
+  if (!targetBar) return;
+  
+  targetBar.innerHTML = '';
+  API_PROVIDERS.forEach(provider => {
+    const btn = document.createElement('button');
+    btn.id = `provider-${provider.id}`;
+    btn.innerText = provider.name;
+    
+    if (provider.id === activeProviderKey) {
+      btn.className = "px-3 py-1 text-[10px] font-black dynamic-accent-bg bg-accent text-black rounded-lg transition-all uppercase tracking-wider shadow-sm shrink-0";
+    } else {
+      btn.className = "px-3 py-1 text-[10px] font-bold text-gray-500 hover:text-gray-300 rounded-lg transition-all uppercase tracking-wider bg-transparent shrink-0";
+    }
+    
+    btn.onclick = () => window.switchProvider(provider.id);
+    targetBar.appendChild(btn);
+  });
 }
 
 window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, imgUrl = "") {
   window.currentMalId = malId;
+  window.currentAnilistId = ""; 
   window.activeAnimeTitle = titleName;
   window.activeMaxEpisodes = totalEpisodes;
-  window.activeImgUrl = imgUrl || "https://images.alphacoders.com/134/1344238.png";
+  window.activeImgUrl = imgUrl || "";
   
   clearTimeout(streamLoadGuard);
 
@@ -468,10 +501,6 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
   document.getElementById('calendar-focus-view').style.display = 'none';
   document.getElementById('stream-dashboard-box').style.display = 'block';
   document.getElementById('header-search-engine').style.display = 'flex';
-
-  // Fallback checks for missing titles or headings inside stream layouts
-  const titleEl = document.getElementById('ep-title');
-  if (titleEl) titleEl.innerText = `Watching: ${titleName}`;
   
   document.getElementById('detail-title').innerText = titleName;
   document.getElementById('detail-poster').src = window.activeImgUrl;
@@ -479,17 +508,27 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
 
   document.getElementById('detail-type').innerText = "TV Series";
   document.getElementById('detail-rating').innerText = "Syncing...";
-  document.getElementById('detail-synopsis').innerText = "Requesting Jikan API documentation files database metrics...";
+  document.getElementById('detail-synopsis').innerText = "Requesting tracking parameters from cross-platform database...";
 
-  const epBox = document.getElementById('episode-buttons');
-  epBox.innerHTML = '';
-  for (let i = 1; i <= totalEpisodes; i++) {
-    const btn = document.createElement('button');
-    btn.className = "bg-dark-input hover:bg-neutral-900 border border-dark-border text-gray-400 font-bold px-3 py-1.5 rounded-lg text-xs min-w-[36px] tracking-wide transition-all ep-btn shadow-sm";
-    btn.id = `ep-choice-${i}`;
-    btn.innerText = `${i}`;
-    btn.onclick = () => launchVideoPlayer(i);
-    epBox.appendChild(btn);
+  updateProviderTabsUI();
+  buildEpisodeIndexButtons(totalEpisodes);
+
+  try {
+    // Resolve standard cross-platform structural parameters via MAL target mapping pipelines
+    const mapRes = await fetch(`${ANIVEXA_BASE_API}/map/${malId}`);
+    const mapData = await mapRes.json();
+    window.currentAnilistId = mapData.anilistId || mapData.id || malId;
+
+    const epRes = await fetch(`${ANIVEXA_BASE_API}/episodes/${window.currentAnilistId}`);
+    const epData = await epRes.json();
+    
+    if (epData && epData.length > 0) {
+      window.activeMaxEpisodes = epData.length;
+      buildEpisodeIndexButtons(epData.length);
+    }
+  } catch(e) { 
+    console.warn("Backend dynamic map mapping sequence exception fallback to base values.");
+    window.currentAnilistId = malId; 
   }
 
   try {
@@ -497,77 +536,141 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
     const dataJson = await detailRes.json();
     const info = dataJson.data;
     if(info) {
-      document.getElementById('detail-synopsis').innerText = info.synopsis || "No meta documentation registered.";
+      document.getElementById('detail-synopsis').innerText = info.synopsis || "No data record description parameters provided.";
       document.getElementById('detail-type').innerText = info.type || "TV";
-      document.getElementById('detail-rating').innerText = info.score || "N/A";
+      document.getElementById('detail-rating').innerText = info.score || "?.??";
     }
-  } catch(e) { console.warn("Meta metadata folder route fail mapping parameters."); }
+  } catch(e) { console.warn("Meta metadata sync non-fatal exception."); }
 
-  // Sync state parameters to lock correct default focus visual layouts
-  window.setScraperProvider(currentProvider);
+  // Route the default track execution setup configuration mapping
+  window.routeActiveStreamSource(1);
 };
 
-function launchVideoPlayer(epNum) {
-  currentEpisodeIndex = epNum;
-  document.querySelectorAll('.ep-btn').forEach(b => {
-    b.className = "bg-dark-input hover:bg-neutral-900 border border-dark-border text-gray-400 font-bold px-3 py-1.5 rounded-lg text-xs min-w-[36px] tracking-wide transition-all ep-btn shadow-sm";
-  });
-  const activeBtn = document.getElementById(`ep-choice-${epNum}`);
-  if (activeBtn) {
-    activeBtn.className = "dynamic-accent-bg bg-accent text-black border border-accent font-black px-3 py-1.5 rounded-lg text-xs min-w-[36px] tracking-wide transition-all ep-btn shadow-md shadow-accent/10";
+function buildEpisodeIndexButtons(total) {
+  const box = document.getElementById('episode-buttons');
+  box.innerHTML = '';
+  for (let i = 1; i <= total; i++) {
+    const btn = document.createElement('button');
+    btn.id = `ep-btn-${i}`;
+    btn.innerText = i < 10 ? `0${i}` : i;
+    btn.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
+    btn.onclick = () => window.routeActiveStreamSource(i);
+    box.appendChild(btn);
   }
+}
+
+window.routeActiveStreamSource = async function(epIndex) {
+  currentEpisodeIndex = epIndex;
   
-  const playerBox = document.getElementById('player-box');
-  if (!playerBox) return;
-  
-  playerBox.innerHTML = '<iframe id="video-iframe" src="" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>';
-  const iframe = document.getElementById('video-iframe');
-  
-  // Appends base target endpoints out of current active provider mapping variables dynamically
-  const activeBaseUrl = PROVIDER_BASES[currentProvider] || PROVIDER_BASES.megaplay;
-  iframe.src = `${activeBaseUrl}/${window.currentMalId}/${epNum}/${currentLanguage}`;
-  
+  document.querySelectorAll('[id^="ep-btn-"]').forEach(b => {
+    b.className = "min-w-[40px] h-9 text-xs font-mono font-bold bg-dark-input hover:bg-neutral-800 rounded-xl border border-dark-border/60 text-gray-400 hover:text-white transition-all flex items-center justify-center";
+  });
+  const targetBtn = document.getElementById(`ep-btn-${epIndex}`);
+  if(targetBtn) {
+    targetBtn.className = "min-w-[40px] h-9 text-xs font-mono font-black dynamic-accent-bg bg-accent text-black rounded-xl border border-accent shadow-lg flex items-center justify-center scale-105";
+  }
+
   clearTimeout(streamLoadGuard);
-  streamLoadGuard = setTimeout(() => handleStreamMissingNotice(), 8000);
+  if (plyrInstance) {
+    plyrInstance.destroy();
+    plyrInstance = null;
+  }
+
+  const wrapper = document.getElementById('video-player-wrapper');
+  wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+  const videoElement = document.getElementById('video-iframe');
+
+  const anilistId = window.currentAnilistId || window.currentMalId;
+  let targetStreamUrl = "";
+
+  try {
+    // 1. RESOLVE MEGAPLAY DIRECT EMBED HARDCODED STREAM STRINGS ROUTE
+    if (activeProviderKey === 'megaplay') {
+      const activeBaseUrl = PROVIDER_BASES.megaplay;
+      // Replaced pure custom Plyr initialization layer for standard raw third-party iframe injection if required, 
+      // or map straight to fallback tracking streams structure parameters:
+      targetStreamUrl = `${activeBaseUrl}/${window.currentMalId}/${epIndex}/${currentLanguage}`;
+      
+      // Inject standard responsive iframe layer back over raw player layout tags since MegaPlay provides pre-built streams pages
+      wrapper.innerHTML = `<iframe id="video-iframe" src="${targetStreamUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
+      return;
+    } 
+    // 2. RESOLVE REANIME 302 BACKEND DIRECT REDIRECT ROUTING MAPS
+    else if (activeProviderKey === 'reanime') {
+      targetStreamUrl = `${ANIVEXA_BASE_API}/stream/reanime/${anilistId}/${currentLanguage}/${epIndex}`;
+      initializeHlsVideo(videoElement, targetStreamUrl);
+    } 
+    // 3. ATTEMPT ROUTING STANDARD API PARSED STREAM ENDPOINTS
+    else {
+      const watchResponse = await fetch(`${ANIVEXA_BASE_API}/watch/${activeProviderKey}/${anilistId}/${currentLanguage}/${activeProviderKey}-${epIndex}`);
+      const streamData = await watchResponse.json();
+      
+      targetStreamUrl = streamData.streamUrl || streamData.url || (streamData.sources && streamData.sources[0]?.url);
+      
+      if (targetStreamUrl) {
+        initializeHlsVideo(videoElement, targetStreamUrl);
+      } else {
+        throw new Error("Empty target pipeline stream source mapping index.");
+      }
+    }
+  } catch (err) {
+    console.error("Pipeline failure routing active stream node coordinates:", err);
+    handleStreamMissingNotice();
+  }
+}
+
+function initializeHlsVideo(videoElement, sourceUrl) {
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(sourceUrl);
+    hls.attachMedia(videoElement);
+    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+      plyrInstance = new Plyr(videoElement, {
+        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
+      });
+    });
+    
+    hls.on(Hls.Events.ERROR, function(event, data) {
+      if (data.fatal) {
+        handleStreamMissingNotice();
+      }
+    });
+  } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+    videoElement.src = sourceUrl;
+    plyrInstance = new Plyr(videoElement, {
+      controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
+    });
+  }
 }
 
 function handleStreamMissingNotice() {
-  const playerBox = document.getElementById('player-box');
-  if (!playerBox) return;
-  playerBox.innerHTML = `
-    <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] color-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
-      <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Mirror Unavailable</p>
-      <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The requested stream tracker "${currentProvider.toUpperCase()}" could not parse structural folder routes mapping for this episodic file tracking stream block.</p>
+  const wrapper = document.getElementById('video-player-wrapper');
+  if (!wrapper) return;
+  wrapper.innerHTML = `
+    <div class="w-full h-full flex flex-col justify-center items-center bg-[#111116] text-[#aaa] p-6 text-center rounded-xl border border-dark-border/40">
+      <p class="text-sm font-black text-accent tracking-wider uppercase mb-1">⚠️ Video Streaming Pipeline Fault</p>
+      <p class="text-[11px] text-gray-500 max-w-xs mx-auto mb-4 leading-normal">The tracking provider route "${activeProviderKey.toUpperCase()}" failed to resolve active playback links for Episode ${currentEpisodeIndex}.</p>
       <button onclick="window.switchToView('catalog')" class="dynamic-accent-bg bg-accent text-black font-bold px-5 py-2 rounded-full text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 transform active:scale-95 transition-transform">Return to Navigation Engine</button>
     </div>`;
 }
 
 window.setLanguage = function(lang) {
+  if (currentLanguage === lang) return;
   currentLanguage = lang;
   const subBtn = document.getElementById('sub-btn');
   const dubBtn = document.getElementById('dub-btn');
-  
-  if(lang === 'sub') {
-    subBtn.className = "lang-btn active px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white";
-    dubBtn.className = "lang-btn px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white";
+  if (lang === 'sub') {
+    subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
+    dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
   } else {
-    subBtn.className = "lang-btn px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white";
-    dubBtn.className = "lang-btn active px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white";
+    subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+    dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
   }
-  launchVideoPlayer(currentEpisodeIndex);
+  
+  if (window.currentMalId) {
+    window.routeActiveStreamSource(currentEpisodeIndex);
+  }
 }
-
-window.addEventListener("message", function (event) {
-  let data = event.data;
-  if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
-  if (data && (data.event === "playing" || data.event === "ready")) {
-    clearTimeout(streamLoadGuard);
-  }
-  if (data && data.event === "error") {
-    clearTimeout(streamLoadGuard);
-    handleStreamMissingNotice();
-  }
-});
 
 // ==========================================
 // 6. LIFE MATRIX BOOT INITIALIZER EXECUTION
