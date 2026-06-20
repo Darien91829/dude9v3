@@ -1,12 +1,15 @@
 // ==========================================
 // 1. GLOBAL STATE INITIALIZATION
 // ==========================================
+// CENTRALIZED VERCEL BACKEND PIPELINE SOURCE URL
 const ANIVEXA_BASE_API = "https://anivexa-api-eta.vercel.app";
 
+// Re-established hardcoded mirror tracker for megaplay fallback endpoints
 const PROVIDER_BASES = {
   megaplay: "https://megaplay.buzz/stream/mal"
 };
 
+// 8 operational backend tracking providers including MegaPlay
 const API_PROVIDERS = [
   { id: 'megaplay', name: 'MegaPlay' },
   { id: 'allmanga', name: 'AllManga' },
@@ -18,12 +21,13 @@ const API_PROVIDERS = [
   { id: 'animepahe', name: 'AnimePahe' }
 ];
 
-let activeProviderKey = 'megaplay'; 
+let activeProviderKey = 'megaplay'; // Default initialized starting state anchor back to megaplay
 let currentEpisodeIndex = 1;
 let currentLanguage = 'sub';
 let plyrInstance = null;
 let streamLoadGuard = null;
 
+// Track matching ID maps across standard environments globally
 window.currentMalId = "";
 window.currentAnilistId = "";
 window.activeAnimeTitle = "";
@@ -59,52 +63,39 @@ const colorProfiles = {
 // 2. INTERFACE OPERATIONS MANAGER (UI / VIEWS)
 // ==========================================
 window.switchToView = function(viewTarget) {
-  const views = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view', 'stream-dashboard-box'];
-  views.forEach(v => {
-    const el = document.getElementById(v);
-    if(el) el.style.display = 'none';
-  });
-
-  const searchEngine = document.getElementById('header-search-engine');
-  if(searchEngine) searchEngine.style.display = 'flex';
+  document.getElementById('landing-portal').style.display = 'none';
+  document.getElementById('main-exploration-hub').style.display = 'none';
+  document.getElementById('releases-focus-view').style.display = 'none';
+  document.getElementById('calendar-focus-view').style.display = 'none';
+  document.getElementById('stream-dashboard-box').style.display = 'none';
+  document.getElementById('header-search-engine').style.display = 'flex';
 
   document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+
   const viewTitle = document.getElementById('view-indicator-title');
 
   if (viewTarget === 'home') {
-    const lp = document.getElementById('landing-portal');
-    if(lp) lp.style.display = 'flex';
-    if(searchEngine) searchEngine.style.display = 'none';
-    const navHome = document.getElementById('side-nav-home');
-    if(navHome) navHome.classList.add('active');
+    document.getElementById('landing-portal').style.display = 'flex';
+    document.getElementById('header-search-engine').style.display = 'none';
+    document.getElementById('side-nav-home').classList.add('active');
     if(viewTitle) viewTitle.innerText = "Welcome Portal";
   } else if (viewTarget === 'catalog') {
-    const meh = document.getElementById('main-exploration-hub');
-    if(meh) meh.style.display = 'block';
-    const rcb = document.getElementById('recommendations-container-block');
-    if(rcb) rcb.style.display = 'block';
-    const scb = document.getElementById('sidebar-container-block');
-    if(scb) scb.style.display = 'block';
-    const gsc = document.getElementById('grid-split-container');
-    if(gsc) gsc.className = "lg:col-span-2 space-y-8";
-    const ght = document.getElementById('grid-header-title');
-    if(ght) ght.innerText = "Trending Media Records";
-    const navCatalog = document.getElementById('side-nav-catalog');
-    if(navCatalog) navCatalog.classList.add('active');
+    document.getElementById('main-exploration-hub').style.display = 'block';
+    document.getElementById('recommendations-container-block').style.display = 'block';
+    document.getElementById('sidebar-container-block').style.display = 'block';
+    document.getElementById('grid-split-container').className = "lg:col-span-2 space-y-8";
+    document.getElementById('grid-header-title').innerText = "Trending Media Records";
+    document.getElementById('side-nav-catalog').classList.add('active');
     if(viewTitle) viewTitle.innerText = "Catalog Exploration Matrix";
     loadMainHubFeeds();
   } else if (viewTarget === 'releases') {
-    const rf = document.getElementById('releases-focus-view');
-    if(rf) rf.style.display = 'block';
-    const navReleases = document.getElementById('side-nav-releases');
-    if(navReleases) navReleases.classList.add('active');
+    document.getElementById('releases-focus-view').style.display = 'block';
+    document.getElementById('side-nav-releases').classList.add('active');
     if(viewTitle) viewTitle.innerText = "Global Release Streams";
     fetchFullSeasonalReleases();
   } else if (viewTarget === 'calendar') {
-    const cf = document.getElementById('calendar-focus-view');
-    if(cf) cf.style.display = 'block';
-    const navCalendar = document.getElementById('side-nav-calendar');
-    if(navCalendar) navCalendar.classList.add('active');
+    document.getElementById('calendar-focus-view').style.display = 'block';
+    document.getElementById('side-nav-calendar').classList.add('active');
     if(viewTitle) viewTitle.innerText = "Broadcasting Track Scheduler";
     initCalendarTimelineLayout();
   }
@@ -113,7 +104,6 @@ window.switchToView = function(viewTarget) {
 window.toggleMainMenu = function() {
   const drawer = document.getElementById('main-menu-drawer');
   const overlay = document.getElementById('menu-overlay');
-  if(!drawer || !overlay) return;
   if (drawer.classList.contains('-translate-x-full')) {
     drawer.classList.remove('-translate-x-full');
     overlay.classList.remove('hidden');
@@ -125,12 +115,10 @@ window.toggleMainMenu = function() {
 
 window.homeReturnReset = function() {
   clearTimeout(streamLoadGuard);
-  if(plyrInstance) { try { plyrInstance.destroy(); } catch(e){} plyrInstance = null; }
+  if(plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
   window.switchToView('home');
-  const si = document.getElementById('search-input');
-  const hsi = document.getElementById('header-search-input');
-  if(si) si.value = "";
-  if(hsi) hsi.value = "";
+  document.getElementById('search-input').value = "";
+  document.getElementById('header-search-input').value = "";
 }
 
 function startSystemClock() {
@@ -149,20 +137,14 @@ function startSystemClock() {
 }
 
 window.openBottomSheet = function() {
-  const overlay = document.getElementById('sheet-overlay');
-  const menu = document.getElementById('bottom-sheet-menu');
-  if(overlay) overlay.style.display = 'block';
-  if(menu) {
-    setTimeout(() => { menu.classList.add('open'); }, 10);
-    menu.style.transform = "translateY(0)";
-  }
+  document.getElementById('sheet-overlay').style.display = 'block';
+  setTimeout(() => { document.getElementById('bottom-sheet-menu').classList.add('open'); }, 10);
+  document.getElementById('bottom-sheet-menu').style.transform = "translateY(0)";
 }
 
 window.closeBottomSheet = function() {
-  const menu = document.getElementById('bottom-sheet-menu');
-  const overlay = document.getElementById('sheet-overlay');
-  if(menu) menu.style.transform = "translateY(100%)";
-  setTimeout(() => { if(overlay) overlay.style.display = 'none'; }, 300);
+  document.getElementById('bottom-sheet-menu').style.transform = "translateY(100%)";
+  setTimeout(() => { document.getElementById('sheet-overlay').style.display = 'none'; }, 300);
 }
 
 window.applyCharacterPreset = function(profileKey) {
@@ -173,8 +155,7 @@ window.applyCharacterPreset = function(profileKey) {
   document.documentElement.style.setProperty('--character-accent-rgb', choice.rgb);
   localStorage.setItem('dude9anime-preset', profileKey);
   
-  const streamBox = document.getElementById('stream-dashboard-box');
-  if (streamBox && streamBox.style.display === 'block') {
+  if (document.getElementById('stream-dashboard-box').style.display === 'block') {
     updateProviderTabsUI();
   }
 }
@@ -199,50 +180,38 @@ async function loadMainHubFeeds() {
       displayTop10Sidebar(dataset.slice(0, 10));
     }
   } catch (err) { 
-    const rg = document.getElementById('results-grid');
-    if(rg) rg.innerHTML = "<p class='text-xs font-mono text-gray-600'>Network engine layout fallback routing triggered.</p>"; 
+    document.getElementById('results-grid').innerHTML = "<p class='text-xs font-mono text-gray-600'>Network engine layout fallback routing triggered.</p>"; 
   }
 }
 
 window.triggerCatalogSearch = async function(fromHeader = false) {
   const queryFieldId = fromHeader ? 'header-search-input' : 'search-input';
-  const field = document.getElementById(queryFieldId);
-  const query = field ? field.value.trim() : "";
+  const query = document.getElementById(queryFieldId).value.trim();
   if(!query) return alert("Parameter target strings missing expression parameters.");
 
-  const si = document.getElementById('search-input');
-  const hsi = document.getElementById('header-search-input');
-  if(si) si.value = query;
-  if(hsi) hsi.value = query;
+  document.getElementById('search-input').value = query;
+  document.getElementById('header-search-input').value = query;
 
-  const views = ['landing-portal', 'stream-dashboard-box'];
-  views.forEach(v => { const el = document.getElementById(v); if(el) el.style.display = 'none'; });
+  document.getElementById('landing-portal').style.display = 'none';
+  document.getElementById('stream-dashboard-box').style.display = 'none';
+  document.getElementById('main-exploration-hub').style.display = 'block';
+  document.getElementById('header-search-engine').style.display = 'flex';
+  document.getElementById('recommendations-container-block').style.display = 'none';
+  document.getElementById('sidebar-container-block').style.display = 'none';
+  document.getElementById('grid-split-container').className = "w-full space-y-8";
   
-  const meh = document.getElementById('main-exploration-hub'); if(meh) meh.style.display = 'block';
-  const hse = document.getElementById('header-search-engine'); if(hse) hse.style.display = 'flex';
-  const rcb = document.getElementById('recommendations-container-block'); if(rcb) rcb.style.display = 'none';
-  const scb = document.getElementById('sidebar-container-block'); if(scb) scb.style.display = 'none';
-  
-  const gsc = document.getElementById('grid-split-container');
-  if(gsc) gsc.className = "w-full space-y-8";
-  
-  const ght = document.getElementById('grid-header-title');
-  if(ght) ght.innerText = `Query Indexes matching: "${query}"`;
-  
-  const rg = document.getElementById('results-grid');
-  if(rg) rg.innerHTML = "<p class='text-xs text-gray-500 font-mono animate-pulse'>Executing system scan tracking vectors...</p>";
+  document.getElementById('grid-header-title').innerText = `Query Indexes matching: "${query}"`;
+  document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-500 font-mono animate-pulse'>Executing system scan tracking vectors...</p>";
   
   try {
     const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=16`);
     const json = await res.json();
-    if(rg) {
-      if(!json.data || json.data.length === 0) {
-        rg.innerHTML = "<p class='text-xs text-gray-600 font-mono'>Zero collection nodes matched string expression parameters.</p>";
-      } else {
-        displayGridFeed(json.data, 'results-grid');
-      }
+    if(!json.data || json.data.length === 0) {
+      document.getElementById('results-grid').innerHTML = "<p class='text-xs text-gray-600 font-mono'>Zero collection nodes matched string expression parameters.</p>";
+    } else {
+      displayGridFeed(json.data, 'results-grid');
     }
-  } catch (e) { if(rg) rg.innerHTML = "<p class='text-xs text-red-400 font-mono'>Query sequence engine timeout exception.</p>"; }
+  } catch (e) { document.getElementById('results-grid').innerHTML = "<p class='text-xs text-red-400 font-mono'>Query sequence engine timeout exception.</p>"; }
 }
 
 window.changeScheduleDay = function(targetDay) {
@@ -255,7 +224,6 @@ window.changeScheduleDay = function(targetDay) {
 
 async function fetchLiveReleasingSchedule(dayMode) {
   const scheduleBox = document.getElementById('schedule-box');
-  if(!scheduleBox) return;
   scheduleBox.innerHTML = '<p class="text-[10px] text-gray-600 font-mono p-4">Syncing timeline calendar coordinates...</p>';
   
   let currentDayIndex = new Date().getDay();
@@ -299,7 +267,7 @@ async function fetchLiveReleasingSchedule(dayMode) {
       scheduleBox.appendChild(div);
     });
   } catch (error) { 
-    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>`; 
+    scheduleBox.innerHTML = `<p class="text-[10px] text-red-500 font-mono p-4">Timeline mapping synchronizer fatal fault.</p>'; 
   }
 }
 
@@ -309,7 +277,6 @@ async function fetchLiveReleasingSchedule(dayMode) {
 async function initCalendarTimelineLayout() {
   const daysMatrixContainer = document.getElementById('calendar-days-matrix');
   const targetList = document.getElementById('airing-chronological-list');
-  if(!daysMatrixContainer || !targetList) return;
   
   daysMatrixContainer.innerHTML = '';
   targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full animate-pulse"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Rebuilding structural grid layout coordinates...</p>';
@@ -336,7 +303,6 @@ async function selectCalendarTimelineDay(dayName) {
   if(activeBtn) activeBtn.className = "py-2 rounded-xl border border-accent bg-accent text-black uppercase transition-all tracking-wider font-black";
 
   const targetList = document.getElementById('airing-chronological-list');
-  if(!targetList) return;
   targetList.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Syncing calendar row segments...</p>';
   
   try {
@@ -351,7 +317,6 @@ async function selectCalendarTimelineDay(dayName) {
 
 function renderCalendarGridItems(dataset) {
   const targetList = document.getElementById('airing-chronological-list');
-  if(!targetList) return;
   targetList.innerHTML = '';
 
   if(dataset.length === 0) {
@@ -381,8 +346,7 @@ function renderCalendarGridItems(dataset) {
 }
 
 window.filterCalendarGrid = function() {
-  const el = document.getElementById('calendar-search');
-  const query = el ? el.value.toLowerCase().trim() : "";
+  const query = document.getElementById('calendar-search').value.toLowerCase().trim();
   if(!query) {
     renderCalendarGridItems(calendarCachedDataset);
     return;
@@ -395,15 +359,13 @@ window.filterCalendarGrid = function() {
 }
 
 window.resetCalendarGridDay = function() {
-  const cs = document.getElementById('calendar-search');
-  if(cs) cs.value = "";
+  document.getElementById('calendar-search').value = "";
   const currentDayName = weekdays[new Date().getDay()];
   selectCalendarTimelineDay(currentDayName);
 }
 
 async function fetchFullSeasonalReleases() {
   const grid = document.getElementById('releases-api-grid');
-  if(!grid) return;
   grid.innerHTML = '<p class="text-xs text-gray-500 font-mono col-span-full"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Rebuilding layout cards configuration routing grids...</p>';
   try {
     const res = await fetch("https://api.jikan.moe/v4/seasons/now?limit=20");
@@ -432,7 +394,6 @@ async function fetchFullSeasonalReleases() {
 
 function displayScrollFeed(animeArray, elementId) {
   const container = document.getElementById(elementId);
-  if(!container) return;
   container.innerHTML = '';
   animeArray.forEach(anime => {
     const title = anime.title_english || anime.title;
@@ -453,7 +414,6 @@ function displayScrollFeed(animeArray, elementId) {
 
 function displayGridFeed(animeArray, elementId) {
   const container = document.getElementById(elementId);
-  if(!container) return;
   container.innerHTML = '';
   const cleanArray = animeArray || [];
   cleanArray.forEach(anime => {
@@ -475,7 +435,6 @@ function displayGridFeed(animeArray, elementId) {
 
 function displayTop10Sidebar(animeArray) {
   const container = document.getElementById('top10-box');
-  if(!container) return;
   container.innerHTML = '';
   animeArray.forEach((anime, idx) => {
     const title = anime.title_english || anime.title;
@@ -534,19 +493,20 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
   
   clearTimeout(streamLoadGuard);
 
-  const viewIds = ['landing-portal', 'main-exploration-hub', 'releases-focus-view', 'calendar-focus-view'];
-  viewIds.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
-
-  const sdb = document.getElementById('stream-dashboard-box'); if(sdb) sdb.style.display = 'block';
-  const hse = document.getElementById('header-search-engine'); if(hse) hse.style.display = 'flex';
+  document.getElementById('landing-portal').style.display = 'none';
+  document.getElementById('main-exploration-hub').style.display = 'none';
+  document.getElementById('releases-focus-view').style.display = 'none';
+  document.getElementById('calendar-focus-view').style.display = 'none';
+  document.getElementById('stream-dashboard-box').style.display = 'block';
+  document.getElementById('header-search-engine').style.display = 'flex';
   
-  const dt = document.getElementById('detail-title'); if(dt) dt.innerText = titleName;
-  const dp = document.getElementById('detail-poster'); if(dp) dp.src = window.activeImgUrl;
-  const de = document.getElementById('detail-episodes'); if(de) de.innerText = totalEpisodes;
+  document.getElementById('detail-title').innerText = titleName;
+  document.getElementById('detail-poster').src = window.activeImgUrl;
+  document.getElementById('detail-episodes').innerText = totalEpisodes;
 
-  const dtype = document.getElementById('detail-type'); if(dtype) dtype.innerText = "TV Series";
-  const drat = document.getElementById('detail-rating'); if(drat) drat.innerText = "Syncing...";
-  const dsyn = document.getElementById('detail-synopsis'); if(dsyn) dsyn.innerText = "Requesting tracking parameters from cross-platform database...";
+  document.getElementById('detail-type').innerText = "TV Series";
+  document.getElementById('detail-rating').innerText = "Syncing...";
+  document.getElementById('detail-synopsis').innerText = "Requesting tracking parameters from cross-platform database...";
 
   updateProviderTabsUI();
   buildEpisodeIndexButtons(totalEpisodes);
@@ -564,6 +524,7 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
       buildEpisodeIndexButtons(epData.length);
     }
   } catch(e) { 
+    console.warn("Backend dynamic map mapping sequence exception fallback to base values.");
     window.currentAnilistId = malId; 
   }
 
@@ -572,18 +533,17 @@ window.loadStreamingLayout = async function(malId, titleName, totalEpisodes, img
     const dataJson = await detailRes.json();
     const info = dataJson.data;
     if(info) {
-      if(dsyn) dsyn.innerText = info.synopsis || "No data record description parameters provided.";
-      if(dtype) dtype.innerText = info.type || "TV";
-      if(drat) drat.innerText = info.score || "?.??";
+      document.getElementById('detail-synopsis').innerText = info.synopsis || "No data record description parameters provided.";
+      document.getElementById('detail-type').innerText = info.type || "TV";
+      document.getElementById('detail-rating').innerText = info.score || "?.??";
     }
-  } catch(e) {}
+  } catch(e) { console.warn("Meta metadata sync non-fatal exception."); }
 
   window.routeActiveStreamSource(1);
 };
 
 function buildEpisodeIndexButtons(total) {
   const box = document.getElementById('episode-buttons');
-  if(!box) return;
   box.innerHTML = '';
   for (let i = 1; i <= total; i++) {
     const btn = document.createElement('button');
@@ -595,6 +555,7 @@ function buildEpisodeIndexButtons(total) {
   }
 }
 
+// Global helper function to parse streams list into functional grid links on the bottom
 function buildMirrorStreamLinkGrids(streamData) {
   const hlsContainer = document.getElementById('internal-player-links-grid') || document.getElementById('hls-links-grid');
   const embedContainer = document.getElementById('embed-mirrors-links-grid') || document.getElementById('iframe-links-grid');
@@ -602,6 +563,7 @@ function buildMirrorStreamLinkGrids(streamData) {
   if (hlsContainer) hlsContainer.innerHTML = '';
   if (embedContainer) embedContainer.innerHTML = '';
 
+  // 1. Render primary / direct source HLS links
   if (hlsContainer) {
     const mainUrl = streamData.streamUrl || streamData.url;
     if (mainUrl && (mainUrl.includes('.m3u8') || streamData.type === 'hls')) {
@@ -610,16 +572,15 @@ function buildMirrorStreamLinkGrids(streamData) {
       btn.innerHTML = `<i class="fa-solid fa-play text-accent mr-1.5 text-[9px]"></i>Primary HLS Stream`;
       btn.onclick = () => {
         const wrapper = document.getElementById('video-player-wrapper');
-        if(wrapper) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, mainUrl);
-        }
+        wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+        const videoElement = document.getElementById('video-iframe');
+        initializeHlsVideo(videoElement, mainUrl);
       };
       hlsContainer.appendChild(btn);
     }
   }
 
+  // 2. Scan and parse auxiliary array streams or multi-mirrors
   const mirrors = streamData.sources || streamData.mirrors || [];
   mirrors.forEach((track, i) => {
     const linkUrl = track.url || track.link;
@@ -631,13 +592,11 @@ function buildMirrorStreamLinkGrids(streamData) {
     if (linkUrl.includes('.m3u8') || track.type === 'hls' || track.type === 'm3u8') {
       btn.innerHTML = `<i class="fa-solid fa-bolt text-amber-400 mr-1.5 text-[9px]"></i>HLS Server ${i + 1}`;
       btn.onclick = () => {
-        if (plyrInstance) { try{plyrInstance.destroy();}catch(e){} plyrInstance = null; }
+        if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
         const wrapper = document.getElementById('video-player-wrapper');
-        if(wrapper) {
-          wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
-          const videoElement = document.getElementById('video-iframe');
-          initializeHlsVideo(videoElement, linkUrl);
-        }
+        wrapper.innerHTML = `<video id="video-iframe" controls playsinline class="w-full h-full rounded-xl bg-black"></video>`;
+        const videoElement = document.getElementById('video-iframe');
+        initializeHlsVideo(videoElement, linkUrl);
       };
       if (hlsContainer) hlsContainer.appendChild(btn);
     } else {
@@ -645,7 +604,7 @@ function buildMirrorStreamLinkGrids(streamData) {
       btn.onclick = () => {
         const wrapper = document.getElementById('video-player-wrapper');
         if (wrapper) {
-          if (plyrInstance) { try{plyrInstance.destroy();}catch(e){} plyrInstance = null; }
+          if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
           wrapper.innerHTML = `<iframe id="video-iframe" src="${linkUrl}" allowfullscreen scrolling="no" class="w-full h-full bg-black rounded-xl border border-dark-border/40"></iframe>`;
         }
       };
@@ -674,12 +633,11 @@ window.routeActiveStreamSource = async function(epIndex) {
 
   clearTimeout(streamLoadGuard);
   if (plyrInstance) {
-    try { plyrInstance.destroy(); } catch(e){}
+    plyrInstance.destroy();
     plyrInstance = null;
   }
 
   const wrapper = document.getElementById('video-player-wrapper');
-  if(!wrapper) return;
   const anilistId = window.currentAnilistId || window.currentMalId;
   let targetStreamUrl = "";
 
@@ -715,25 +673,24 @@ window.routeActiveStreamSource = async function(epIndex) {
         }
         buildMirrorStreamLinkGrids(streamData);
       } else {
-        throw new Error("Empty target stream source.");
+        throw new Error("Empty target pipeline stream source mapping index.");
       }
     }
   } catch (err) {
+    console.error("Pipeline failure routing active stream node coordinates:", err);
     handleStreamMissingNotice();
   }
 }
 
 function initializeHlsVideo(videoElement, sourceUrl) {
-  if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+  if (Hls.isSupported()) {
     const hls = new Hls();
     hls.loadSource(sourceUrl);
     hls.attachMedia(videoElement);
     hls.on(Hls.Events.MANIFEST_PARSED, function() {
-      if (typeof Plyr !== 'undefined') {
-        plyrInstance = new Plyr(videoElement, {
-          controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-        });
-      }
+      plyrInstance = new Plyr(videoElement, {
+        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
+      });
     });
     
     hls.on(Hls.Events.ERROR, function(event, data) {
@@ -743,11 +700,9 @@ function initializeHlsVideo(videoElement, sourceUrl) {
     });
   } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
     videoElement.src = sourceUrl;
-    if (typeof Plyr !== 'undefined') {
-      plyrInstance = new Plyr(videoElement, {
-        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
-      });
-    }
+    plyrInstance = new Plyr(videoElement, {
+      controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen']
+    });
   }
 }
 
@@ -772,14 +727,12 @@ window.setLanguage = function(lang) {
   currentLanguage = lang;
   const subBtn = document.getElementById('sub-btn');
   const dubBtn = document.getElementById('dub-btn');
-  if(subBtn && dubBtn) {
-    if (lang === 'sub') {
-      subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
-      dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-    } else {
-      subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
-      dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
-    }
+  if (lang === 'sub') {
+    subBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
+    dubBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+  } else {
+    subBtn.className = "px-3.5 py-1 text-xs font-bold text-gray-500 rounded-lg transition-all";
+    dubBtn.className = "px-3.5 py-1 text-xs font-bold rounded-lg transition-all dynamic-accent-bg bg-accent text-black";
   }
   
   if (window.currentMalId) {
@@ -787,6 +740,7 @@ window.setLanguage = function(lang) {
   }
 }
 
+// Autoplay Event Handshake Interceptor
 window.addEventListener("message", function (event) {
   let data = event.data;
   if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
@@ -802,10 +756,6 @@ window.addEventListener("message", function (event) {
 // 6. LIFE MATRIX BOOT INITIALIZER EXECUTION
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Establish the view structure state immediately on mount
-  window.switchToView('home');
-  // 2. Load presets safely
   loadSavedTheme();
-  // 3. Fire secondary asynchronous utilities
   startSystemClock();
 });
