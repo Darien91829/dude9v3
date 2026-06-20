@@ -8,13 +8,15 @@
 }
 
 body { 
-  font-family: 'Inter', 'Segoe UI', sans-serif; 
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; 
   transition: background-color 0.3s ease, color 0.3s ease; 
   background-color: #0f0f12;
   color: #e2e8f0;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Base structural utility style matches */
@@ -33,7 +35,8 @@ body {
 
 .bg-dark-input:focus {
   outline: none;
-  border-color: rgba(var(--accent-color-rgb), 0.4);
+  border-color: rgba(var(--accent-color-rgb), 0.5);
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.15);
 }
 
 .border-dark { 
@@ -71,7 +74,7 @@ body {
 /* Sidebar navigation item state tracers */
 .sidebar-item {
   border-left: 3px solid transparent;
-  transition: all 0.2s ease-in-out;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
 }
 
@@ -83,7 +86,7 @@ body {
 .sidebar-item.active {
   background-color: rgba(var(--accent-color-rgb), 0.08) !important;
   color: var(--accent-color) !important;
-  border-left: 3px solid var(--accent-color) !important;
+  border-left-color: var(--accent-color) !important;
   border-radius: 0px 12px 12px 0px;
 }
 
@@ -97,6 +100,8 @@ body {
   gap: 16px;
   padding-bottom: 8px;
   -webkit-overflow-scrolling: touch;
+  scrollbar-color: rgba(var(--accent-color-rgb), 0.25) #0f0f12;
+  scrollbar-width: thin;
 }
 
 .scroll-row::-webkit-scrollbar { 
@@ -121,6 +126,11 @@ body {
 /* ==========================================================================
    4. THIN VERTICAL SCROLL CHANNELS (EPISODES & CALENDARS)
    ========================================================================== */
+.scrollbar-thin {
+  scrollbar-color: #22222a transparent;
+  scrollbar-width: thin;
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
 }
@@ -161,7 +171,7 @@ body {
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .server-tab-btn:hover, .lang-btn:hover {
@@ -179,7 +189,6 @@ body {
 
 /* Quick Timing Sidebar Tab Fixes */
 .schedule-tab-btn.active {
-  color: #ffffff !important;
   background-color: var(--accent-color) !important;
   color: #000000 !important;
   font-weight: bold;
@@ -192,7 +201,7 @@ body {
   border: 1px solid #22222a;
   border-radius: 12px;
   padding: 10px;
-  transition: all 0.2s ease-in-out;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
 }
 
@@ -239,7 +248,8 @@ body {
 
 /* Fade animation helper utility */
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
 }
 
 @keyframes fadeIn {
