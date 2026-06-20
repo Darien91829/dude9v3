@@ -29,7 +29,7 @@ const API_PROVIDERS = [
 const MOCK_OFFLINE_EPISODES_PAYLOAD = [
   {
     provider: "allmanga",
-    episodes: [ // FIXED: Changed "=" to ":" to prevent JavaScript runtime failure
+    episodes: [ 
       { number: 1, id: "mock-ep-1", title: "Episode 1 (Offline Server Mirror)" },
       { number: 2, id: "mock-ep-2", title: "Episode 2 (Offline Server Mirror)" },
       { number: 3, id: "mock-ep-3", title: "Episode 3 (Offline Server Mirror)" },
@@ -71,22 +71,22 @@ window.currentPlyr = null;
 window.streamLoadGuard = null;
 
 const presets = {
-  subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false },
-  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true },
-  rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false },
-  ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false },
-  beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', textLight: false },
-  felt: { hex: '#eab308', bg: '#12110a', card: '#1c1a10', input: '#2a2718', textLight: false },
-  reinhard: { hex: '#dc2626', bg: '#140b0b', card: '#201111', input: '#2e1919', textLight: true },
-  crusch: { hex: '#059669', bg: '#0a120e', card: '#101c16', input: '#182b22', textLight: true },
-  felix: { hex: '#d97706', bg: '#140b0b', card: '#201911', input: '#2e2419', textLight: false },
-  priscilla: { hex: '#ef4444', bg: '#120a0a', card: '#1c1010', input: '#2a1818', textLight: true },
-  anastasia: { hex: '#f472b6', bg: '#140d11', card: '#20141b', input: '#2e1d27', textLight: false },
-  julius: { hex: '#818cf8', bg: '#0d0d14', card: '#141420', input: '#1e1e2e', textLight: true },
-  wilhelm: { hex: '#94a3b8', bg: '#0f1115', card: '#171a21', input: '#222630', textLight: false },
-  roswaal: { hex: '#4f46e5', bg: '#0b0a14', card: '#111020', input: '#19182e', textLight: true },
-  satella: { hex: '#6d28d9', bg: '#0a0812', card: '#100c1c', input: '#18122b', textLight: true },
-  echidna: { hex: '#e4e4e7', bg: '#101012', card: '#18181c', input: '#24242a', textLight: false }
+  subaru: { hex: '#f97316', bg: '#0f0f12', card: '#16161c', input: '#22222a', textLight: false, rgb: '249, 115, 22' },
+  emilia: { hex: '#c084fc', bg: '#0d0a12', card: '#14101c', input: '#1e182a', textLight: true, rgb: '192, 132, 252' },
+  rem: { hex: '#38bdf8', bg: '#090e14', card: '#101620', input: '#182230', textLight: false, rgb: '56, 189, 248' },
+  ram: { hex: '#fb7185', bg: '#140c0e', card: '#201317', input: '#2d1b20', textLight: false, rgb: '251, 113, 133' },
+  beatrice: { hex: '#fbbf24', bg: '#14110c', card: '#201a12', input: '#2d251a', textLight: false, rgb: '251, 191, 36' },
+  felt: { hex: '#eab308', bg: '#12110a', card: '#1c1a10', input: '#2a2718', textLight: false, rgb: '234, 179, 8' },
+  reinhard: { hex: '#dc2626', bg: '#140b0b', card: '#201111', input: '#2e1919', textLight: true, rgb: '220, 38, 38' },
+  crusch: { hex: '#059669', bg: '#0a120e', card: '#101c16', input: '#182b22', textLight: true, rgb: '5, 150, 105' },
+  felix: { hex: '#d97706', bg: '#140b0b', card: '#201911', input: '#2e2419', textLight: false, rgb: '217, 119, 6' },
+  priscilla: { hex: '#ef4444', bg: '#120a0a', card: '#1c1010', input: '#2a1818', textLight: true, rgb: '239, 68, 68' },
+  anastasia: { hex: '#f472b6', bg: '#140d11', card: '#20141b', input: '#2e1d27', textLight: false, rgb: '244, 114, 182' },
+  julius: { hex: '#818cf8', bg: '#0d0d14', card: '#141420', input: '#1e1e2e', textLight: true, rgb: '129, 140, 248' },
+  wilhelm: { hex: '#94a3b8', bg: '#0f1115', card: '#171a21', input: '#222630', textLight: false, rgb: '148, 163, 184' },
+  roswaal: { hex: '#4f46e5', bg: '#0b0a14', card: '#111020', input: '#19182e', textLight: true, rgb: '79, 70, 229' },
+  satella: { hex: '#6d28d9', bg: '#0a0812', card: '#100c1c', input: '#18122b', textLight: true, rgb: '109, 40, 217' },
+  echidna: { hex: '#e4e4e7', bg: '#101012', card: '#18181c', input: '#24242a', textLight: false, rgb: '228, 228, 231' }
 };
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -113,9 +113,9 @@ function applyCharacterPreset(name) {
   document.querySelectorAll('.bg-dark-input').forEach(el => el.style.backgroundColor = p.input);
   document.querySelectorAll('.border-dark').forEach(el => el.style.borderColor = p.input);
   
-  // Custom theme properties setup for CSS stylesheet maps
+  // Dynamic design variables initialization
   document.documentElement.style.setProperty('--character-accent', p.hex);
-  document.documentElement.style.setProperty('--character-accent-rgb', name === 'subaru' ? '249, 115, 22' : name === 'emilia' ? '192, 132, 252' : name === 'rem' ? '56, 189, 248' : '249, 115, 22');
+  document.documentElement.style.setProperty('--character-accent-rgb', p.rgb);
   document.documentElement.style.setProperty('--preset-text-color', p.textLight ? '#ffffff' : '#000000');
 
   document.querySelectorAll('.dynamic-accent-text').forEach(el => el.style.color = p.hex);
@@ -1208,6 +1208,12 @@ async function launchVideoPlayer(epNum) {
   currentEpisodeIndex = epNum;
   updateEpisodeButtonsUI();
 
+  // Reset core element views and overlay items immediately upon invocation
+  const videoCore = document.getElementById('video-iframe');
+  if (videoCore) videoCore.classList.remove('hidden');
+  const overlayNotice = document.getElementById('notice-overlay');
+  if (overlayNotice) overlayNotice.classList.add('hidden');
+
   if (activeProviderMode === 'megaplay') {
     const layoutWrapper = document.getElementById('video-player-wrapper');
     const oldGrid = document.getElementById('sub-server-links-grid');
@@ -1365,11 +1371,7 @@ window.addEventListener("message", function (event) {
   if (data.event === "error" || data.status === "error") {
     clearTimeout(window.streamLoadGuard);
     window.streamLoadGuard = null;
-    
-    const targetIframe = document.getElementById('video-iframe');
-    if (targetIframe && targetIframe.src === "") {
-      handleStreamMissingNotice();
-    }
+    handleStreamMissingNotice();
     return;
   }
 
