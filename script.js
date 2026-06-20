@@ -1,3 +1,7 @@
+// ==========================================================================
+// FULLY REWRITTEN & OPTIMIZED SCRIPT.JS WITH ADVANCED MEGAPLAY PATCH
+// ==========================================================================
+
 const JIKAN_BASE = "https://api.jikan.moe/v4";
 
 // YOUR STANDALONE STREAMING API HOSTED ON VERCEL
@@ -421,7 +425,7 @@ async function loadRecentReleases() {
         loadStreamingLayout(mappedId, anime.mal_id, anime.title_english || anime.title);
       });
 
-      targetGrid.appendChild(cardFrame);
+      targetGrid.appendChild(anime);
     });
 
   } catch (error) {
@@ -705,7 +709,7 @@ function displayScrollFeed(animeArray, elementId) {
     div.onclick = async () => {
       let linkedAniId = anime.mal_id;
       try {
-        const lookup = await fetch(`https://graphql.anilist.co', {
+        const lookup = await fetch(`https://graphql.anilist.co`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: `query($id: Int) { Media(idMal: $id, type: ANIME) { id } }`, variables: { id: anime.mal_id } })
         });
@@ -1335,24 +1339,46 @@ function updateLanguageButtonsUI() {
   });
 }
 
-// Autoplay Event Handshake Interceptor
+// Autoplay & Message Handshake Interceptor
 window.addEventListener("message", function (event) {
   let data = event.data;
-  if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
   
-  // Clear the failure load-guard if MegaPlay posts a ready signal handshake back to us
-  if (data && (data.event === "playing" || data.event === "ready")) {
-    clearTimeout(window.streamLoadGuard);
+  // If it's an unparsed JSON string, attempt to parse it cleanly.
+  if (typeof data === "string") { 
+    try { 
+      data = JSON.parse(data); 
+    } catch (e) { 
+      // Stop right here if it's plain text data or third-party subtitles cue tracks
+      return; 
+    } 
   }
   
-  if (data && data.event === "error") {
+  // Safety fallback: ensure data is a proper object layout before processing keys
+  if (!data || typeof data !== 'object') return;
+  
+  // Clear the missing stream watchdog if MegaPlay returns structural play actions
+  if (data.event === "playing" || data.event === "ready") {
     clearTimeout(window.streamLoadGuard);
-    handleStreamMissingNotice();
+    return;
+  }
+  
+  // Strict check for legitimate streaming errors
+  if (data.event === "error" || data.status === "error") {
+    clearTimeout(window.streamLoadGuard);
+    // Only fire missing warning overlay if the player hasn't initialized any source
+    const targetIframe = document.getElementById('video-iframe');
+    if (targetIframe && targetIframe.src === "") {
+      handleStreamMissingNotice();
+    }
+    return;
   }
 
-  if (data && (data.event === "complete" || data.event === "ended" || data.status === "finished")) {
+  // Handle standard finished tracks tracking to trigger the Autoplay function
+  if (data.event === "complete" || data.event === "ended" || data.status === "finished") {
     const nextEp = currentEpisodeIndex + 1;
-    if (nextEp <= window.activeMaxEpisodes) launchVideoPlayer(nextEp);
+    if (nextEp <= window.activeMaxEpisodes) {
+      launchVideoPlayer(nextEp);
+    }
   }
 });
 
